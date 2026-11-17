@@ -51,7 +51,8 @@ Acceptance does not merge, push, or delete a workspace.
    modes. `--run-codex` explicitly executes with a required database and stdin
    prompt, preserving known events and non-simulated run origin. Fake tests cover
    resume identity, cancellation, malformed output, and checkpoint refusal.
-   Installed Codex, gateway, sandbox, and live UI integration remain unverified.
+   Installed Codex 0.166.0 execution and resume pass an isolated loopback fixture.
+   Real gateway, sandbox enforcement, and live UI integration remain unverified.
 6. **Gateway setup — validation and provider builder complete; integration pending.**
    `Gateway` validates a capped non-secret TOML file, HTTPS/loopback endpoints, and
    environment-key references without reading secrets or contacting the network.

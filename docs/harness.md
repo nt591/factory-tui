@@ -187,3 +187,15 @@ python3 scripts/smoke-execution.py
 Unit tests cover persistence, explicit resume, mismatched identity, malformed
 harness output, cancellation, and checkpoint refusal. These do not prove live
 Codex, model gateway, or platform sandbox compatibility.
+
+## Installed Codex loopback verification
+
+```sh
+python3 scripts/smoke-codex-local.py --codex /absolute/path/to/codex
+```
+
+This opt-in check uses isolated temporary HOME/CODEX_HOME, a dummy key, and a
+loopback Responses server. It verifies execution, persisted Ready state, streamed
+answer, and same-thread resume through the OCaml CLI. Verified November 17, 2026
+with codex-cli 0.166.0. No real model gateway or credentials are used. Tool execution
+and platform sandbox enforcement are not exercised by the fixed-answer fixture.
