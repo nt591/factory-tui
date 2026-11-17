@@ -49,7 +49,19 @@ Use standard OCaml first. OxCaml is not required by this prototype.
 - Four columns: Queued, Working, Needs you, Ready. `d` opens accepted tasks.
 - Wide terminals place the board and task detail side by side. Medium terminals
   stack them. Narrow terminals use a compact task list with expandable detail.
-- Tab cycles Board, Conversation, and Activity. The focused pane is highlighted.
+- Tab / Shift-Tab cycle panes forward / backward. The focused pane is highlighted.
+- Vim navigation in normal mode:
+  - `h/l`: previous / next nonempty column; `j/k`: next / previous card.
+  - `gg` / `G`: first / last card in the current column (or archive).
+  - Counts repeat moves: `3j`, `2l`. Counts are capped at 999.
+  - In task detail, `j/k` scroll one line; `gg/G` go to top / bottom.
+  - Ctrl-U / Ctrl-D move half a page; Ctrl-B / Ctrl-F move a full page.
+    On the board, these move selection by the visible card capacity.
+  - Ctrl-W then `h/j/k/l` focuses Board / Conversation / Activity by direction;
+    Ctrl-W `w` cycles panes. Expanded mode keeps focus inside task detail.
+  - `i` enters the reply composer; Escape returns to normal mode and keeps the draft.
+    Navigation keys are literal text while composing or searching.
+  - Pending counts and `g` / Ctrl-W prefixes appear in the status line.
 - Arrow keys or `hjkl` navigate. Mouse wheel and Page Up/Down scroll.
   Conversations follow new messages until you scroll back; End resumes following.
 - `/` searches title, repository, or task ID. Escape clears the finished search.

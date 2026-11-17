@@ -101,6 +101,18 @@ try:
     check("simulation is visible", "SIMULATION" in text())
     rss = subprocess.check_output(["ps", "-o", "rss=", "-p", str(process.pid)], text=True).strip()
     print(f"Idle RSS sample: {int(rss) / 1024:.1f} MiB")
+    send(b"h2j")
+    check("counted vim motion selects card", "T-106 / Queued / conversation" in text())
+    send(b"gg")
+    check("gg selects first card", "T-101 / Queued / conversation" in text())
+    send(b"G")
+    check("G selects last card", "T-106 / Queued / conversation" in text())
+    send(b"\x17l")
+    send(b"ggG")
+    check("Ctrl-W pane navigation survives", process.poll() is None)
+    send(b"\x17k")
+    send(b"gg")
+    check("Ctrl-W k returns to board", "T-101 / Queued / conversation" in text())
     if args.preview:
         preview(args.preview)
     # SGR mouse positions are one-based terminal cells.

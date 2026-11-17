@@ -105,6 +105,9 @@ let render t ~width:cols ~height:rows =
           List.map (fun row -> text, row) (wrap inner m.text) @ [muted, ""]) task.messages in
         task.id ^ " / " ^ label task.state ^ " / conversation", rows in
     let available = max 0 (r.h - 2) in
+    if t.focus = Conversation then (
+      t.page_rows <- max 1 available;
+      t.scroll <- min t.scroll (max 0 (List.length rows - available)));
     let offset = max 0 (List.length rows - available - t.scroll) in
     let rows = List.filteri (fun i _ -> i >= offset) rows in
     let content = I.vcat (List.map (fun (color, text) -> I.hpad 1 1 (line inner (attr color) text)) rows) in
@@ -120,6 +123,9 @@ let render t ~width:cols ~height:rows =
            "updates: " ^ string_of_int task.revision; ""] @
           (if task.tools = [] then ["No tool activity yet."]
            else List.concat_map (fun (_, detail) -> wrap inner detail @ [""]) task.tools) in
+    if t.focus = Activity then (
+      t.page_rows <- max 1 (r.h - 2);
+      t.scroll <- min t.scroll (max 0 (List.length rows - max 0 (r.h - 2))));
     let offset = if t.focus = Activity then min t.scroll (max 0 (List.length rows - max 0 (r.h - 2))) else 0 in
     let content = I.vcat (List.filteri (fun i _ -> i >= offset) rows |> List.map (fun row ->
       I.hpad 1 1 (line inner (attr muted) row))) in
@@ -138,6 +144,7 @@ let render t ~width:cols ~height:rows =
     if r.w < 88 || t.archive then (
       let content_width = max 1 (r.w - 2) in
       let capacity = max 0 (r.h - 2) in
+      if t.focus = Board then t.page_rows <- max 1 capacity;
       let selected_index =
         let rec find i = function [] -> 0 | (task : task) :: _ when task.id = t.selected -> i | _ :: rest -> find (i + 1) rest in
         find 0 tasks in
@@ -157,6 +164,7 @@ let render t ~width:cols ~height:rows =
         let w = if column = 3 then r.w - column * col_w else col_w in
         let items = List.filter (fun (task : task) -> task.state = state) tasks in
         let capacity = max 0 ((r.h - 2) / 6) in
+        if t.focus = Board then t.page_rows <- max 1 capacity;
         let selected_index =
           let rec find i = function [] -> 0 | (task : task) :: _ when task.id = t.selected -> i | _ :: rest -> find (i + 1) rest in find 0 items in
         let offset = if t.board_scroll > 0 then min t.board_scroll (max 0 (List.length items - capacity))
@@ -190,8 +198,12 @@ let render t ~width:cols ~height:rows =
       board {x = 0; y = body_y; w = cols; h = top};
       details {x = 0; y = body_y + top; w = cols; h = body_h - top})
     else board {x = 0; y = body_y; w = cols; h = body_h});
+  let pending_keys =
+    (if t.count = 0 then "" else string_of_int t.count) ^
+    (match t.prefix with No_prefix -> "" | Go -> "g" | Window -> "Ctrl-W ") in
   let input_text = match t.input with
-    | Normal -> (if draft t <> "" then " Draft saved. i to edit | " else " ") ^ t.status
+    | Normal -> (if draft t <> "" then " Draft saved. i to edit | " else " ") ^
+        (if pending_keys = "" then "" else "[" ^ pending_keys ^ "] ") ^ t.status
     | Search -> " Search: " ^ t.query ^ "▏  [Enter finish / Esc close]"
     | Compose -> " Reply (queued): " ^ draft t ^ "▏  [Enter send / Esc keep draft]"
     | New_task -> " New task: " ^ t.new_title ^ "▏  [Enter create / Esc cancel]" in
@@ -206,14 +218,17 @@ let render t ~width:cols ~height:rows =
       paint !x (rows - 2) (line w (emphasis accent) (" " ^ title ^ " "));
       hit !x (rows - 2) w 1 action; x := !x + w)) buttons;
   if rows >= 1 then paint 0 (rows - 1) (line cols A.(fg muted ++ bg background)
-    " Mouse: select / double-click expand · Tab: pane · hjkl/arrows: navigate · PgUp/PgDn: scroll · Esc: back");
+    " hjkl: move · gg/G: first/last · Ctrl-W hjkl: pane · Ctrl-U/D: half-page · Ctrl-B/F: page · e: zoom · Esc: back");
   if t.help then (
-    let w = min 82 cols and h = min 20 rows in
+    let w = min 82 cols and h = min 24 rows in
     let help_rows = ["FACTORY / terminal prototype"; "";
       "Click a task to select it. Double-click or Enter/e to expand.";
       "Tab cycles Board, Conversation, Activity. Focus is bordered.";
-      "Arrow keys or hjkl navigate tasks and scroll the focused pane.";
-      "Mouse wheel and Page Up/Down scroll. Home: top. End: follow.";
+      "hjkl/arrows move. Counts repeat movement (for example, 3j).";
+      "gg / G: first / last task in a column, or top / bottom of a pane.";
+      "Ctrl-W then hjkl: pane left / down / up / right. Ctrl-W w: cycle.";
+      "Ctrl-U/D: half-page. Ctrl-B/F: full-page. Tab/Shift-Tab: cycle.";
+      "Mouse wheel and Page Up/Down scroll. Home/End: first/last.";
       "/ filters task title, ID, and repository. Escape clears search.";
       "i opens the reply composer. Enter queues a reply for the next run.";
       "n creates an in-memory task. s starts a simulated run.";
@@ -233,6 +248,7 @@ let render t ~width:cols ~height:rows =
 let mouse t frame ~now = function
   | `Press `Left, (x, y), _ ->
       if not t.help && t.input = Normal then (
+        reset_keys t;
         match hit_at frame x y with
         | Some (Select id) ->
             let double = match t.last_click with Some (previous, time) -> previous = id && now -. time < 0.4 | None -> false in
@@ -242,6 +258,7 @@ let mouse t frame ~now = function
         | None -> t.last_click <- None)
   | `Press (`Scroll direction), (x, y), _ ->
       if not t.help && t.input = Normal then (
+        reset_keys t;
         (match hit_at frame x y with Some (Focus focus) -> t.focus <- focus | Some (Select _) -> t.focus <- Board | _ -> ());
         let delta = if direction = `Up then -1 else 1 in
         if t.focus = Board && not t.zoom then t.board_scroll <- max 0 (t.board_scroll + delta)

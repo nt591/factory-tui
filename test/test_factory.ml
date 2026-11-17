@@ -102,6 +102,92 @@ let () =
   check "wide characters wrap by terminal cells" (Ui.wrap 3 "界界" = ["界"; "界"]);
   check "card titles wrap on words" (Ui.wrap_title 24 "Mouse hit-testing and task zoom" = ["Mouse hit-testing and"; "task zoom"]);
   check "newlines wrap" (Ui.wrap 8 "a\nb" = ["a"; "b"]);
+  let vim = Controller.create ~external_events:true () in
+  let key char = Controller.key vim (`ASCII char, []) in
+  let ctrl char = Controller.key vim (`ASCII char, [`Ctrl]) in
+  let select id = Controller.act vim (Controller.Select id) in
+  select "T-101";
+  key 'j'; check "vim j selects next card" (vim.selected = "T-105");
+  key 'k'; check "vim k selects previous card" (vim.selected = "T-101");
+  key 'l'; check "vim l selects next column" (vim.selected = "T-102");
+  key 'h'; check "vim h selects previous column" (vim.selected = "T-101");
+  key '2'; key 'j'; check "counted j moves two cards" (vim.selected = "T-106" && vim.count = 0);
+  key 'g'; check "g awaits second key" (vim.prefix = Controller.Go && vim.selected = "T-106");
+  key 'g'; check "gg selects first card in column" (vim.selected = "T-101");
+  key 'G'; check "G selects last card in column" (vim.selected = "T-106");
+  key '9'; key '9'; key '9'; key '9'; check "counts are bounded" (vim.count = 999);
+  key 'k'; check "large count clamps selection" (vim.selected = "T-101");
+  key '2'; key 'l'; check "counted horizontal navigation" (vim.selected = "T-103");
+  ctrl 'w'; key 'l'; check "Ctrl-W l focuses conversation" (vim.focus = Controller.Conversation);
+  key 'h'; check "detail h does not change selected task" (vim.selected = "T-103");
+  ctrl 'w'; key 'l'; check "Ctrl-W l focuses activity" (vim.focus = Controller.Activity);
+  ctrl 'w'; key 'h'; check "Ctrl-W h focuses conversation" (vim.focus = Controller.Conversation);
+  ctrl 'w'; key 'k'; check "Ctrl-W k focuses board" (vim.focus = Controller.Board);
+  ctrl 'w'; key 'j'; check "Ctrl-W j focuses conversation" (vim.focus = Controller.Conversation);
+  ctrl 'w'; ctrl 'w'; check "Ctrl-W Ctrl-W cycles panes" (vim.focus = Controller.Activity);
+  ctrl 'w'; ctrl 'h'; check "Ctrl-W Ctrl-H navigates panes" (vim.focus = Controller.Conversation);
+  Controller.key vim (`Tab, [`Shift]); check "Shift-Tab cycles backwards" (vim.focus = Controller.Board);
+  Controller.act vim Controller.Zoom;
+  ctrl 'w'; key 'k'; check "expanded panes never focus hidden board" (vim.focus = Controller.Conversation);
+  Controller.key vim (`Tab, [`Shift]); check "expanded reverse cycle stays visible" (vim.focus = Controller.Activity);
+  Controller.key vim (`Escape, []); check "Escape restores board focus" (not vim.zoom && vim.focus = Controller.Board);
+  select "T-101"; vim.page_rows <- 2;
+  ctrl 'd'; check "Ctrl-D moves half-page on board" (vim.selected = "T-105" && not vim.archive);
+  ctrl 'f'; check "Ctrl-F moves full-page without pausing" (vim.selected = "T-106" && not vim.paused);
+  ctrl 'b'; check "Ctrl-B moves full-page backwards" (vim.selected = "T-101");
+  ctrl 'd'; ctrl 'u'; check "Ctrl-U moves half-page backwards" (vim.selected = "T-101");
+  Controller.act vim (Controller.Focus Controller.Activity);
+  key 'j'; check "activity j scrolls one row" (vim.scroll = 1);
+  key '3'; key 'j'; check "counted activity motion" (vim.scroll = 4);
+  key 'k'; check "activity k scrolls up" (vim.scroll = 3);
+  key 'g'; key 'g'; check "activity gg goes to top" (vim.scroll = 0);
+  vim.page_rows <- 10; ctrl 'd'; check "activity half-page uses viewport" (vim.scroll = 5);
+  ctrl 'f'; check "activity full-page uses viewport" (vim.scroll = 15);
+  Controller.act vim (Controller.Focus Controller.Conversation);
+  key 'k'; check "conversation k scrolls back" (vim.scroll = 16);
+  key 'j'; check "conversation j scrolls forward" (vim.scroll = 15);
+  key 'G'; check "conversation G resumes following" (vim.scroll = 0);
+  key 'g'; key 'g'; ignore (Ui.render vim ~width:120 ~height:36);
+  check "conversation top scroll clamps to content" (vim.scroll < 1_000_000);
+  select "T-101";
+  key 'g'; Controller.key vim (`Escape, []); key 'g';
+  check "Escape cancels pending gg" (vim.prefix = Controller.Go);
+  key '2'; key 'i';
+  check "entering composer clears prefixes" (vim.prefix = Controller.No_prefix && vim.count = 0);
+  List.iter key ['g'; 'g'; 'G'; 'h'; 'j'; 'k'; 'l'; '3'];
+  ctrl 'w'; ctrl 'd';
+  check "vim keys are literal in composer" (Controller.draft vim = "ggGhjkl3" && vim.focus = Controller.Conversation);
+  Controller.key vim (`Escape, []);
+  key '9';
+  let frame = Ui.render vim ~width:120 ~height:36 in
+  let hit = List.find (fun (hit : Ui.hit) -> hit.action = Controller.Select "T-101") frame.hits in
+  Ui.mouse vim frame ~now:4. (`Press `Left, (hit.rect.x, hit.rect.y), []);
+  check "mouse clears pending count" (vim.count = 0 && vim.prefix = Controller.No_prefix);
+  key 'g'; key 'z'; key 'g'; check "unknown key cancels gg prefix" (vim.prefix = Controller.Go);
+  Controller.key vim (`Escape, []);
+  Controller.act vim Controller.Begin_search;
+  List.iter key ['g'; 'g'; '3'; 'j'];
+  check "search treats motions as text" (vim.query = "gg3j");
+  let raw = Controller.create ~external_events:true () in
+  let decode text =
+    let parser = Notty.Unescape.create () in
+    let bytes = Bytes.of_string text in
+    Notty.Unescape.input parser bytes 0 (Bytes.length bytes);
+    let rec loop () = match Notty.Unescape.next parser with
+      | `Key key -> Controller.key raw key; loop ()
+      | `Await | `End -> () | _ -> loop () in
+    loop () in
+  decode "\023l";
+  check "terminal Ctrl-W bytes focus conversation" (raw.focus = Controller.Conversation);
+  decode "\023k";
+  check "terminal Ctrl-W k focuses board" (raw.focus = Controller.Board);
+  Controller.act raw (Controller.Select "T-101"); raw.page_rows <- 2;
+  decode "\004"; check "terminal Ctrl-D bytes navigate" (raw.selected = "T-105" && not raw.archive);
+  decode "\003"; check "terminal Ctrl-C bytes quit" raw.quit;
+  let empty = Controller.create ~external_events:true () in
+  empty.query <- "no such task"; Controller.repair_selection empty;
+  List.iter (fun char -> Controller.key empty (`ASCII char, [])) ['g'; 'g'; 'G'; 'j'; 'h'];
+  check "vim navigation tolerates empty board" (empty.selected = "");
   let path = Filename.temp_file "factory-events" ".jsonl" in
   Fun.protect ~finally:(fun () -> Sys.remove path) (fun () ->
     let out = open_out path in

@@ -2,6 +2,7 @@ open Model
 
 type focus = Board | Conversation | Activity
 type input = Normal | Search | Compose | New_task
+type prefix = No_prefix | Go | Window
 type action =
   | Select of string | Zoom | Focus of focus | Start | Stop | Accept
   | Toggle_archive | Toggle_pause | Help | Quit | Begin_search | Begin_compose | Begin_new
@@ -25,6 +26,9 @@ type t = {
   mutable serial : int;
   mutable schedules : (float * envelope) list;
   mutable last_click : (string * float) option;
+  mutable prefix : prefix;
+  mutable count : int;
+  mutable page_rows : int;
   external_events : bool;
 }
 
@@ -36,7 +40,7 @@ let create ?(external_events = false) () =
     quit = false; serial = 200;
     schedules = if external_events then [] else
       List.map (fun (delay, e) -> Unix.gettimeofday () +. delay, e) (Demo.schedule "T-102" "demo-102");
-    last_click = None; external_events }
+    last_click = None; prefix = No_prefix; count = 0; page_rows = 12; external_events }
 
 let contains text query =
   let text = String.lowercase_ascii text and query = String.lowercase_ascii query in
@@ -54,6 +58,7 @@ let set_draft t text = t.drafts <- (t.selected, text) :: List.remove_assoc t.sel
 let next_id t prefix = t.serial <- t.serial + 1; Printf.sprintf "%s-%d" prefix t.serial
 let replace t (task : task) = t.tasks <- List.map (fun (old : task) -> if old.id = task.id then task else old) t.tasks
 let result t = function Ok task -> replace t task | Error error -> t.status <- error
+let reset_keys t = t.prefix <- No_prefix; t.count <- 0
 let select t id = t.selected <- id; t.scroll <- 0; t.board_scroll <- 0
 let repair_selection t =
   if not (List.exists (fun (task : task) -> task.id = t.selected) (visible t)) then
@@ -66,7 +71,9 @@ let tick t now =
     t.schedules <- later;
     List.iter (fun (_, event) -> receive t event) due)
 
-let act t = function
+let act t action =
+  reset_keys t;
+  match action with
   | Select id -> select t id; t.focus <- Board
   | Focus focus -> t.focus <- focus
   | Zoom -> t.zoom <- not t.zoom; t.focus <- Conversation; t.scroll <- 0
@@ -143,24 +150,38 @@ let submit t = match t.input with
         t.archive <- false; t.query <- ""; select t id; t.input <- Normal;
         t.status <- "Task created in memory. Start runs a simulated fixture.")
 
-let navigate t direction =
+let ordered_tasks t =
   let tasks = visible t in
-  let tasks = if t.archive then tasks else
-    List.concat_map (fun state -> List.filter (fun (task : task) -> task.state = state) tasks) columns in
-  let move_in list delta =
-    let rec index i = function
-      | [] -> 0 | (task : task) :: _ when task.id = t.selected -> i | _ :: rest -> index (i + 1) rest in
-    if list <> [] then select t (List.nth list (max 0 (min (List.length list - 1) (index 0 list + delta)))).id in
+  if t.archive then tasks else
+    List.concat_map (fun state -> List.filter (fun (task : task) -> task.state = state) tasks) columns
+
+let navigation_tasks t =
+  let tasks = ordered_tasks t in
+  match selected t with
+  | Some task when not t.archive -> List.filter (fun (x : task) -> x.state = task.state) tasks
+  | _ -> tasks
+
+let move_in t tasks delta =
+  let rec index i = function
+    | [] -> 0
+    | (task : task) :: _ when task.id = t.selected -> i
+    | _ :: rest -> index (i + 1) rest in
+  if tasks <> [] then
+    select t (List.nth tasks (max 0 (min (List.length tasks - 1) (index 0 tasks + delta)))).id
+
+let scroll t delta =
+  let delta = if t.focus = Activity then delta else -delta in
+  t.scroll <- max 0 (min 1_000_000 (t.scroll + delta))
+
+let navigate t direction =
   match direction with
   | `Up | `Down ->
       let delta = if direction = `Up then -1 else 1 in
-      if t.focus <> Board || t.zoom then
-        t.scroll <- max 0 (t.scroll + (if t.focus = Activity then delta else -delta) * 2)
-      else (let list = match selected t with
-        | Some task when not t.archive -> List.filter (fun (x : task) -> x.state = task.state) tasks
-        | _ -> tasks in move_in list delta)
+      if t.focus <> Board || t.zoom then scroll t delta
+      else move_in t (navigation_tasks t) delta
   | `Left | `Right ->
-      if t.archive then move_in tasks (if direction = `Left then -1 else 1)
+      if t.focus <> Board || t.zoom then ()
+      else if t.archive then move_in t (ordered_tasks t) (if direction = `Left then -1 else 1)
       else match selected t with
         | None -> ()
         | Some task ->
@@ -169,13 +190,106 @@ let navigate t direction =
             | [] -> () | state :: rest when state = task.state -> next rest | _ :: rest -> find rest
           and next = function
             | [] -> () | state :: rest ->
-                (match List.find_opt (fun (x : task) -> x.state = state) tasks with
+                (match List.find_opt (fun (x : task) -> x.state = state) (ordered_tasks t) with
                  | Some x -> select t x.id | None -> next rest) in find states
 
+let edge t last =
+  if t.focus = Board && not t.zoom then (
+    let tasks = navigation_tasks t in
+    match (if last then List.rev tasks else tasks) with
+    | task :: _ -> select t task.id | [] -> ())
+  else if t.focus = Activity then t.scroll <- (if last then 1_000_000 else 0)
+  else t.scroll <- (if last then 0 else 1_000_000)
+
+let page t delta =
+  if t.focus = Board && not t.zoom then move_in t (navigation_tasks t) delta
+  else scroll t delta
+
+let cycle_focus t backwards =
+  t.focus <- (match t.focus, backwards with
+    | Board, false | Activity, true -> Conversation
+    | Conversation, false | Board, true -> Activity
+    | Activity, false | Conversation, true -> Board);
+  if t.zoom && t.focus = Board then t.focus <- (if backwards then Activity else Conversation);
+  t.scroll <- 0
+
+let window_focus t direction =
+  let focus = match direction with
+    | `Left -> if t.focus = Activity then Conversation else if t.zoom then Conversation else Board
+    | `Right -> if t.focus = Board then Conversation else Activity
+    | `Up -> if t.zoom then Conversation else Board
+    | `Down -> if t.focus = Board then Conversation else Activity in
+  t.focus <- focus; t.scroll <- 0
+
+let repeat count fn = for _ = 1 to count do fn () done
+
+let normal_key t (key, mods) =
+  let count = max 1 t.count in
+  let prefix = t.prefix in
+  let command fn = reset_keys t; fn () in
+  if List.mem `Ctrl mods then (
+    command (fun () -> match key with
+      | `ASCII 'w' -> if prefix = Window then cycle_focus t false else t.prefix <- Window
+      | `ASCII 'h' when prefix = Window -> window_focus t `Left
+      | `ASCII 'j' when prefix = Window -> window_focus t `Down
+      | `ASCII 'k' when prefix = Window -> window_focus t `Up
+      | `ASCII 'l' when prefix = Window -> window_focus t `Right
+      | `ASCII 'u' -> page t (-count * max 1 (t.page_rows / 2))
+      | `ASCII 'd' -> page t (count * max 1 (t.page_rows / 2))
+      | `ASCII 'b' -> page t (-count * t.page_rows)
+      | `ASCII 'f' -> page t (count * t.page_rows)
+      | _ -> ()))
+  else if key = `Tab then command (fun () -> cycle_focus t (List.mem `Shift mods))
+  else if mods <> [] && mods <> [`Shift] then reset_keys t
+  else if prefix = Window then command (fun () -> match key with
+    | `ASCII 'h' | `Arrow `Left -> window_focus t `Left
+    | `ASCII 'j' | `Arrow `Down -> window_focus t `Down
+    | `ASCII 'k' | `Arrow `Up -> window_focus t `Up
+    | `ASCII 'l' | `Arrow `Right -> window_focus t `Right
+    | `ASCII 'w' -> cycle_focus t false
+    | _ -> ())
+  else if prefix = Go && key = `ASCII 'g' then command (fun () -> edge t false)
+  else (
+    t.prefix <- No_prefix;
+    match key with
+    | `ASCII ('0' .. '9' as digit) ->
+        if digit <> '0' || t.count <> 0 then
+          t.count <- min 999 (t.count * 10 + Char.code digit - Char.code '0')
+    | `ASCII 'g' -> t.prefix <- Go
+    | `ASCII 'G' -> command (fun () -> edge t true)
+    | `ASCII 'q' -> command (fun () -> act t Quit)
+    | `ASCII '?' | `Function 1 -> command (fun () -> act t Help)
+    | `ASCII 'e' | `Enter -> command (fun () -> act t Zoom)
+    | `Escape -> command (fun () ->
+        if t.zoom then (t.zoom <- false; t.focus <- Board; t.scroll <- 0)
+        else (t.query <- ""; repair_selection t))
+    | `ASCII '/' -> command (fun () -> act t Begin_search)
+    | `ASCII 'i' -> command (fun () -> act t Begin_compose)
+    | `ASCII 'n' -> command (fun () -> act t Begin_new)
+    | `ASCII 's' | `Function 5 -> command (fun () -> act t Start)
+    | `ASCII 'x' | `Function 6 -> command (fun () -> act t Stop)
+    | `ASCII 'a' | `Function 7 -> command (fun () -> act t Accept)
+    | `ASCII 'd' -> command (fun () -> act t Toggle_archive)
+    | `ASCII 'f' -> command (fun () -> act t Toggle_pause)
+    | `ASCII 'j' | `Arrow `Down -> command (fun () -> repeat count (fun () -> navigate t `Down))
+    | `ASCII 'k' | `Arrow `Up -> command (fun () -> repeat count (fun () -> navigate t `Up))
+    | `ASCII 'h' | `Arrow `Left -> command (fun () -> repeat count (fun () -> navigate t `Left))
+    | `ASCII 'l' | `Arrow `Right -> command (fun () -> repeat count (fun () -> navigate t `Right))
+    | `Page `Up -> command (fun () -> page t (-count * t.page_rows))
+    | `Page `Down -> command (fun () -> page t (count * t.page_rows))
+    | `Home -> command (fun () -> edge t false)
+    | `End -> command (fun () -> edge t true)
+    | _ -> reset_keys t)
+
 let key t (key, mods) =
-  if key = `ASCII 'c' && List.mem `Ctrl mods then t.quit <- true
-  else if t.help then (if key = `Escape || key = `ASCII '?' then t.help <- false)
+  (* Terminal input maps Ctrl letters to uppercase ASCII. *)
+  let key = match key with
+    | `ASCII char when List.mem `Ctrl mods -> `ASCII (Char.lowercase_ascii char)
+    | key -> key in
+  if key = `ASCII 'c' && List.mem `Ctrl mods then (reset_keys t; t.quit <- true)
+  else if t.help then (reset_keys t; if key = `Escape || key = `ASCII '?' then t.help <- false)
   else if t.input <> Normal then (
+    reset_keys t;
     match key with
     | `Escape -> t.input <- Normal
     | `Enter -> submit t
@@ -185,26 +299,4 @@ let key t (key, mods) =
         let b = Buffer.create 4 in append_utf8 b uchar;
         set_input t (input_value t ^ clean ~newlines:false (Buffer.contents b))
     | _ -> ())
-  else match key with
-    | `ASCII 'q' -> act t Quit
-    | `ASCII '?' | `Function 1 -> act t Help
-    | `ASCII 'e' | `Enter -> act t Zoom
-    | `Escape -> if t.zoom then t.zoom <- false else (t.query <- ""; repair_selection t)
-    | `ASCII '/' -> act t Begin_search
-    | `ASCII 'i' -> act t Begin_compose
-    | `ASCII 'n' -> act t Begin_new
-    | `ASCII 's' | `Function 5 -> act t Start
-    | `ASCII 'x' | `Function 6 -> act t Stop
-    | `ASCII 'a' | `Function 7 -> act t Accept
-    | `ASCII 'd' -> act t Toggle_archive
-    | `ASCII 'f' -> act t Toggle_pause
-    | `Tab -> t.focus <- (match t.focus with Board -> Conversation | Conversation -> Activity | Activity -> Board); t.scroll <- 0
-    | `ASCII 'j' | `Arrow `Down -> navigate t `Down
-    | `ASCII 'k' | `Arrow `Up -> navigate t `Up
-    | `ASCII 'h' | `Arrow `Left -> navigate t `Left
-    | `ASCII 'l' | `Arrow `Right -> navigate t `Right
-    | `Page `Up -> if t.focus = Board && not t.zoom then t.board_scroll <- max 0 (t.board_scroll - 1) else t.scroll <- max 0 (t.scroll + (if t.focus = Activity then -8 else 8))
-    | `Page `Down -> if t.focus = Board && not t.zoom then t.board_scroll <- t.board_scroll + 1 else t.scroll <- max 0 (t.scroll + (if t.focus = Activity then 8 else -8))
-    | `Home -> t.scroll <- (if t.focus = Conversation || t.zoom then 65536 else 0); t.board_scroll <- 0
-    | `End -> t.scroll <- 0
-    | _ -> ()
+  else normal_key t (key, mods)
