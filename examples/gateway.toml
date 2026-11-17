@@ -1,0 +1,2 @@
+base_url = "https://gateway.example/v1"
+key_environment = "FACTORY_GATEWAY_API_KEY"

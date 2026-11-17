@@ -3,4 +3,4 @@
  (foreign_stubs
   (language c)
   (names clock_stubs))
- (libraries notty notty.unix yojson uutf unix sqlite3 threads toml spawn))
+ (libraries notty notty.unix yojson uutf unix sqlite3 threads toml spawn uri))

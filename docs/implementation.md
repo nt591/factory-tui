@@ -46,8 +46,12 @@ Acceptance does not merge, push, or delete a workspace.
    process events. Details: `docs/harness.md`. A pure invocation builder validates model/directory and explicit resume identity
    and sets read-only execution. Installed Codex and gateway compatibility remain
    unverified; a loopback integration is still required.
-6. **Gateway setup — not started.** Validate non-secret endpoint/model settings
-   and explicit credential references. Setup starts no agent and reads no secret.
+6. **Gateway setup — validation and provider builder complete; integration pending.**
+   `Gateway` validates a capped non-secret TOML file, HTTPS/loopback endpoints, and
+   environment-key references without reading secrets or contacting the network.
+   `--check-gateway` validates without opening storage or starting agents. Codex
+   provider overrides are pure and tested for new/resumed threads. Details:
+   `docs/gateway.md`. Loopback and real compatibility checks remain pending. Setup starts no agent and reads no secret.
    Dry-run invocation must disclose no credentials. Verify protocol compatibility
    against a loopback fixture before an explicitly requested real gateway check.
    Configuration validity does not prove model compatibility.

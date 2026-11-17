@@ -7,9 +7,13 @@ let () =
   and database = ref None
   and config = ref None
   and no_config = ref false
-  and fake_harness = ref false in
+  and fake_harness = ref false
+  and check_gateway = ref None in
   Arg.parse
     [
+      ( "--check-gateway",
+        Arg.String (fun path -> check_gateway := Some path),
+        "PATH Validate non-secret gateway config without network or credentials" );
       ( "--fake-harness",
         Arg.Set fake_harness,
         " Use local process fixtures; s starts one explicitly" );
@@ -31,7 +35,22 @@ let () =
     (fun _ -> raise (Arg.Bad "Unexpected positional argument."))
     "factory-tui [--snapshot] [--events PATH] [--database PATH]";
   try
-    if !snapshot then (
+    if !check_gateway <> None then (
+      if
+        !snapshot || !database <> None || !events <> "" || !config <> None
+        || !fake_harness
+      then
+        invalid_arg
+          "Gateway checks cannot be combined with interactive or snapshot options.";
+      match Gateway.load (Option.get !check_gateway) with
+      | Ok _ ->
+          print_endline
+            "Gateway config is valid. No credentials read; network compatibility is \
+             unverified."
+      | Error error ->
+          prerr_endline error;
+          exit 2)
+    else if !snapshot then (
       if !database <> None || !events <> "" || !config <> None || !fake_harness then
         invalid_arg "Snapshot mode does not open storage or event sources.";
       App.snapshot ~size:!size (Controller.create ()))

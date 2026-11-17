@@ -301,6 +301,20 @@ the process group. The fake UI path is verified. A pure Codex invocation builder
 resume identity and read-only arguments without launching anything. Live execution
 and gateway compatibility remain unverified.
 
+## Gateway configuration validation
+
+A separate non-secret gateway TOML file holds `base_url` and `key_environment`
+(the name of an environment variable, not its value). Validate it locally:
+
+```sh
+./scripts/run.sh --check-gateway examples/gateway.toml
+```
+
+The check opens no database, reads no key, starts no agent, and makes no network
+request. Valid settings do not prove model or Responses compatibility. Gateway
+provider construction is implemented but not connected to live UI execution.
+See [docs/gateway.md](docs/gateway.md) for validation rules and the next checks.
+
 ## Module interfaces
 
 All core modules have explicit `.mli` interfaces. Database, persistence worker,

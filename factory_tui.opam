@@ -10,6 +10,7 @@ depends: [
   "sqlite3"
   "toml"
   "spawn"
+  "uri"
   "odoc" {with-doc}
 ]
 build: [

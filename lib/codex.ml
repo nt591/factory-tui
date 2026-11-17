@@ -36,3 +36,25 @@ let invocation ~executable ~directory ~model ~thread_id =
         in
         Ok (Process.defaults ~executable ~arguments ~directory)
     with Sys_error _ -> Error "Cannot inspect Codex directory."
+
+let with_gateway config gateway =
+  let quoted value = Toml.Printer.string_of_value (Toml.Types.TString value) in
+  let overrides =
+    [
+      {|model_provider="factory_gateway"|};
+      {|model_providers.factory_gateway.name="Factory gateway"|};
+      "model_providers.factory_gateway.base_url=" ^ quoted (Gateway.base_url gateway);
+      "model_providers.factory_gateway.env_key="
+      ^ quoted (Gateway.key_environment gateway);
+      {|model_providers.factory_gateway.wire_api="responses"|};
+      {|model_providers.factory_gateway.requires_openai_auth=false|};
+    ]
+  in
+  let overrides = List.concat_map (fun value -> [ "-c"; value ]) overrides in
+  let arguments =
+    match config.Process.arguments with
+    | "exec" :: "resume" :: rest -> [ "exec"; "resume" ] @ overrides @ rest
+    | "exec" :: rest -> ("exec" :: overrides) @ rest
+    | rest -> overrides @ rest
+  in
+  { config with arguments }
