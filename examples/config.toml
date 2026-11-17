@@ -1,0 +1,3 @@
+[storage]
+# Relative paths use the directory that contains this config.
+database = "board.sqlite"

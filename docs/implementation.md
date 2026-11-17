@@ -26,14 +26,17 @@ Acceptance does not merge, push, or delete a workspace.
    task-specific drafts, simulated acceptance, harness/model selection, and
    immutable run records exist. Tests verify edits affect only the next run.
    Models and harness selections do not establish live compatibility.
-4. **SQLite persistence — storage layer complete; UI integration pending.**
+4. **SQLite persistence — complete for simulation.**
    The versioned snapshot codec retains tasks, drafts, selection, and run records.
    SQLite stores snapshots, a separate run table, and cursor-paged ordered events
    in one transaction. Temporary-file tests verify reopen, exclusive ownership,
    rollback, private new-file permissions, unsupported databases, and recovery.
-   Next add a bounded background worker and connect opt-in persistence to the UI. Require exclusive ownership, bounded background saves, write-error
-   reporting, final flush, and restart recovery to Needs you for interrupted runs.
-   Default launches must create no database. Stored conversations are sensitive.
+   A background worker coalesces snapshots and retains bounded event batches.
+   The UI saves through explicit TOML configuration or `--database`; no config
+   means memory-only startup. Tests cover 200 queued saves, final flush, write
+   errors, and PTY save/reopen with task drafts and interruption recovery.
+   Live-agent pre-spawn durability will require a separate checkpoint gate.
+   Unconfigured launches create no database. Stored conversations are sensitive.
 5. **Codex supervision — not started.** Add a validated event decoder and bounded
    process runner. Test concurrent stdout/stderr draining, cancellation, process
    cleanup, resume identity, and overflow handling with fake executables. Save

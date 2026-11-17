@@ -1,6 +1,10 @@
 type t = { db : Sqlite3.db; lock : Unix.file_descr; path : string; mutable closed : bool }
 exception Storage_error of string
 let owners = Hashtbl.create 4
+let ownership_mutex = Mutex.create ()
+let ownership fn =
+  Mutex.lock ownership_mutex;
+  Fun.protect ~finally:(fun () -> Mutex.unlock ownership_mutex) fn
 let ensure rc = if rc <> Sqlite3.Rc.OK && rc <> Sqlite3.Rc.DONE then
   raise (Storage_error "SQLite operation failed.")
 let exec db sql = ensure (Sqlite3.exec db sql)
@@ -18,12 +22,12 @@ let regular path =
   try if (Unix.lstat path).Unix.st_kind <> Unix.S_REG then
     raise (Storage_error "Database and lock must be regular files, not symbolic links.")
   with Unix.Unix_error (Unix.ENOENT, _, _) -> ()
-let close store = if not store.closed then (
+let close store = ownership (fun () -> if not store.closed then (
   store.closed <- true;
   ignore (Sqlite3.db_close store.db);
   Hashtbl.remove owners store.path;
-  Unix.close store.lock)
-let open_store path = protect (fun () ->
+  Unix.close store.lock))
+let open_store path = ownership (fun () -> protect (fun () ->
   let path = canonical path in
   regular path; regular (path ^ ".lock");
   if Hashtbl.mem owners path then raise (Storage_error "Database is already open.");
@@ -57,7 +61,7 @@ let open_store path = protect (fun () ->
       Hashtbl.add owners path ();
       {db; lock; path; closed = false}
     with error -> ignore (Sqlite3.db_close db); raise error
-  with error -> Unix.close lock; raise error)
+  with error -> Unix.close lock; raise error))
 let check store = if store.closed then raise (Storage_error "Database is closed.")
 let load store = protect (fun () ->
   check store;

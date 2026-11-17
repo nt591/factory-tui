@@ -83,4 +83,37 @@ let () =
     let db = Sqlite3.db_open corrupt in sql db "INSERT INTO snapshot VALUES(1,'bad json')"; ignore (Sqlite3.db_close db);
     let store = ok (Storage.open_store corrupt) in
     check "corrupt snapshot fails without replacement" (Result.is_error (Storage.load store)); Storage.close store);
+  with_temp (fun dir ->
+    let path = Filename.concat dir "worker.sqlite" in
+    let worker, loaded = ok (Persistence.start path) in
+    check "new worker loads no snapshot" (loaded = None);
+    check "worker owns database" (Result.is_error (Persistence.start path));
+    for serial = 1 to 200 do
+      ok (Persistence.submit worker {initial with serial} ~events:[{event with event = Tool (string_of_int serial, "fixture")}])
+    done;
+    ok (Persistence.flush worker);
+    ok (Persistence.close worker);
+    check "closed worker rejects saves" (Result.is_error (Persistence.submit worker initial ~events:[]));
+    let store = ok (Storage.open_store path) in
+    check "coalesced worker saves final snapshot" ((Option.get (ok (Storage.load store))).serial = 200);
+    check "coalescing preserves every event" (List.length (ok (Storage.read_events store ~after:0L ~limit:1024)) = 200);
+    Storage.close store;
+    let worker, loaded = ok (Persistence.start path) in
+    let restored = Controller.create () in Controller.restore restored (Option.get loaded);
+    check "UI restore retains drafts" (Controller.draft restored = "Keep this draft");
+    check "UI restore recovers interrupted run" ((Option.get (Controller.selected restored)).state = Needs_you && restored.schedules = []);
+    ok (Persistence.submit worker recovered ~events:[]);
+    ok (Persistence.close worker);
+    let store = ok (Storage.open_store path) in
+    check "close drains final save" (ok (Storage.load store) = Some recovered);
+    Storage.close store;
+    let worker, _ = ok (Persistence.start path) in
+    let db = Sqlite3.db_open path in
+    sql db "CREATE TRIGGER fail_save BEFORE INSERT ON snapshot BEGIN SELECT RAISE(ABORT,'fixture'); END";
+    ok (Persistence.submit worker initial ~events:[]);
+    check "flush returns worker write failure" (Result.is_error (Persistence.flush worker));
+    check "worker error is visible" (Persistence.error worker <> None);
+    check "failed worker rejects saves" (Result.is_error (Persistence.submit worker initial ~events:[]));
+    check "close returns worker failure" (Result.is_error (Persistence.close worker));
+    ignore (Sqlite3.db_close db));
   Printf.printf "Passed %d storage checks. Temporary files only.\n" !checks

@@ -19,8 +19,10 @@ cd ~/dev/factory-tui
 
 Default launches use simulated tasks and timed fixture updates. The Working
 card moves to Ready after about eight seconds without manual column movement.
-Selection follows the task's ID as it moves. All tasks and drafts live in memory.
-Quitting discards them. No agents, credentials, database, or workspaces are opened.
+Selection follows the task's ID as it moves. Without a database flag or a stored
+config, tasks and drafts live in memory and quitting discards them. A configured
+SQLite database saves conversations and drafts. No agents, credentials, or
+workspaces are opened by either mode.
 
 For a fresh checkout:
 
@@ -137,36 +139,89 @@ uv run --with pyte --with pillow python scripts/smoke-terminal.py \
 
 The preview uses the macOS Menlo font. Omit `--preview` for a portable smoke.
 
-## Storage layer (not yet connected to the UI)
+## Low-effort TOML setup
 
-`Snapshot` and `Storage` implement versioned SQLite persistence independently of
-terminal rendering. Stored data includes tasks, messages, tools, next-run settings,
-immutable run records, task-specific drafts, selection, and the ID counter. Runs
-also have their own SQL table; event batches have a monotonic cursor for paging.
-Snapshots, run rows, and appended events commit or roll back together.
+The app reads `~/.config/factory-tui/config.toml` if present. With an absolute
+`XDG_CONFIG_HOME`, it reads `$XDG_CONFIG_HOME/factory-tui/config.toml` instead.
+Create a config once:
 
-The storage API requires an absolute path with an existing parent. It refuses
-symbolic links, foreign databases, unsupported schema versions, and concurrent
-Factory TUI ownership. New databases and lock files are private (0600). The
-advisory sidecar lock remains after close. This lock coordinates Factory TUI
-processes, not unrelated applications that ignore it.
+```sh
+mkdir -p ~/.config/factory-tui
+cat > ~/.config/factory-tui/config.toml <<'TOML'
+[storage]
+database = "board.sqlite"
+TOML
+```
+
+Then launch without database arguments:
+
+```sh
+~/dev/factory-tui/scripts/run.sh
+```
+
+To launch as `factory-tui`, add this alias to your shell configuration:
+
+```sh
+alias factory-tui="$HOME/dev/factory-tui/scripts/run.sh"
+```
+
+Config paths may be absolute, start with `~/`, or be relative to the directory
+containing the config. The database parent must already exist. The app creates
+the database, not arbitrary parent directories. No config or application-data
+files are created just by launching in the default in-memory mode.
+
+Override or bypass configuration explicitly:
+
+```sh
+./scripts/run.sh --config /path/to/config.toml
+./scripts/run.sh --database /tmp/another-board.sqlite
+./scripts/run.sh --no-config
+```
+
+CLI `--database` overrides the config path. CLI relative paths use the current
+working directory. `--no-config` ignores the default config; combine it with
+`--database` to use explicit storage without reading user configuration.
+`--config` and `--no-config` cannot be combined. A missing default config is
+optional; a missing explicit config or a malformed existing config is an error.
+Unknown fields are rejected. The only supported setting is `[storage].database`.
+Config reads are capped at 64 KiB and errors do not echo file content. Do not
+put credentials in this file. Snapshot mode does not read the default config.
+
+## Persistent conversations
+
+SQLite persistence is opt-in through TOML or `--database`. Stored data includes
+tasks, messages, tools, next-run settings, immutable run records, task-specific
+drafts, selection, and the ID counter. Runs also have their own SQL table; event
+batches have a monotonic cursor for paging. Snapshots, run rows, and appended
+events commit or roll back together.
+
+A dedicated worker owns the database. Pending snapshots coalesce; ordered events
+are retained in a bounded queue. Normal exit and SIGTERM flush the final snapshot
+and queued events. A failed write is displayed and causes a failed final exit,
+not a false claim that data was saved. Abrupt termination can lose unflushed
+updates; it is not a durable acknowledgment for live agent launch yet.
+
+The storage API refuses symbolic links, foreign databases, unsupported schema
+versions, and concurrent Factory TUI ownership. New databases and lock files are
+private (0600). The advisory sidecar lock remains after close. This lock coordinates
+Factory TUI processes, not unrelated applications that ignore it.
 
 Restart recovery moves Working tasks to Needs you, records interruption, retains
 queued replies and drafts, and never resumes an agent. Invalid snapshots return
-an error instead of silently replacing conversation history.
+an error instead of silently replacing conversation history. Stored conversation
+and tool content is sensitive; do not share a database as a diagnostic log.
 
-Storage tests use temporary files and fake data. They verify transaction rollback
-under an injected failure, bounded busy-lock handling, and cross-process ownership.
-The current UI still runs in memory; it does not open a database. Background
-saves, final-flush integration, and the opt-in database flag are the next increment.
-Conversation and tool content in a saved database must be treated as sensitive.
+Tests use temporary files and fake data. They verify rollback under injected
+failure, bounded busy-lock handling, cross-process ownership, 200 coalesced saves
+without event loss, final flush, and a PTY save/reopen path through TOML.
 
 ## Implementation sequence
 
 Follow [docs/implementation.md](docs/implementation.md), adapted from the native
 Factory app. The terminal shell and simulated session steps are complete.
 Composition, next-run harness/model selection, and run history are implemented
-for simulation. Next is opt-in SQLite, bounded supervision, gateway setup, isolated jj
+for simulation. Opt-in SQLite and TOML startup configuration are implemented.
+Next are bounded supervision, gateway setup, isolated jj
 workspaces/review, and distribution.
 
 Use tested increments and move local `main` to each completed jj commit.

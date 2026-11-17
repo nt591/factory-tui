@@ -30,6 +30,8 @@ type t = {
   mutable prefix : prefix;
   mutable count : int;
   mutable page_rows : int;
+  mutable storage_events : envelope list;
+  mutable retain_events : bool;
   external_events : bool;
 }
 
@@ -41,7 +43,7 @@ let create ?(external_events = false) () =
     quit = false; serial = 200;
     schedules = if external_events then [] else
       List.map (fun (delay, e) -> Unix.gettimeofday () +. delay, e) (Demo.schedule "T-102" "demo-102");
-    last_click = None; prefix = No_prefix; count = 0; page_rows = 12; external_events }
+    last_click = None; prefix = No_prefix; count = 0; page_rows = 12; storage_events = []; retain_events = false; external_events }
 
 let contains text query =
   let text = String.lowercase_ascii text and query = String.lowercase_ascii query in
@@ -65,7 +67,19 @@ let repair_selection t =
   if not (List.exists (fun (task : task) -> task.id = t.selected) (visible t)) then
     match visible t with task :: _ -> select t task.id | [] -> t.selected <- ""
 
-let receive t event = t.tasks <- reduce t.tasks event
+let receive t event =
+  let tasks = reduce t.tasks event in
+  if tasks <> t.tasks && t.retain_events then t.storage_events <- t.storage_events @ [event];
+  t.tasks <- tasks
+
+let snapshot t : Snapshot.t =
+  {tasks = t.tasks; drafts = t.drafts; selected = t.selected; serial = t.serial}
+
+let restore t saved =
+  let saved = Snapshot.recover saved in
+  t.tasks <- saved.tasks; t.drafts <- saved.drafts; t.selected <- saved.selected;
+  t.serial <- saved.serial; t.schedules <- []; repair_selection t;
+  t.status <- "Saved conversations restored. Interrupted runs need your input."
 let tick t now =
   if not t.paused then (
     let due, later = List.partition (fun (time, _) -> time <= now) t.schedules in

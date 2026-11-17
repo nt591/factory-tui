@@ -7,3 +7,8 @@
  (name test_storage)
  (modules test_storage)
  (libraries factory_tui sqlite3 unix yojson))
+
+(test
+ (name test_config)
+ (modules test_config)
+ (libraries factory_tui unix))

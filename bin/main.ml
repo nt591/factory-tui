@@ -1,53 +1,26 @@
 open Factory_tui
 
 let () =
-  let snapshot = ref false and size = ref "120x36" and events = ref "" in
+  let snapshot = ref false and size = ref "120x36" and events = ref "" and database = ref None
+  and config = ref None and no_config = ref false in
   Arg.parse [
     "--snapshot", Arg.Set snapshot, " Render one non-interactive demo frame";
     "--size", Arg.Set_string size, "COLSxROWS Snapshot size (default 120x36)";
-    "--events", Arg.Set_string events, "PATH Read fixture JSONL from a file or FIFO instead of demo timers"
-  ] (fun _ -> raise (Arg.Bad "Unexpected positional argument.")) "factory-tui [--snapshot] [--events PATH]";
-  let t = Controller.create ~external_events:(!events <> "") () in
-  if !snapshot then (
-    let width, height = try Scanf.sscanf !size "%dx%d%!" (fun w h -> w, h)
-      with _ -> prerr_endline "Size must use COLSxROWS."; exit 2 in
-    if width < 1 || height < 1 || width > 1000 || height > 1000 then (
-      prerr_endline "Snapshot dimensions must be between 1 and 1000."; exit 2);
-    let frame = Ui.render t ~width ~height in
-    Notty_unix.output_image frame.image)
-  else if not (Unix.isatty Unix.stdin && Unix.isatty Unix.stdout) then (
-    prerr_endline "Interactive mode needs a terminal. Use --snapshot for a headless preview."; exit 2)
-  else
-    let source = if !events = "" then None else Some (Events.open_source !events) in
-    Fun.protect ~finally:(fun () -> Option.iter (fun (s : Events.source) -> Unix.close s.fd) source) (fun () ->
-      let term = Notty_unix.Term.create ~mouse:true () in
-      let previous_term = Sys.signal Sys.sigterm (Sys.Signal_handle (fun _ -> t.quit <- true)) in
-      Fun.protect ~finally:(fun () ->
-        Notty_unix.Term.release term; Sys.set_signal Sys.sigterm previous_term) (fun () ->
-        let input, _ = Notty_unix.Term.fds term in
-        let pasting = ref false in
-        while not t.quit do
-          Controller.tick t (Unix.gettimeofday ());
-          Option.iter (fun source -> List.iter (function
-            | Ok event -> Controller.receive t event
-            | Error error -> t.status <- "Replay error: " ^ error) (Events.poll source)) source;
-          let width, height = Notty_unix.Term.size term in
-          let frame = Ui.render t ~width ~height in
-          Notty_unix.Term.image term frame.image;
-          let ready = Notty_unix.Term.pending term ||
-            (try let fds, _, _ = Unix.select [input] [] [] 0.1 in fds <> []
-             with Unix.Unix_error (Unix.EINTR, _, _) -> false) in
-          if ready then match Notty_unix.Term.event term with
-            | `End -> t.quit <- true
-            | `Resize _ -> ()
-            | `Paste `Start -> pasting := true
-            | `Paste `End -> pasting := false
-            | `Key key ->
-                (* Pasted shortcuts must not start runs or submit messages. *)
-                if !pasting then (
-                  match key with
-                  | (`ASCII _ | `Uchar _), _ when t.input <> Controller.Normal -> Controller.key t key
-                  | _ -> ())
-                else Controller.key t key
-            | `Mouse mouse -> Ui.mouse t frame ~now:(Unix.gettimeofday ()) mouse
-        done))
+    "--events", Arg.Set_string events, "PATH Read fixture JSONL from a file or FIFO instead of demo timers";
+    "--database", Arg.String (fun value -> database := Some value), "PATH Persist simulated conversations in an explicit SQLite database";
+    "--config", Arg.String (fun value -> config := Some value), "PATH Load explicit TOML config";
+    "--no-config", Arg.Set no_config, " Ignore default TOML config and use memory unless --database is given"
+  ] (fun _ -> raise (Arg.Bad "Unexpected positional argument.")) "factory-tui [--snapshot] [--events PATH] [--database PATH]";
+  try
+    if !snapshot then (
+      if !database <> None || !events <> "" || !config <> None then invalid_arg "Snapshot mode does not open storage or event sources.";
+      App.snapshot ~size:!size (Controller.create ()))
+    else
+      let home = Option.value ~default:(Sys.getcwd ()) (Sys.getenv_opt "HOME") in
+      match Config.resolve ~home ~xdg:(Sys.getenv_opt "XDG_CONFIG_HOME")
+          ~config:!config ~no_config:!no_config ~database:!database with
+      | Error error -> prerr_endline error; exit 2
+      | Ok database -> match App.interactive ~events:!events ~database:(Option.value ~default:"" database) with
+        | Ok () -> () | Error error -> prerr_endline error; exit 2
+  with Invalid_argument error -> prerr_endline error; exit 2
+     | Unix.Unix_error _ | Sys_error _ -> prerr_endline "Cannot open the requested local file."; exit 2

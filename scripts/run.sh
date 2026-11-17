@@ -1,4 +1,5 @@
 #!/bin/sh
 set -eu
-cd "$(dirname "$0")/.."
-exec opam exec --switch=. -- dune exec factory-tui -- "$@"
+root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
+opam exec --switch="$root" -- dune build --root "$root" @install
+exec opam exec --switch="$root" -- "$root/_build/default/bin/main.exe" "$@"

@@ -11,6 +11,9 @@ import struct
 import subprocess
 import termios
 import time
+import tempfile
+import sqlite3
+import json
 
 import pyte
 
@@ -38,7 +41,7 @@ class TerminalStream(pyte.ByteStream):
 screen = TerminalScreen(cols, rows)
 stream = TerminalStream(screen)
 env = {**os.environ, "TERM": "xterm-256color"}
-process = subprocess.Popen([str(binary)], stdin=slave, stdout=slave, stderr=slave, env=env)
+process = subprocess.Popen([str(binary), "--no-config"], stdin=slave, stdout=slave, stderr=slave, env=env)
 
 
 def pump(seconds=0.25):
@@ -154,7 +157,7 @@ try:
     fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
     screen.resize(lines=rows, columns=cols)
     screen.reset()
-    process = subprocess.Popen([str(binary), "--events", str(root / "examples/events.jsonl")],
+    process = subprocess.Popen([str(binary), "--no-config", "--events", str(root / "examples/events.jsonl")],
                                stdin=slave, stdout=slave, stderr=slave, env=env)
     pump(0.4)
     check("JSONL fixture moves task to Ready", "T-102 / Ready / conversation" in text())
@@ -165,6 +168,55 @@ try:
     restored = termios.tcgetattr(slave)
     restored[3] &= ~getattr(termios, "PENDIN", 0)
     check("SIGTERM restores terminal settings", restored == original)
+    with tempfile.TemporaryDirectory(prefix="factory-tui-smoke-") as directory:
+        database = Path(directory) / "board.sqlite"
+        config = Path(directory) / "config.toml"
+        config.write_text('[storage]\ndatabase = "board.sqlite"\n')
+        screen.reset()
+        process = subprocess.Popen([str(binary), "--config", str(config)],
+                                   stdin=slave, stdout=slave, stderr=slave, env=env)
+        pump(0.4)
+        send(b"hgg")
+        send(b"s")
+        send(b"iReply after launch\r")
+        send(b"iSaved draft\x1b")
+        send(b"q")
+        process.wait(timeout=3)
+        check("persisted UI exits cleanly", process.returncode == 0)
+        check("TOML resolves database relative to config", database.exists())
+        with sqlite3.connect(database) as db:
+            saved = json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
+        check("final flush retains task draft", ["T-101", "Saved draft"] in saved["drafts"])
+        saved_task = next(t for t in saved["tasks"] if t["id"] == "T-101")
+        check("final flush retains queued reply", any(m["text"] == "Reply after launch" and m["queued"] for m in saved_task["messages"]))
+        screen.reset()
+        process = subprocess.Popen([str(binary), "--config", str(config)],
+                                   stdin=slave, stdout=slave, stderr=slave, env=env)
+        pump(0.4)
+        send(b"e")
+        check("UI restart recovers working task", "T-101 / Needs you / conversation" in text())
+        send(b"i")
+        check("UI restart restores draft", "Saved draft" in text())
+        send(b"\x1b")
+        send(b"q")
+        process.wait(timeout=3)
+        check("reopened UI exits cleanly", process.returncode == 0)
+        with sqlite3.connect(database) as db:
+            check("ordered fixture events persisted", db.execute("SELECT count(*) FROM events").fetchone()[0] > 0)
+        default_dir = Path(directory) / "factory-tui"
+        default_dir.mkdir()
+        (default_dir / "config.toml").write_text('[storage]\ndatabase = "../board.sqlite"\n')
+        screen.reset()
+        process = subprocess.Popen([str(binary)], stdin=slave, stdout=slave, stderr=slave,
+                                   env={**env, "XDG_CONFIG_HOME": directory})
+        pump(0.4)
+        send(b"e")
+        check("argument-free startup discovers TOML", "T-101 / Needs you / conversation" in text())
+        send(b"q")
+        process.wait(timeout=3)
+        check("default-config UI exits cleanly", process.returncode == 0)
+
+
 finally:
     if process.poll() is None:
         process.terminate()

@@ -8,6 +8,7 @@ depends: [
   "yojson"
   "uutf"
   "sqlite3"
+  "toml"
   "odoc" {with-doc}
 ]
 build: [
