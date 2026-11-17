@@ -223,6 +223,81 @@ let () =
   empty.query <- "no such task"; Controller.repair_selection empty;
   List.iter (fun char -> Controller.key empty (`ASCII char, [])) ['g'; 'g'; 'G'; 'j'; 'h'];
   check "vim navigation tolerates empty board" (empty.selected = "");
+  let layout = Controller.create ~external_events:true () in
+  let rendered width height =
+    let frame = Ui.render layout ~width ~height in
+    let buffer = Buffer.create 8192 in
+    Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (width, height) frame.image;
+    frame, Buffer.contents buffer in
+  let _, wide = rendered 180 50 in
+  check "wide sidebar lists repositories" (Controller.contains wide "REPOSITORIES" && Controller.contains wide "All repositories");
+  let _, medium = rendered 120 36 in
+  check "medium layout keeps visible reply composer" (Controller.contains medium "Reply / next turn" && Controller.contains medium "Write a reply");
+  check "medium board shows multiple queued cards" (Controller.contains medium "T-105");
+  let original_selected = layout.selected in
+  Controller.act layout (Controller.Repository (Some "factory"));
+  check "repository filter narrows board" (List.length (Controller.visible layout) = 2);
+  check "repository filter preserves selected chat" (layout.selected = original_selected);
+  Controller.key layout (`ASCII 'j', []);
+  check "navigation enters filtered tasks" (layout.selected = "T-106");
+  Controller.key layout (`ASCII 'b', []);
+  check "b returns to all active tasks" (layout.repository = None && not layout.archive);
+  Controller.key layout (`ASCII 'R', []);
+  check "R cycles repositories" (layout.repository = Some "factory");
+  Controller.key layout (`ASCII 'R', []);
+  check "R reaches second repository" (layout.repository = Some "factory-tui");
+  Controller.key layout (`ASCII 'R', []);
+  check "R returns to all repositories" (layout.repository = None);
+  Controller.act layout (Controller.Select "T-104");
+  Controller.act layout Controller.Accept;
+  check "accepted task retains open chat" (layout.selected = "T-104" && (Option.get (Controller.selected layout)).state = Done);
+  Controller.act layout Controller.Begin_compose;
+  check "accepted chat cannot open composer" (layout.input = Controller.Normal);
+  Controller.act layout Controller.Archive_view;
+  Controller.act layout Controller.Archive_view;
+  check "archive sidebar selection is idempotent" layout.archive;
+  check "archive retains open chat" (layout.selected = "T-104");
+  Controller.act layout Controller.Help;
+  let _, help_text = rendered 120 36 in
+  check "help explains persistence accurately" (Controller.contains help_text "Configured SQLite storage");
+  Controller.key layout (`Tab, []);
+  let frame, settings_text = rendered 120 36 in
+  check "Tab opens settings menu" (layout.menu_tab = Controller.Settings_tab && Controller.contains settings_text "STORAGE");
+  check "memory settings are explicit" (Controller.contains settings_text "In memory");
+  check "menu blocks underlying hitboxes" (List.for_all (fun (hit : Ui.hit) -> match hit.action with Controller.Menu_tab _ -> true | _ -> false) frame.hits);
+  layout.database_path <- Some "/tmp/board.sqlite";
+  let _, settings_text = rendered 120 36 in
+  check "settings shows selected database" (Controller.contains settings_text "/tmp/board.sqlite");
+  let help_hit = List.find (fun (hit : Ui.hit) -> hit.action = Controller.Menu_tab Controller.Help_tab) frame.hits in
+  Ui.mouse layout frame ~now:10. (`Press `Left, (help_hit.rect.x, help_hit.rect.y), []);
+  check "menu tabs are clickable" (layout.menu_tab = Controller.Help_tab);
+  List.iter (fun (width,height) ->
+    let frame, _ = rendered width height in
+    check "menu frame bounds" (Notty.I.width frame.image = width && Notty.I.height frame.image = height);
+    List.iter (fun (hit : Ui.hit) -> let r = hit.rect in
+      check "menu hit bounds" (r.x >= 0 && r.y >= 0 && r.x + r.w <= width && r.y + r.h <= height)) frame.hits)
+    [1,1;20,8;60,20;80,24;120,36;180,50];
+  Controller.key layout (`Escape, []);
+  check "Escape closes settings without changing task" (not layout.help && layout.selected = "T-104");
+  Controller.act layout (Controller.Select "T-102");
+  Controller.receive layout {task_id="T-102";run_id="demo-102";event=Tool ("tool","Inspect files")};
+  let _, collapsed = rendered 120 36 in
+  check "tools collapsed by default" (not layout.tools_expanded && not (Controller.contains collapsed "Inspect files"));
+  Controller.key layout (`ASCII 't', []);
+  let _, expanded = rendered 120 36 in
+  check "t expands tool output" (layout.tools_expanded && Controller.contains expanded "Inspect files");
+  Controller.key layout (`ASCII 't', []);
+  check "t collapses tool output" (not layout.tools_expanded);
+  Controller.act layout Controller.Session_board;
+  let frame, _ = rendered 180 50 in
+  let repo_hit = List.find (fun (hit : Ui.hit) -> hit.action = Controller.Repository (Some "factory")) frame.hits in
+  Ui.mouse layout frame ~now:11. (`Press `Left, (repo_hit.rect.x,repo_hit.rect.y), []);
+  check "sidebar repositories are clickable" (layout.repository = Some "factory");
+  Controller.act layout Controller.Session_board;
+  let frame, _ = rendered 120 36 in
+  let composer = List.find (fun (hit : Ui.hit) -> hit.action = Controller.Begin_compose) frame.hits in
+  Ui.mouse layout frame ~now:12. (`Press `Left, (composer.rect.x,composer.rect.y), []);
+  check "visible composer is clickable" (layout.input = Controller.Compose);
   let path = Filename.temp_file "factory-events" ".jsonl" in
   Fun.protect ~finally:(fun () -> Sys.remove path) (fun () ->
     let out = open_out path in

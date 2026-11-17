@@ -79,40 +79,58 @@ let render t ~width:cols ~height:rows =
   let header = Printf.sprintf " FACTORY / terminal     %s  %s"
     (if t.external_events then "FIXTURE REPLAY" else "SIMULATION") (if t.paused then "[PAUSED]" else "[UPDATING]") in
   paint 0 0 (line cols A.(fg accent ++ bg background ++ st bold) header);
+  let sidebar_width = if cols >= 145 && not t.zoom then 22 else 0 in
+  let main_width = cols - sidebar_width in
   let states = if t.archive then [Done] else columns in
-  let meter_width = max 1 (cols / List.length states) in
+  let meter_width = max 1 (main_width / List.length states) in
   List.iteri (fun i state ->
     let count = List.length (List.filter (fun (task : task) -> task.state = state) t.tasks) in
     let body = Printf.sprintf " %02d  %s" count (label state) in
-    paint (i * meter_width) 1 (line meter_width (emphasis (state_color state)) body)) states;
+    paint (sidebar_width + i * meter_width) 1 (line meter_width (emphasis (state_color state)) body)) states;
   let query = if t.query = "" then " / search tasks" else " / " ^ t.query in
   let summary = Printf.sprintf " %s  |  %d tasks%s  |%s"
-    (if t.archive then "Archive" else "Session board") (List.length (visible t))
+    (if t.archive then "Archive" else match t.repository with None -> "Session board" | Some repo -> repo) (List.length (visible t))
     (if t.archive then " accepted" else "") query in
-  paint 0 2 (line cols (attr muted) summary);
-  hit 0 2 (min 19 cols) 1 Toggle_archive;
+  paint sidebar_width 2 (line main_width (attr muted) summary);
+  hit sidebar_width 2 (min 19 main_width) 1 Toggle_archive;
   hit (max 0 (cols - 24)) 2 24 1 Begin_search;
   let body_y = 3 and body_h = max 0 (rows - 6) in
   let task = selected t in
   let conversation r =
+    let composer_height = if r.h >= 10 && task <> None then 4 else 0 in
+    let chat_height = r.h - composer_height in
     let inner = max 1 (r.w - 4) in
     let title, rows = match task with
       | None -> "Conversation", [muted, "Select a task. Enter or e expands it."]
       | Some task ->
         let rows = List.concat_map (fun (m : message) ->
           ((if m.queued then state_color Needs_you else accent),
-           m.author ^ if m.queued then " / queued" else "") ::
+           m.author ^ if m.queued then " / queued" else if m.author = "You" then " / sent" else "") ::
           List.map (fun row -> text, row) (wrap inner m.text) @ [muted, ""]) task.messages in
         task.id ^ " / " ^ label task.state ^ " / conversation", rows in
-    let available = max 0 (r.h - 2) in
+    let available = max 0 (chat_height - 2) in
     if t.focus = Conversation then (
       t.page_rows <- max 1 available;
       t.scroll <- min t.scroll (max 0 (List.length rows - available)));
     let offset = max 0 (List.length rows - available - t.scroll) in
     let rows = List.filteri (fun i _ -> i >= offset) rows in
     let content = I.vcat (List.map (fun (color, text) -> I.hpad 1 1 (line inner (attr color) text)) rows) in
-    paint r.x r.y (border r.w r.h ~title ~color:accent ~focused:(t.focus = Conversation) content);
-    hit r.x r.y r.w r.h (Focus Conversation) in
+    paint r.x r.y (border r.w chat_height ~title ~color:accent ~focused:(t.focus = Conversation) content);
+    hit r.x r.y r.w chat_height (Focus Conversation);
+    if composer_height > 0 then (
+      let task = Option.get task in
+      let editing = t.input = Compose in
+      let prompt = if task.state = Done then "Accepted task / chat history is read-only"
+        else if draft t = "" then "Write a reply…  i to compose" else draft t in
+      let prompt = (if editing then "> " else "  ") ^ prompt ^ (if editing then "▏" else "") in
+      let selection = harness_label task.harness ^ " / " ^ task.model in
+      let instructions = if task.state = Done then "Accepted / read-only" else
+        selection ^ "  ·  " ^ (if editing then "Enter queues / Esc keeps draft" else "m model / H harness") in
+      let composer = I.vcat [line inner (attr (if editing then text else muted)) prompt;
+        line inner (attr muted) instructions] |> I.hpad 1 1 in
+      paint r.x (r.y + chat_height) (border r.w composer_height ~title:"Reply / next turn"
+        ~color:accent ~focused:editing composer);
+      if task.state <> Done then hit r.x (r.y + chat_height) r.w composer_height Begin_compose) in
   let activity r =
     let inner = max 1 (r.w - 4) in
     let rows = match task with
@@ -128,7 +146,8 @@ let render t ~width:cols ~height:rows =
             wrap inner ("run " ^ record.run_id ^ ": " ^ harness_label record.harness ^
               " / " ^ record.model ^ " / " ^ status)) task.runs @ [""] @
           (if task.tools = [] then ["No tool activity yet."]
-           else List.concat_map (fun (_, detail) -> wrap inner detail @ [""]) task.tools) in
+           else if t.tools_expanded then List.concat_map (fun (_, detail) -> wrap inner detail @ [""]) task.tools
+           else [Printf.sprintf "▸ %d tool items / t expands" (List.length task.tools)] ) in
     if t.focus = Activity then (
       t.page_rows <- max 1 (r.h - 2);
       t.scroll <- min t.scroll (max 0 (List.length rows - max 0 (r.h - 2))));
@@ -169,7 +188,7 @@ let render t ~width:cols ~height:rows =
         let x = r.x + column * col_w in
         let w = if column = 3 then r.w - column * col_w else col_w in
         let items = List.filter (fun (task : task) -> task.state = state) tasks in
-        let capacity = max 0 ((r.h - 2) / 6) in
+        let capacity = max 0 ((r.h - 2) / 7) in
         if t.focus = Board then t.page_rows <- max 1 capacity;
         let selected_index =
           let rec find i = function [] -> 0 | (task : task) :: _ when task.id = t.selected -> i | _ :: rest -> find (i + 1) rest in find 0 items in
@@ -179,31 +198,49 @@ let render t ~width:cols ~height:rows =
         let cards = List.mapi (fun index (task : task) ->
           let selected = task.id = t.selected in
           let a = if selected then A.(fg text ++ bg (color_rgb 38 57 72)) else attr text in
-          let title_rows = wrap_title (max 1 (w - 6)) task.title |> List.filteri (fun i _ -> i < 2) in
-          let title_image = I.vcat (List.map (fun title -> line (w - 4) a (" " ^ title)) title_rows) |> fit (w - 4) 2 in
-          let card = I.vcat [
-            line (w - 4) (emphasis (state_color state)) (" " ^ task.id ^ if selected then "  ◂ selected" else "");
-            title_image;
-            line (w - 4) (attr muted) (" " ^ task.repository);
-            line (w - 4) (attr muted) (Printf.sprintf " %d messages · %d updates" (List.length task.messages) task.revision)] in
-          hit (x + 1) (r.y + 1 + index * 6) (w - 2) 5 (Select task.id);
-          I.(fit (w - 2) 5 (hpad 1 1 card) <-> block (w - 2) 1 (attr muted))) shown in
+          let title_rows = wrap_title (max 1 (w - 8)) task.title |> List.filteri (fun i _ -> i < 2) in
+          let title_image = I.vcat (List.map (fun title -> line (w - 6) a title) title_rows) |> fit (w - 6) 2 in
+          let pending = List.length (List.filter (fun (m : message) -> m.queued) task.messages) in
+          let card = I.vcat [title_image;
+            line (w - 6) (attr muted) task.repository;
+            line (w - 6) (attr muted) (if pending = 0 then Printf.sprintf "%d messages" (List.length task.messages)
+              else Printf.sprintf "%d msg / %d queued" (List.length task.messages) pending)] |> I.hpad 1 1 in
+          hit (x + 1) (r.y + 1 + index * 7) (w - 2) 6 (Select task.id);
+          let title = task.id ^ (if selected then " ◂" else "") in
+          I.(border (w - 2) 6 ~title ~color:(state_color state) ~focused:selected card <->
+             block (w - 2) 1 (attr muted))) shown in
         let content = if shown = [] then line (w - 2) (attr muted) "  No tasks" else I.vcat cards in
         let title = Printf.sprintf "%s %d%s" (label state) (List.length items)
           (if List.length items > capacity then " / scroll" else "") in
         paint x r.y (border w r.h ~title ~color:(state_color state)
           ~focused:(t.focus = Board && match task with Some task -> task.state = state | None -> false) content)) columns) in
+  if sidebar_width > 0 then (
+    let entries = [("Session board", Session_board); ("Archive", Archive_view);
+      ("+ New task", Begin_new); ("? Help / settings", Help); ("", Help);
+      ("REPOSITORIES", Help); ("All repositories", Repository None)] @
+      List.map (fun repo -> repo, Repository (Some repo)) (repositories t) in
+    let content = I.vcat (List.mapi (fun index (title, action) ->
+      let active = match action with
+        | Session_board -> not t.archive && t.repository = None
+        | Archive_view -> t.archive
+        | Repository repo -> t.repository = repo
+        | _ -> false in
+      let a = if active then A.(fg accent ++ bg (color_rgb 38 57 72)) else attr muted in
+      if title <> "" && title <> "REPOSITORIES" then
+        hit 1 (body_y + 1 + index) (sidebar_width - 2) 1 action;
+      line (sidebar_width - 2) a (" " ^ title)) entries) in
+    paint 0 body_y (border sidebar_width body_h ~title:"Factory" ~color:accent ~focused:false content));
   if body_h > 0 then (
     if t.zoom then details {x = 0; y = body_y; w = cols; h = body_h}
-    else if cols >= 145 then (
-      let left = cols * 64 / 100 in
-      board {x = 0; y = body_y; w = left; h = body_h};
-      details {x = left; y = body_y; w = cols - left; h = body_h})
+    else if main_width >= 155 then (
+      let left = max 88 (main_width * 58 / 100) in
+      board {x = sidebar_width; y = body_y; w = left; h = body_h};
+      details {x = sidebar_width + left; y = body_y; w = main_width - left; h = body_h})
     else if body_h >= 17 then (
-      let top = max 9 (body_h * 55 / 100) in
-      board {x = 0; y = body_y; w = cols; h = top};
-      details {x = 0; y = body_y + top; w = cols; h = body_h - top})
-    else board {x = 0; y = body_y; w = cols; h = body_h});
+      let top = max (if body_h >= 27 then 16 else 9) (body_h * 52 / 100) in
+      board {x = sidebar_width; y = body_y; w = main_width; h = top};
+      details {x = sidebar_width; y = body_y + top; w = main_width; h = body_h - top})
+    else board {x = sidebar_width; y = body_y; w = main_width; h = body_h});
   let pending_keys =
     (if t.count = 0 then "" else string_of_int t.count) ^
     (match t.prefix with No_prefix -> "" | Go -> "g" | Window -> "Ctrl-W ") in
@@ -215,7 +252,7 @@ let render t ~width:cols ~height:rows =
     | Edit_model -> " Model (next run): " ^ t.model_text ^ "▏ [Enter apply / Esc cancel]"
     | New_task -> " New task: " ^ t.new_title ^ "▏  [Enter create / Esc cancel]" in
   if rows >= 3 then paint 0 (rows - 3) (line cols (attr (if t.input = Normal then muted else accent)) input_text);
-  let buttons = ["? help", Help; "e expand", Zoom; "i reply", Begin_compose; "s start", Start;
+  let buttons = ["? menu", Help; "e expand", Zoom; "i reply", Begin_compose; "s start", Start;
     "x stop", Stop; "a accept", Accept; "m model", Begin_model; "H harness", Next_harness; "n new", Begin_new; "d archive", Toggle_archive;
     "f pause", Toggle_pause; "q quit", Quit] in
   let x = ref 0 in
@@ -227,35 +264,62 @@ let render t ~width:cols ~height:rows =
   if rows >= 1 then paint 0 (rows - 1) (line cols A.(fg muted ++ bg background)
     " hjkl: move · gg/G: first/last · Ctrl-W hjkl: pane · Ctrl-U/D: half-page · Ctrl-B/F: page · e: zoom · Esc: back");
   if t.help then (
-    let w = min 82 cols and h = min 25 rows in
-    let help_rows = ["FACTORY / terminal prototype"; "";
-      "Click a task to select it. Double-click or Enter/e to expand.";
-      "Tab cycles Board, Conversation, Activity. Focus is bordered.";
-      "hjkl/arrows move. Counts repeat movement (for example, 3j).";
-      "gg / G: first / last task in a column, or top / bottom of a pane.";
-      "Ctrl-W then hjkl: pane left / down / up / right. Ctrl-W w: cycle.";
+    let w = min 86 cols and h = min 29 rows in
+    let x = (cols - w) / 2 and y = (rows - h) / 2 in
+    let help_rows = ["FACTORY / terminal"; "";
+      "Click a card to inspect its chat. Enter/e expands; Escape returns.";
+      "hjkl/arrows navigate. Counts repeat movement (for example, 3j).";
+      "gg / G: first / last card, or top / bottom of the focused pane.";
+      "Ctrl-W then hjkl moves pane focus. Ctrl-W w cycles panes.";
       "Ctrl-U/D: half-page. Ctrl-B/F: full-page. Tab/Shift-Tab: cycle.";
       "Mouse wheel and Page Up/Down scroll. Home/End: first/last.";
-      "/ filters task title, ID, and repository. Escape clears search.";
-      "i opens the reply composer. Enter queues a reply for the next run.";
+      ""; "i composes a reply. Enter queues it; Escape keeps the draft.";
       "n creates a task. m edits its model. H cycles Codex / Claude.";
-      "Selections affect only the next simulated run. s starts it.";
-      "x interrupts a simulated run. a accepts a Ready task.";
-      "d opens accepted tasks. f pauses/resumes demo events.";
-      ""; "Cards move from validated events. Selection follows task identity.";
-      "A process exit without completion never marks work Ready.";
+      "s starts a simulated run; x interrupts; a accepts Ready work.";
+      "b returns to all tasks. R cycles repositories. d opens Archive.";
+      "t expands/collapses tools. f pauses/resumes demo events.";
+      "/ filters tasks by title, ID, or repository. Escape clears search.";
+      ""; "Cards move from events; selected chat stays attached to its task.";
+      "Process exit alone never marks a task Ready.";
       "Acceptance does not merge, push, or delete a workspace.";
-      "No live agents, credentials, persistence, or workspace writes.";
-      ""; "Press ? or Escape to close."] in
-    let content = I.vcat (List.map (line (max 0 (w - 4)) (attr text)) help_rows) |> I.hpad 1 1 in
-    paint ((cols - w) / 2) ((rows - h) / 2)
-      (border w h ~title:"Help" ~color:accent ~focused:true content);
-    hits := []);
+      "No live agent, gateway credentials, or workspace writes.";
+      "Configured SQLite storage retains chats and drafts.";
+      ""; "Menu: Tab/h/l switches tabs; j/k scrolls; ? or Escape closes."] in
+    let settings_rows = ["SESSION SETTINGS"; "";
+      "Execution: " ^ (if t.external_events then "fixture replay" else "simulated agents");
+      "No live agent starts from this menu."; "";
+      "STORAGE";
+      (match t.database_path with None -> "In memory / data is discarded on exit."
+       | Some path -> "SQLite / " ^ path);
+      "Config: ~/.config/factory-tui/config.toml or --config PATH";
+      {|[storage] database = "board.sqlite"|};
+      "Database changes take effect on the next launch.";
+      "Stored conversations and tool output are sensitive."; "";
+      "NEXT RUN / SELECTED TASK"] @
+      (match task with None -> ["Select a task first."] | Some task ->
+        [task.id ^ " / " ^ task.title; "Harness: " ^ harness_label task.harness ^ " (simulated)";
+         "Model: " ^ task.model;
+         (if task.state = Done then "Accepted task / settings are read-only" else "m edits model / H changes harness");
+         "Past run settings do not change."]) @
+      [""; "Menu: Tab/h/l switches tabs; j/k scrolls; ? or Escape closes."] in
+    let menu_rows = if t.menu_tab = Help_tab then help_rows else settings_rows in
+    let menu_rows = List.concat_map (fun row -> if row = "" then [""] else wrap_title (max 1 (w - 4)) row) menu_rows in
+    let capacity = max 0 (h - 5) in
+    t.menu_scroll <- min t.menu_scroll (max 0 (List.length menu_rows - capacity));
+    let menu_rows = List.filteri (fun index _ -> index >= t.menu_scroll && index < t.menu_scroll + capacity) menu_rows in
+    let tab title tab = line 18 (if t.menu_tab = tab then emphasis accent else attr muted) title in
+    let tabs = I.(tab " Help " Help_tab <|> tab " Settings " Settings_tab) in
+    let content = I.vcat ([tabs; line (max 0 (w - 4)) (attr muted) ""] @
+      List.map (line (max 0 (w - 4)) (attr text)) menu_rows) |> I.hpad 1 1 in
+    paint x y (border w h ~title:"Help / Settings" ~color:accent ~focused:true content);
+    hits := [];
+    hit (x + 1) (y + 1) (min 18 (w - 2)) 1 (Menu_tab Help_tab);
+    if w > 20 then hit (x + 19) (y + 1) (min 18 (w - 20)) 1 (Menu_tab Settings_tab));
   {image = fit cols rows !canvas; hits = !hits}
 
 let mouse t frame ~now = function
   | `Press `Left, (x, y), _ ->
-      if not t.help && t.input = Normal then (
+      if t.input = Normal then (
         reset_keys t;
         match hit_at frame x y with
         | Some (Select id) ->
@@ -265,7 +329,8 @@ let mouse t frame ~now = function
         | Some action -> t.last_click <- None; act t action
         | None -> t.last_click <- None)
   | `Press (`Scroll direction), (x, y), _ ->
-      if not t.help && t.input = Normal then (
+      if t.help then t.menu_scroll <- max 0 (min 10000 (t.menu_scroll + (if direction = `Up then -3 else 3)))
+      else if t.input = Normal then (
         reset_keys t;
         (match hit_at frame x y with Some (Focus focus) -> t.focus <- focus | Some (Select _) -> t.focus <- Board | _ -> ());
         let delta = if direction = `Up then -1 else 1 in

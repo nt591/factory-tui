@@ -1,0 +1,47 @@
+# Terminal UI target
+
+Use the native Factory mock's structure, not its exact colors or buttons:
+repository navigation, four active columns, bounded cards, and a persistent chat
+for the selected task. Keep bottom-style pane focus, expansion, and Vim navigation.
+
+## Implemented and verified
+
+- Wide terminals show a repository sidebar. `R` cycles repository filters at any
+  size; `b` returns to the active board. Filters do not close the selected chat.
+- Four active columns contain bordered task cards with wrapped titles, repository,
+  message count, and queued delivery count. Accepted tasks live in Archive.
+- Card selection opens its chat and activity. Double-click or Enter/e expands
+  task detail; Escape returns. Automatic state movement retains task selection.
+- Accepted tasks retain their open chat and are read-only; acceptance does not
+  merge, push, or delete a workspace.
+- A visible reply composer shows the next-run harness/model and queued delivery.
+  Task drafts persist when configured SQLite storage is enabled.
+- Tool output is collapsed by default and expanded with `t`. Run history retains
+  original settings and outcomes.
+- `?` opens Help and Settings tabs. Tab/h/l switches tabs; j/k and the mouse wheel
+  scroll. Tab labels are clickable. The overlay blocks the underlying controls.
+- Settings shows simulation/replay mode, memory or selected SQLite storage, and
+  the selected task's next-run settings. `m` opens model editing and `H` cycles
+  the simulated harness. Database changes require restarting with TOML/CLI config.
+- Narrow layouts use a list and expandable detail; medium layouts stack board
+  and chat; wide layouts use a sidebar and side-by-side board/detail.
+
+## Evidence
+
+Reducer/controller tests cover repository filtering, retained chat selection,
+accepted read-only state, tool expansion, menu isolation, settings content, and
+mouse hitboxes. Frame tests cover 1x1 through 180x50 terminals, including menus.
+The PTY smoke covers cards moving to Ready, queued replies, click/zoom, Vim keys,
+Help/Settings, repository filtering, wide/narrow resize, and TOML save/reopen.
+
+Rendered PTY captures at 120x36 and 180x50 were inspected on November 17, 2026.
+The board, expanded chat, and Settings overlay are separate preview artifacts
+from `scripts/smoke-terminal.py --preview /tmp/factory-tui.png`.
+
+## Remaining work
+
+Live process supervision, gateway setup, isolated workspaces and a real changes
+review surface follow the implementation sequence. Simulation currently uses
+fixture data only. Do not present a simulated tool result as real verification.
+Further UX refinements may include a multiline composer, configurable layouts,
+and a searchable chat transcript. No real review drawer exists yet.

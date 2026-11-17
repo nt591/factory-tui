@@ -2,10 +2,12 @@ open Model
 
 type focus = Board | Conversation | Activity
 type input = Normal | Search | Compose | New_task | Edit_model
+type menu_tab = Help_tab | Settings_tab
 type prefix = No_prefix | Go | Window
 type action =
   | Select of string | Zoom | Focus of focus | Start | Stop | Accept
-  | Next_harness | Begin_model | Toggle_archive | Toggle_pause | Help | Quit | Begin_search | Begin_compose | Begin_new
+  | Repository of string option | Session_board | Archive_view | Menu_tab of menu_tab | Close_menu | Toggle_tools
+  | Next_repository | Next_harness | Begin_model | Toggle_archive | Toggle_pause | Help | Quit | Begin_search | Begin_compose | Begin_new
 
 type t = {
   mutable tasks : task list;
@@ -15,6 +17,11 @@ type t = {
   mutable archive : bool;
   mutable paused : bool;
   mutable help : bool;
+  mutable menu_tab : menu_tab;
+  mutable menu_scroll : int;
+  mutable repository : string option;
+  mutable tools_expanded : bool;
+  mutable database_path : string option;
   mutable input : input;
   mutable query : string;
   mutable new_title : string;
@@ -37,7 +44,8 @@ type t = {
 
 let create ?(external_events = false) () =
   { tasks = Demo.seed (); selected = "T-102"; focus = Board; zoom = false;
-    archive = false; paused = false; help = false; input = Normal; query = "";
+    archive = false; paused = false; help = false; menu_tab = Help_tab; menu_scroll = 0; repository = None;
+    tools_expanded = false; database_path = None; input = Normal; query = "";
     new_title = ""; model_text = ""; drafts = []; scroll = 0; board_scroll = 0;
     status = "Simulation only. No agent, credentials, or workspace access.";
     quit = false; serial = 200;
@@ -53,7 +61,10 @@ let contains text query =
 
 let visible t = List.filter (fun (task : task) ->
   (if t.archive then task.state = Done else task.state <> Done) &&
+  (match t.repository with None -> true | Some repository -> task.repository = repository) &&
   contains (task.id ^ " " ^ task.title ^ " " ^ task.repository) t.query) t.tasks
+
+let repositories t = List.map (fun (task : task) -> task.repository) t.tasks |> List.sort_uniq String.compare
 
 let selected t = List.find_opt (fun (task : task) -> task.id = t.selected) t.tasks
 let draft t = Option.value ~default:"" (List.assoc_opt t.selected t.drafts)
@@ -93,9 +104,24 @@ let act t action =
   | Focus focus -> t.focus <- focus
   | Zoom -> t.zoom <- not t.zoom; t.focus <- Conversation; t.scroll <- 0
   | Quit -> t.quit <- true
-  | Help -> t.help <- not t.help
+  | Help -> t.help <- not t.help; t.menu_tab <- Help_tab; t.menu_scroll <- 0
+  | Close_menu -> t.help <- false; t.menu_scroll <- 0
+  | Menu_tab tab -> t.menu_tab <- tab; t.menu_scroll <- 0
+  | Toggle_tools -> t.tools_expanded <- not t.tools_expanded
+  | Repository repository -> t.repository <- repository; t.board_scroll <- 0; t.focus <- Board
+  | Archive_view -> t.archive <- true; t.board_scroll <- 0; t.focus <- Board
+  | Session_board -> t.archive <- false; t.repository <- None; t.board_scroll <- 0; t.focus <- Board
+  | Next_repository ->
+      let options = None :: List.map (fun repository -> Some repository) (repositories t) in
+      let rec next = function
+        | current :: following :: _ when current = t.repository -> following
+        | _ :: rest -> next rest | [] -> None in
+      t.repository <- next options; t.board_scroll <- 0; t.focus <- Board
   | Begin_search -> t.input <- Search
-  | Begin_compose -> if selected t <> None then (t.input <- Compose; t.focus <- Conversation)
+  | Begin_compose -> (match selected t with
+      | None -> ()
+      | Some task when task.state = Done -> t.status <- "Accepted tasks are read-only."
+      | Some _ -> t.input <- Compose; t.focus <- Conversation)
   | Next_harness -> (match selected t with
       | None -> ()
       | Some task -> (match set_harness task (match task.harness with Codex -> Claude | Claude -> Codex) with
@@ -111,7 +137,7 @@ let act t action =
       else (t.paused <- not t.paused;
         if not t.paused then t.schedules <- List.mapi (fun i (_, e) ->
           Unix.gettimeofday () +. float_of_int i *. 0.5, e) t.schedules)
-  | Toggle_archive -> t.archive <- not t.archive; t.board_scroll <- 0; repair_selection t
+  | Toggle_archive -> t.archive <- not t.archive; t.board_scroll <- 0
   | Start ->
       if t.external_events then t.status <- "Replay mode cannot start runs. Use a fixture run ID."
       else (match selected t with
@@ -130,7 +156,7 @@ let act t action =
           t.status <- "Simulated run interrupted. Stale updates are ignored."
       | _ -> t.status <- "There is no active run to stop.")
   | Accept -> (match selected t with
-      | Some task -> result t (accept task); repair_selection t
+      | Some task -> result t (accept task)
       | None -> ())
 
 let append_utf8 buffer uchar = Uutf.Buffer.add_utf_8 buffer uchar
@@ -178,7 +204,7 @@ let submit t = match t.input with
       if title <> "" then (
         let id = next_id t "T" in
         t.tasks <- t.tasks @ [make ~id ~title ~repository:"factory-tui"];
-        t.archive <- false; t.query <- ""; select t id; t.input <- Normal;
+        t.archive <- false; t.repository <- None; t.query <- ""; select t id; t.input <- Normal;
         t.status <- "Task created in memory. Start runs a simulated fixture.")
 
 let ordered_tasks t =
@@ -189,12 +215,12 @@ let ordered_tasks t =
 let navigation_tasks t =
   let tasks = ordered_tasks t in
   match selected t with
-  | Some task when not t.archive -> List.filter (fun (x : task) -> x.state = task.state) tasks
+  | Some task when not t.archive && List.exists (fun (x : task) -> x.id = task.id) tasks -> List.filter (fun (x : task) -> x.state = task.state) tasks
   | _ -> tasks
 
 let move_in t tasks delta =
   let rec index i = function
-    | [] -> 0
+    | [] -> (if delta >= 0 then -1 else List.length tasks)
     | (task : task) :: _ when task.id = t.selected -> i
     | _ :: rest -> index (i + 1) rest in
   if tasks <> [] then
@@ -296,6 +322,9 @@ let normal_key t (key, mods) =
         else (t.query <- ""; repair_selection t))
     | `ASCII '/' -> command (fun () -> act t Begin_search)
     | `ASCII 'i' -> command (fun () -> act t Begin_compose)
+    | `ASCII 'R' -> command (fun () -> act t Next_repository)
+    | `ASCII 'b' -> command (fun () -> act t Session_board)
+    | `ASCII 't' -> command (fun () -> act t Toggle_tools)
     | `ASCII 'm' -> command (fun () -> act t Begin_model)
     | `ASCII 'H' -> command (fun () -> act t Next_harness)
     | `ASCII 'n' -> command (fun () -> act t Begin_new)
@@ -320,7 +349,21 @@ let key t (key, mods) =
     | `ASCII char when List.mem `Ctrl mods -> `ASCII (Char.lowercase_ascii char)
     | key -> key in
   if key = `ASCII 'c' && List.mem `Ctrl mods then (reset_keys t; t.quit <- true)
-  else if t.help then (reset_keys t; if key = `Escape || key = `ASCII '?' then t.help <- false)
+  else if t.help then (
+    reset_keys t;
+    match key with
+    | `Escape | `ASCII '?' -> act t Close_menu
+    | `Tab | `ASCII 'h' | `ASCII 'l' | `Arrow `Left | `Arrow `Right ->
+        act t (Menu_tab (match t.menu_tab with Help_tab -> Settings_tab | Settings_tab -> Help_tab))
+    | `ASCII 'j' | `Arrow `Down -> t.menu_scroll <- min 10000 (t.menu_scroll + 1)
+    | `ASCII 'k' | `Arrow `Up -> t.menu_scroll <- max 0 (t.menu_scroll - 1)
+    | `ASCII 'g' | `Home -> t.menu_scroll <- 0
+    | `ASCII 'G' | `End -> t.menu_scroll <- 10000
+    | `Page `Down -> t.menu_scroll <- min 10000 (t.menu_scroll + 8)
+    | `Page `Up -> t.menu_scroll <- max 0 (t.menu_scroll - 8)
+    | `ASCII 'm' when t.menu_tab = Settings_tab -> t.help <- false; act t Begin_model
+    | `ASCII 'H' when t.menu_tab = Settings_tab -> act t Next_harness
+    | _ -> ())
   else if t.input <> Normal then (
     reset_keys t;
     match key with

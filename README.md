@@ -48,7 +48,10 @@ Use standard OCaml first. OxCaml is not required by this prototype.
 
 - Click a card to focus it and inspect its conversation and activity.
 - Double-click, Enter, or `e` expands the selected task. Escape returns.
-- Four columns: Queued, Working, Needs you, Ready. `d` opens accepted tasks.
+- Four columns contain bordered cards: Queued, Working, Needs you, Ready.
+  `d` opens accepted tasks. Acceptance leaves the selected chat open and read-only.
+- Wide layouts show a repository sidebar. `R` cycles repositories at any size;
+  `b` returns to all active tasks. Repository filtering does not close the chat.
 - Wide terminals place the board and task detail side by side. Medium terminals
   stack them. Narrow terminals use a compact task list with expandable detail.
 - Tab / Shift-Tab cycle panes forward / backward. The focused pane is highlighted.
@@ -73,12 +76,18 @@ Use standard OCaml first. OxCaml is not required by this prototype.
 - `s` starts a simulated run, `x` interrupts it. Activity retains each run's
   original harness/model, timestamps, and outcome.
 - `a` accepts a Ready task. Acceptance does not merge, push, or delete anything.
-- `f` pauses/resumes demo events. `?` opens help. `q` or Ctrl-C quits.
+- Tool output is collapsed by default; `t` expands it in Activity.
+- `f` pauses/resumes demo events. `?` opens Help / Settings; Tab or `h/l` switches
+  tabs, `j/k` scrolls, and Escape closes. Settings shows storage and next-run
+  harness/model; `m` edits the model and `H` cycles the simulated harness.
+- `q` or Ctrl-C quits.
 - The bottom action bar is clickable. Mouse reporting needs a supporting terminal;
   keyboard controls remain available without it.
 
 Pasted shortcuts cannot execute actions or submit messages. Terminal control
 characters in event content are replaced before rendering.
+
+The layout and verification record are in [docs/ui-parity.md](docs/ui-parity.md).
 
 ## State rules
 

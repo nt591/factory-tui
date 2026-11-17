@@ -10,6 +10,7 @@ let interactive ~events ~database =
     Error "Interactive mode needs a terminal. Use --snapshot for a headless preview."
   else
     let t = Controller.create ~external_events:(events <> "") () in
+    t.database_path <- (if database = "" then None else Some database);
     let opened = if database = "" then Ok None else
       match Persistence.start database with
       | Error error -> Error error
