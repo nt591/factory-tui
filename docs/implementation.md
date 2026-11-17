@@ -87,3 +87,10 @@ Update this plan and README with verified behavior and remaining limits in the
 same commit. Keep business logic out of `bin/main.ml`. Tests must not use live
 agents, credentials, or real workspaces. Preserve simulation labels until an
 explicit live path exists. Never push without an explicit request.
+
+## Optional compiler follow-up
+
+OxCaml is deferred at the user's request. Continue on the verified standard OCaml
+switch. `docs/oxcaml.md` records the bootstrap failure, interrupted newer attempt,
+and required application/editor checks before adopting compiler extensions. This
+TODO does not block any of the product steps above.

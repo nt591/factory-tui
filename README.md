@@ -59,7 +59,9 @@ uv run --with pyte python scripts/smoke-terminal.py \
 `scripts/build.sh` builds `@install` by default or accepts Dune targets.
 `scripts/check.sh` builds and runs all unit tests. Formatting and the editor
 continue using the standard project switch unless configured separately.
-OxCaml compatibility is under investigation; it is not yet a supported build.
+OxCaml is deferred until later, not a supported build or implementation blocker.
+See [docs/oxcaml.md](docs/oxcaml.md) for the failed bootstrap, interrupted newer
+attempt, likely SDK issue, and retry checklist.
 
 ## Editor and formatting
 
