@@ -22,9 +22,10 @@ Acceptance does not merge, push, or delete a workspace.
 2. **Simulated sessions — complete.** Typed reducer, stable task/run identity,
    channels, stream-item replacement, and event-driven movement. Reject stale
    events. Selection follows task identity when its state changes.
-3. **Composition and run selection — partial.** Queued replies, task-specific
-   drafts, and simulated acceptance exist. Add harness/model selection and
-   immutable run records. Verify edits affect only the next run.
+3. **Composition and run selection — complete for simulation.** Queued replies,
+   task-specific drafts, simulated acceptance, harness/model selection, and
+   immutable run records exist. Tests verify edits affect only the next run.
+   Models and harness selections do not establish live compatibility.
 4. **SQLite persistence — not started.** Persist sessions, run records, and ordered
    events. Start with a tested storage module, then connect opt-in persistence to
    the UI. Require exclusive ownership, bounded background saves, write-error

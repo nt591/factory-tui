@@ -50,6 +50,41 @@ let () =
   check "required fields enforced" (Result.is_error (Events.decode {|{"type":"message"}|}));
   check "event objects required" (Result.is_error (Events.decode "[]"));
   check "exit code validated" (Result.is_error (Events.decode {|{"task_id":"task","run_id":"run","type":"process.exited","code":"0"}|}));
+  let configured = ok (set_model (task ()) " model-one ") |> fun t -> ok (set_harness t Claude) in
+  let running = ok (start configured "configured-run") in
+  let first = List.hd running.runs in
+  check "run captures model and harness" (first.model = "model-one" && first.harness = Claude && first.status = Running && first.ended_at = None);
+  let changed = ok (set_model running "model-two") |> fun t -> ok (set_harness t Codex) in
+  check "editing next run preserves history" (List.hd changed.runs = first && changed.model = "model-two" && changed.harness = Codex);
+  let apply_configured t event = Option.get (Model.apply t {task_id = "task"; run_id = "configured-run"; event}) in
+  let changed = apply_configured changed (Message ("item", "answer")) in
+  check "message author uses captured harness" ((List.hd (List.rev changed.messages)).author = "Claude (simulated)");
+  let changed = apply_configured changed Turn_started |> fun t -> apply_configured t Turn_completed |> fun t -> apply_configured t (Exited 0) in
+  check "completed history has end timestamp" ((List.hd changed.runs).status = Completed && (List.hd changed.runs).ended_at <> None);
+  let changed = ok (send changed ~id:"followup" "Next prompt") in
+  check "duplicate run IDs rejected" (Result.is_error (start changed "configured-run"));
+  let changed = ok (start changed "second-run") in
+  check "second run uses next settings" ((List.nth changed.runs 1).model = "model-two" && (List.nth changed.runs 1).harness = Codex && (List.hd changed.runs).model = "model-one");
+  List.iter (fun value -> check "invalid model rejected" (Result.is_error (set_model (task ()) value))) [""; " "; "-flag"; "bad\nmodel"; String.make 257 'x'];
+  let finished = ok (accept (apply (apply (run ()) Turn_completed) (Exited 0))) in
+  check "accepted settings are read-only" (Result.is_error (set_model finished "new") && Result.is_error (set_harness finished Claude));
+  let stopped = apply (run ()) Interrupted in
+  check "interrupt recorded in history" ((List.hd stopped.runs).status = Stopped);
+  let failed = apply (run ()) (Exited 1) in
+  check "failure recorded in history" ((List.hd failed.runs).status = Run_failed);
+  let waiting = apply (apply (run ()) (Input_requested "Reply")) (Exited 0) in
+  check "input request recorded in history" ((List.hd waiting.runs).status = Awaiting_input);
+  let settings = Controller.create ~external_events:true () in
+  Controller.key settings (`ASCII 'H', []);
+  check "H cycles next harness without starting run" ((Option.get (Controller.selected settings)).harness = Claude && List.length (Option.get (Controller.selected settings)).runs = 1);
+  Controller.key settings (`ASCII 'm', []);
+  check "m opens model editor" (settings.input = Controller.Edit_model);
+  Controller.set_input settings "replacement-model"; Controller.key settings (`Enter, []);
+  check "model editor applies without adding messages" ((Option.get (Controller.selected settings)).model = "replacement-model" && List.length (Option.get (Controller.selected settings)).messages = 1);
+  Controller.key settings (`ASCII 'm', []); Controller.set_input settings "invalid\nmodel"; Controller.key settings (`Enter, []);
+  check "invalid model keeps editor open" (settings.input = Controller.Edit_model && (Option.get (Controller.selected settings)).model = "replacement-model");
+  Controller.key settings (`Escape, []);
+  check "model edit cancellation returns to normal" (settings.input = Controller.Normal);
   let ui = Controller.create ~external_events:true () in
   List.iter (fun (width, height) ->
     let frame = Ui.render ui ~width ~height in

@@ -120,7 +120,13 @@ let render t ~width:cols ~height:rows =
       | Some task ->
           [task.title; "repo: " ^ task.repository;
            "run: " ^ (match task.active with None -> "idle" | Some run -> run.id);
+           "next: " ^ harness_label task.harness ^ " / " ^ task.model;
            "updates: " ^ string_of_int task.revision; ""] @
+          List.concat_map (fun (record : run_record) ->
+            let status = match record.status with Running -> "running" | Completed -> "completed"
+              | Run_failed -> "failed" | Stopped -> "interrupted" | Awaiting_input -> "needs input" in
+            wrap inner ("run " ^ record.run_id ^ ": " ^ harness_label record.harness ^
+              " / " ^ record.model ^ " / " ^ status)) task.runs @ [""] @
           (if task.tools = [] then ["No tool activity yet."]
            else List.concat_map (fun (_, detail) -> wrap inner detail @ [""]) task.tools) in
     if t.focus = Activity then (
@@ -206,10 +212,11 @@ let render t ~width:cols ~height:rows =
         (if pending_keys = "" then "" else "[" ^ pending_keys ^ "] ") ^ t.status
     | Search -> " Search: " ^ t.query ^ "▏  [Enter finish / Esc close]"
     | Compose -> " Reply (queued): " ^ draft t ^ "▏  [Enter send / Esc keep draft]"
+    | Edit_model -> " Model (next run): " ^ t.model_text ^ "▏ [Enter apply / Esc cancel]"
     | New_task -> " New task: " ^ t.new_title ^ "▏  [Enter create / Esc cancel]" in
   if rows >= 3 then paint 0 (rows - 3) (line cols (attr (if t.input = Normal then muted else accent)) input_text);
   let buttons = ["? help", Help; "e expand", Zoom; "i reply", Begin_compose; "s start", Start;
-    "x stop", Stop; "a accept", Accept; "n new", Begin_new; "d archive", Toggle_archive;
+    "x stop", Stop; "a accept", Accept; "m model", Begin_model; "H harness", Next_harness; "n new", Begin_new; "d archive", Toggle_archive;
     "f pause", Toggle_pause; "q quit", Quit] in
   let x = ref 0 in
   if rows >= 2 then List.iter (fun (title, action) ->
@@ -220,7 +227,7 @@ let render t ~width:cols ~height:rows =
   if rows >= 1 then paint 0 (rows - 1) (line cols A.(fg muted ++ bg background)
     " hjkl: move · gg/G: first/last · Ctrl-W hjkl: pane · Ctrl-U/D: half-page · Ctrl-B/F: page · e: zoom · Esc: back");
   if t.help then (
-    let w = min 82 cols and h = min 24 rows in
+    let w = min 82 cols and h = min 25 rows in
     let help_rows = ["FACTORY / terminal prototype"; "";
       "Click a task to select it. Double-click or Enter/e to expand.";
       "Tab cycles Board, Conversation, Activity. Focus is bordered.";
@@ -231,7 +238,8 @@ let render t ~width:cols ~height:rows =
       "Mouse wheel and Page Up/Down scroll. Home/End: first/last.";
       "/ filters task title, ID, and repository. Escape clears search.";
       "i opens the reply composer. Enter queues a reply for the next run.";
-      "n creates an in-memory task. s starts a simulated run.";
+      "n creates a task. m edits its model. H cycles Codex / Claude.";
+      "Selections affect only the next simulated run. s starts it.";
       "x interrupts a simulated run. a accepts a Ready task.";
       "d opens accepted tasks. f pauses/resumes demo events.";
       ""; "Cards move from validated events. Selection follows task identity.";

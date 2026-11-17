@@ -66,7 +66,10 @@ Use standard OCaml first. OxCaml is not required by this prototype.
   Conversations follow new messages until you scroll back; End resumes following.
 - `/` searches title, repository, or task ID. Escape clears the finished search.
 - `i` composes a reply; Enter queues it. Escape keeps a task-specific draft.
-- `n` creates a task. `s` starts a simulated run, `x` interrupts it.
+- `n` creates a task. `m` edits the next-run model; `H` cycles Codex / Claude.
+  Both harnesses are simulated. Selection starts no process.
+- `s` starts a simulated run, `x` interrupts it. Activity retains each run's
+  original harness/model, timestamps, and outcome.
 - `a` accepts a Ready task. Acceptance does not merge, push, or delete anything.
 - `f` pauses/resumes demo events. `?` opens help. `q` or Ctrl-C quits.
 - The bottom action bar is clickable. Mouse reporting needs a supporting terminal;
@@ -138,8 +141,8 @@ The preview uses the macOS Menlo font. Omit `--preview` for a portable smoke.
 
 Follow [docs/implementation.md](docs/implementation.md), adapted from the native
 Factory app. The terminal shell and simulated session steps are complete.
-Composition exists; next-run harness/model selection and run history are next,
-followed by opt-in SQLite, bounded supervision, gateway setup, isolated jj
+Composition, next-run harness/model selection, and run history are implemented
+for simulation. Next is opt-in SQLite, bounded supervision, gateway setup, isolated jj
 workspaces/review, and distribution.
 
 Use tested increments and move local `main` to each completed jj commit.

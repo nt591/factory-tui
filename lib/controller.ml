@@ -1,11 +1,11 @@
 open Model
 
 type focus = Board | Conversation | Activity
-type input = Normal | Search | Compose | New_task
+type input = Normal | Search | Compose | New_task | Edit_model
 type prefix = No_prefix | Go | Window
 type action =
   | Select of string | Zoom | Focus of focus | Start | Stop | Accept
-  | Toggle_archive | Toggle_pause | Help | Quit | Begin_search | Begin_compose | Begin_new
+  | Next_harness | Begin_model | Toggle_archive | Toggle_pause | Help | Quit | Begin_search | Begin_compose | Begin_new
 
 type t = {
   mutable tasks : task list;
@@ -18,6 +18,7 @@ type t = {
   mutable input : input;
   mutable query : string;
   mutable new_title : string;
+  mutable model_text : string;
   mutable drafts : (string * string) list;
   mutable scroll : int;
   mutable board_scroll : int;
@@ -35,7 +36,7 @@ type t = {
 let create ?(external_events = false) () =
   { tasks = Demo.seed (); selected = "T-102"; focus = Board; zoom = false;
     archive = false; paused = false; help = false; input = Normal; query = "";
-    new_title = ""; drafts = []; scroll = 0; board_scroll = 0;
+    new_title = ""; model_text = ""; drafts = []; scroll = 0; board_scroll = 0;
     status = "Simulation only. No agent, credentials, or workspace access.";
     quit = false; serial = 200;
     schedules = if external_events then [] else
@@ -81,6 +82,15 @@ let act t action =
   | Help -> t.help <- not t.help
   | Begin_search -> t.input <- Search
   | Begin_compose -> if selected t <> None then (t.input <- Compose; t.focus <- Conversation)
+  | Next_harness -> (match selected t with
+      | None -> ()
+      | Some task -> (match set_harness task (match task.harness with Codex -> Claude | Claude -> Codex) with
+          | Error error -> t.status <- error
+          | Ok task -> replace t task;
+              t.status <- "Next-run harness selection only. No agent starts."))
+  | Begin_model -> (match selected t with
+      | None -> ()
+      | Some task -> t.model_text <- task.model; t.input <- Edit_model)
   | Begin_new -> t.input <- New_task; t.new_title <- ""
   | Toggle_pause ->
       if t.external_events then t.status <- "Replay input stays live. Pause is available for the demo only."
@@ -126,11 +136,12 @@ let remove_last text =
   String.sub text 0 !last
 
 let input_value t = match t.input with
-  | Search -> t.query | Compose -> draft t | New_task -> t.new_title | Normal -> ""
+  | Search -> t.query | Compose -> draft t | New_task -> t.new_title | Edit_model -> t.model_text | Normal -> ""
 let set_input t text =
   if String.length text <= 65536 then match t.input with
     | Search -> t.query <- text; t.board_scroll <- 0; repair_selection t
     | Compose -> set_draft t text
+    | Edit_model -> t.model_text <- text
     | New_task -> t.new_title <- text
     | Normal -> ()
 
@@ -142,6 +153,12 @@ let submit t = match t.input with
         | Error error -> t.status <- error
         | Ok task -> replace t task; set_draft t ""; t.input <- Normal;
           t.status <- "Reply queued for the next run. No live agent receives it.")
+  | Edit_model -> (match selected t with
+      | None -> t.input <- Normal
+      | Some task -> match set_model task t.model_text with
+        | Error error -> t.status <- error
+        | Ok task -> replace t task; t.input <- Normal;
+            t.status <- "Next-run model updated. Gateway compatibility is unverified.")
   | New_task ->
       let title = String.trim t.new_title in
       if title <> "" then (
@@ -265,6 +282,8 @@ let normal_key t (key, mods) =
         else (t.query <- ""; repair_selection t))
     | `ASCII '/' -> command (fun () -> act t Begin_search)
     | `ASCII 'i' -> command (fun () -> act t Begin_compose)
+    | `ASCII 'm' -> command (fun () -> act t Begin_model)
+    | `ASCII 'H' -> command (fun () -> act t Next_harness)
     | `ASCII 'n' -> command (fun () -> act t Begin_new)
     | `ASCII 's' | `Function 5 -> command (fun () -> act t Start)
     | `ASCII 'x' | `Function 6 -> command (fun () -> act t Stop)
