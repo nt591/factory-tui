@@ -341,6 +341,7 @@ See [docs/gateway.md](docs/gateway.md) for validation rules and the next checks.
 - `lib/storage/`: snapshots, replay events, SQLite, and background saves.
 - `lib/agent/`: harness decoding, supervision, Codex, gateway, and dry-run preview.
 - `lib/terminal/`: controller, rendering, startup config, app loop, and fixtures.
+- `lib/support/`: shared resource-scope binding operators.
 - `bin/`, `test/`, `scripts/`, `docs/`: entry point, checks, tooling, and guidance.
 
 Subsystem folders preserve the current `Factory_tui.Model`, `Factory_tui.Ui`, etc.
@@ -354,7 +355,9 @@ inspectable for reducers, serialization, and rendering. Internal codec, spawn,
 and navigation helpers are not exported. The controller state remains an exposed
 UI record; it is not claimed to be fully encapsulated yet.
 
-See [docs/modules.md](docs/modules.md) for the intended boundaries.
+Native `Scope` let-bindings flatten resource cleanup blocks without a PPX or
+changing `Fun.protect` semantics. See [docs/modules.md](docs/modules.md) for the
+intended boundaries and a scope example.
 
 ## Implementation sequence
 

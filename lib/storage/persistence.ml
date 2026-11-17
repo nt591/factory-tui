@@ -1,3 +1,5 @@
+open Scope
+
 type batch = { snapshot : Snapshot.t; events : Model.envelope list; generation : int }
 
 type t = {
@@ -29,39 +31,37 @@ let worker t path =
   try
     match Storage.open_store path with
     | Error message -> fail t message
-    | Ok store ->
-        Fun.protect
-          ~finally:(fun () -> Storage.close store)
-          (fun () ->
-            match Storage.load store with
-            | Error message -> fail t message
-            | Ok loaded ->
+    | Ok store -> (
+        let@ () = on_exit (fun () -> Storage.close store) in
+        match Storage.load store with
+        | Error message -> fail t message
+        | Ok loaded ->
+            locked t (fun () ->
+                t.loaded <- loaded;
+                t.initialized <- true;
+                Condition.broadcast t.changed);
+            let rec loop () =
+              let batch =
                 locked t (fun () ->
-                    t.loaded <- loaded;
-                    t.initialized <- true;
-                    Condition.broadcast t.changed);
-                let rec loop () =
-                  let batch =
-                    locked t (fun () ->
-                        while t.pending = None && not t.stopping do
-                          Condition.wait t.changed t.mutex
-                        done;
-                        let batch = t.pending in
-                        t.pending <- None;
-                        batch)
-                  in
-                  match batch with
-                  | None -> ()
-                  | Some batch -> (
-                      match Storage.save store batch.snapshot ~events:batch.events with
-                      | Error message -> fail t message
-                      | Ok () ->
-                          locked t (fun () ->
-                              t.saved <- batch.generation;
-                              Condition.broadcast t.changed);
-                          loop ())
-                in
-                loop ())
+                    while t.pending = None && not t.stopping do
+                      Condition.wait t.changed t.mutex
+                    done;
+                    let batch = t.pending in
+                    t.pending <- None;
+                    batch)
+              in
+              match batch with
+              | None -> ()
+              | Some batch -> (
+                  match Storage.save store batch.snapshot ~events:batch.events with
+                  | Error message -> fail t message
+                  | Ok () ->
+                      locked t (fun () ->
+                          t.saved <- batch.generation;
+                          Condition.broadcast t.changed);
+                      loop ())
+            in
+            loop ())
   with _ -> fail t "Persistence worker failed. Conversation data was not printed."
 
 let start path =

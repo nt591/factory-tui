@@ -1,3 +1,5 @@
+open Scope
+
 type t = { base_url : string; key_environment : string }
 
 let base_url t = t.base_url
@@ -152,19 +154,17 @@ let load filename =
       Unix.openfile filename [ Unix.O_RDONLY; Unix.O_NONBLOCK; Unix.O_CLOEXEC ] 0
     in
     let channel = Unix.in_channel_of_descr fd in
-    Fun.protect
-      ~finally:(fun () -> close_in_noerr channel)
-      (fun () ->
-        if (Unix.fstat fd).Unix.st_kind <> Unix.S_REG then
-          Error "Gateway config must be a regular file."
+    let@ () = on_exit (fun () -> close_in_noerr channel) in
+    if (Unix.fstat fd).Unix.st_kind <> Unix.S_REG then
+      Error "Gateway config must be a regular file."
+    else
+      let bytes = Bytes.create 65537 in
+      let rec read offset =
+        if offset = Bytes.length bytes then offset
         else
-          let bytes = Bytes.create 65537 in
-          let rec read offset =
-            if offset = Bytes.length bytes then offset
-            else
-              let count = input channel bytes offset (Bytes.length bytes - offset) in
-              if count = 0 then offset else read (offset + count)
-          in
-          let count = read 0 in
-          parse (Bytes.sub_string bytes 0 count))
+          let count = input channel bytes offset (Bytes.length bytes - offset) in
+          if count = 0 then offset else read (offset + count)
+      in
+      let count = read 0 in
+      parse (Bytes.sub_string bytes 0 count)
   with Unix.Unix_error _ | Sys_error _ -> Error "Cannot read gateway config."

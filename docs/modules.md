@@ -8,6 +8,7 @@ lib/
   storage/    # Snapshot codec, event replay, SQLite, persistence worker
   agent/      # Harness decoder, process supervision, Codex, gateway, preview
   terminal/   # Controller, rendering, configuration, app loop, fixtures
+  support/    # Small shared control-flow helpers
   dune
 bin/          # CLI entry point
 test/        # Unit and integration checks
@@ -65,3 +66,29 @@ No functor is required for these boundaries. Keep modules small and add a functo
 only when a concrete dependency must be parameterized; do not expose internals to
 make tests convenient. Current integration tests use the same public interfaces
 as the application. Resource handles stay abstract even in tests.
+
+## Resource scopes with binding operators
+
+`Scope` provides a native `let@` binding operator for callback-style scopes:
+
+```ocaml
+open Scope
+
+let read filename =
+  let channel = open_in filename in
+  let@ () = on_exit (fun () -> close_in_noerr channel) in
+  really_input_string channel (in_channel_length channel)
+```
+
+The remainder of the block is the callback. `on_exit` still uses `Fun.protect`,
+so normal returns and exceptions both run cleanup. Nested scopes clean up inside
+out. Cleanup failures retain `Fun.Finally_raised` semantics; this is not an error
+suppression mechanism. No PPX or Jane Street library dependency is required.
+
+Use this when a cleanup callback creates nesting. A short existing helper such
+as `statement db sql (fun stmt -> ...)` or mutex wrapper can stay explicit.
+Do not confuse a scope binding with asynchronous or result `let*` sequencing.
+Cleanup belongs to the lexical remainder, so keep post-cleanup result inspection
+outside it: the app loop ends its scope before inspecting final storage errors.
+The helper does not acquire resources, infer ownership, or register an automatic
+global cleanup stack; place each binding after successful acquisition.

@@ -1,3 +1,5 @@
+open Scope
+
 type t = { database : string option }
 
 let empty = { database = None }
@@ -58,24 +60,22 @@ let load ~home filename =
       Unix.openfile filename [ Unix.O_RDONLY; Unix.O_NONBLOCK; Unix.O_CLOEXEC ] 0
     in
     let channel = Unix.in_channel_of_descr fd in
-    Fun.protect
-      ~finally:(fun () -> close_in_noerr channel)
-      (fun () ->
-        if (Unix.fstat fd).Unix.st_kind <> Unix.S_REG then
-          Error "Config must be a regular file."
+    let@ () = on_exit (fun () -> close_in_noerr channel) in
+    if (Unix.fstat fd).Unix.st_kind <> Unix.S_REG then
+      Error "Config must be a regular file."
+    else
+      let buffer = Bytes.create 65537 in
+      let rec read offset =
+        if offset = Bytes.length buffer then offset
         else
-          let buffer = Bytes.create 65537 in
-          let rec read offset =
-            if offset = Bytes.length buffer then offset
-            else
-              let count = input channel buffer offset (Bytes.length buffer - offset) in
-              if count = 0 then offset else read (offset + count)
-          in
-          let count = read 0 in
-          parse
-            ~base:(Filename.dirname (Unix.realpath filename))
-            ~home
-            (Bytes.sub_string buffer 0 count))
+          let count = input channel buffer offset (Bytes.length buffer - offset) in
+          if count = 0 then offset else read (offset + count)
+      in
+      let count = read 0 in
+      parse
+        ~base:(Filename.dirname (Unix.realpath filename))
+        ~home
+        (Bytes.sub_string buffer 0 count)
   with Unix.Unix_error _ | Sys_error _ -> Error "Cannot read config file."
 
 let default_path ~home ~xdg =

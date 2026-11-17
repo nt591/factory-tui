@@ -37,3 +37,8 @@
  (name test_text_edit)
  (modules test_text_edit)
  (libraries factory_tui notty))
+
+(test
+ (name test_scope)
+ (modules test_scope)
+ (libraries factory_tui))
