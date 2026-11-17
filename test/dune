@@ -32,3 +32,8 @@
  (name test_gateway)
  (modules test_gateway)
  (libraries factory_tui unix))
+
+(test
+ (name test_text_edit)
+ (modules test_text_edit)
+ (libraries factory_tui notty))

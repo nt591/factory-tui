@@ -46,6 +46,7 @@ type t = {
   mutable query : string;
   mutable new_title : string;
   mutable model_text : string;
+  mutable editor : Text_edit.t;
   mutable drafts : (string * string) list;
   mutable scroll : int;
   mutable board_scroll : int;
@@ -81,3 +82,5 @@ val remove_last : string -> string
 val set_input : t -> string -> unit
 val submit : t -> unit
 val key : t -> Notty.Unescape.key -> unit
+val insert_text : t -> string -> unit
+val paste_key : t -> Notty.Unescape.key -> unit

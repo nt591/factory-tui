@@ -148,7 +148,12 @@ let render t ~width:cols ~height:rows =
   let body_y = 3 and body_h = max 0 (rows - 6) in
   let task = selected t in
   let conversation r =
-    let composer_height = if r.h >= 10 && task <> None then 4 else 0 in
+    let draft_rows = max 1 (List.length (wrap (max 1 (r.w - 6)) (draft t))) in
+    let composer_height =
+      if r.h >= 10 && task <> None then
+        min (max 4 (min 8 (draft_rows + 3))) (max 4 (r.h / 2))
+      else 0
+    in
     let chat_height = r.h - composer_height in
     let inner = max 1 (r.w - 4) in
     let title, rows =
@@ -189,25 +194,43 @@ let render t ~width:cols ~height:rows =
       let editing = t.input = Compose in
       let prompt =
         if task.state = Done then "Accepted task / chat history is read-only"
-        else if draft t = "" then "Write a reply…  i to compose"
+        else if draft t = "" then if editing then "▏" else "Write a reply…  i to compose"
+        else if editing then
+          let value = Text_edit.text t.editor and cursor = Text_edit.cursor t.editor in
+          String.sub value 0 cursor ^ "▏"
+          ^ String.sub value cursor (String.length value - cursor)
         else draft t
       in
-      let prompt =
-        (if editing then "> " else "  ") ^ prompt ^ if editing then "▏" else ""
-      in
+      let prompt = (if editing then "> " else "  ") ^ prompt in
       let selection = harness_label task.harness ^ " / " ^ task.model in
       let instructions =
         if task.state = Done then "Accepted / read-only"
         else
           selection ^ "  ·  "
-          ^ if editing then "Enter queues / Esc keeps draft" else "m model / H harness"
+          ^
+          if editing then "Enter queues / Ctrl-L newline / Esc keeps draft"
+          else "m model / H harness"
+      in
+      let prompt_rows = wrap inner prompt in
+      let capacity = composer_height - 3 in
+      let cursor_row =
+        if not editing then List.length prompt_rows - 1
+        else
+          let before =
+            String.sub (Text_edit.text t.editor) 0 (Text_edit.cursor t.editor)
+          in
+          List.length (wrap inner ("> " ^ before ^ "▏")) - 1
+      in
+      let offset = max 0 (cursor_row - capacity + 1) in
+      let visible_rows =
+        List.filteri (fun i _ -> i >= offset && i < offset + capacity) prompt_rows
       in
       let composer =
         I.vcat
-          [
-            line inner (attr (if editing then text else muted)) prompt;
-            line inner (attr muted) instructions;
-          ]
+          ( List.map (line inner (attr (if editing then text else muted))) visible_rows
+          |> fun images ->
+            [ fit inner capacity (I.vcat images); line inner (attr muted) instructions ]
+          )
         |> I.hpad 1 1
       in
       paint r.x (r.y + chat_height)
@@ -505,7 +528,8 @@ let render t ~width:cols ~height:rows =
         "Ctrl-U/D: half-page. Ctrl-B/F: full-page. Tab/Shift-Tab: cycle.";
         "Mouse wheel and Page Up/Down scroll. Home/End: first/last.";
         "";
-        "i composes a reply. Enter queues it; Escape keeps the draft.";
+        "i composes a reply. Enter queues; Ctrl-L/Alt-Enter adds a line.";
+        "Arrows edit; Home/End move within a line; Escape keeps the draft.";
         "n creates a task. m edits its model. H cycles Codex / Claude.";
         "s starts a simulated run; x interrupts; a accepts Ready work.";
         "b returns to all tasks. R cycles repositories. d opens Archive.";

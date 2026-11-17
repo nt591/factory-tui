@@ -129,12 +129,7 @@ let interactive ?(fake_harness = false) ~events ~database () =
                         | `Paste `End -> pasting := false
                         | `Key key ->
                             (* Pasted shortcuts must not start runs or submit messages. *)
-                            if !pasting then
-                              match key with
-                              | (`ASCII _ | `Uchar _), _ when t.input <> Controller.Normal
-                                ->
-                                  Controller.key t key
-                              | _ -> ()
+                            if !pasting then Controller.paste_key t key
                             else Controller.key t key
                         | `Mouse mouse ->
                             Ui.mouse t frame ~now:(Unix.gettimeofday ()) mouse

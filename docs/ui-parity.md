@@ -43,5 +43,6 @@ from `scripts/smoke-terminal.py --preview /tmp/factory-tui.png`.
 Live process supervision, gateway setup, isolated workspaces and a real changes
 review surface follow the implementation sequence. Simulation currently uses
 fixture data only. Do not present a simulated tool result as real verification.
-Further UX refinements may include a multiline composer, configurable layouts,
-and a searchable chat transcript. No real review drawer exists yet.
+The composer supports multiline drafts (Ctrl-L or Alt-Enter), Unicode codepoint cursor movement,
+insertion/deletion, and newline-preserving paste. Further refinements may include
+grapheme-aware cursor movement, configurable layouts, and transcript search. No real review drawer exists yet.

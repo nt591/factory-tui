@@ -63,7 +63,7 @@ Acceptance does not merge, push, or delete a workspace.
    Show changes for review. Acceptance remains separate from merge and push.
    Real calls and workspace changes require explicit live mode and user action.
 8. **Distribution and lifecycle — partial.** Vim navigation, repository sidebar,
-   bordered cards, visible composer, Help/Settings tabs, and terminal smoke tests
+   bordered cards, multiline editing/paste, Help/Settings tabs, and terminal smoke tests
    exist. UI guidance and visual verification are in `docs/ui-parity.md`. Add reproducible packaging, dependency pins, installation notes,
    and lifecycle checks. Measure build time, executable size, and idle resources.
    Do not claim a GUI performance advantage without a comparable measurement.

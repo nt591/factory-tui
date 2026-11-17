@@ -52,6 +52,8 @@ against these interfaces during the normal Dune build.
   Its mutable state record is public because the current renderer and app loop
   read and update it. Navigation algorithms and command dispatch helpers remain
   private. This is not yet an abstract controller with a read-only view model.
+- `Text_edit`: abstract bounded UTF-8 text and cursor state, with insertion,
+  deletion, line navigation, and codepoint movement. It performs no UI actions.
 - `Ui`: frame/hitbox data, render, mouse dispatch, and tested text wrapping. Theme,
   borders, image composition, and pane rendering helpers stay private.
 - `Fake_runner`: abstract ownership of fixture runs with poll/close. Its fixed

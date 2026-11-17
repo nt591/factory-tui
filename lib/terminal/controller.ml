@@ -46,6 +46,7 @@ type t = {
   mutable query : string;
   mutable new_title : string;
   mutable model_text : string;
+  mutable editor : Text_edit.t;
   mutable drafts : (string * string) list;
   mutable scroll : int;
   mutable board_scroll : int;
@@ -86,6 +87,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     query = "";
     new_title = "";
     model_text = "";
+    editor = Text_edit.create "";
     drafts = [];
     scroll = 0;
     board_scroll = 0;
@@ -230,13 +232,16 @@ let act t action =
       t.repository <- next options;
       t.board_scroll <- 0;
       t.focus <- Board
-  | Begin_search -> t.input <- Search
+  | Begin_search ->
+      t.input <- Search;
+      t.editor <- Text_edit.create t.query
   | Begin_compose -> (
       match selected t with
       | None -> ()
       | Some task when task.state = Done -> t.status <- "Accepted tasks are read-only."
       | Some _ ->
           t.input <- Compose;
+          t.editor <- Text_edit.create (draft t);
           t.focus <- Conversation)
   | Next_harness -> (
       match selected t with
@@ -254,10 +259,12 @@ let act t action =
       | None -> ()
       | Some task ->
           t.model_text <- task.model;
-          t.input <- Edit_model)
+          t.input <- Edit_model;
+          t.editor <- Text_edit.create task.model)
   | Begin_new ->
       t.input <- New_task;
-      t.new_title <- ""
+      t.new_title <- "";
+      t.editor <- Text_edit.create ""
   | Toggle_pause ->
       if t.fake_harness then
         t.status <- "Process fixture updates cannot be paused. Use x to stop."
@@ -323,16 +330,9 @@ let remove_last text =
   Uutf.String.fold_utf_8 (fun () i _ -> last := i) () text;
   String.sub text 0 !last
 
-let input_value t =
-  match t.input with
-  | Search -> t.query
-  | Compose -> draft t
-  | New_task -> t.new_title
-  | Edit_model -> t.model_text
-  | Normal -> ""
-
 let set_input t text =
-  if String.length text <= 65536 then
+  if String.length text <= 65536 then (
+    t.editor <- Text_edit.create text;
     match t.input with
     | Search ->
         t.query <- text;
@@ -341,7 +341,28 @@ let set_input t text =
     | Compose -> set_draft t text
     | Edit_model -> t.model_text <- text
     | New_task -> t.new_title <- text
-    | Normal -> ()
+    | Normal -> ())
+
+let edit t fn =
+  let editor = fn t.editor in
+  set_input t (Text_edit.text editor);
+  t.editor <- editor
+
+let insert_text t value =
+  if t.input <> Normal then
+    edit t (fun editor ->
+        Text_edit.insert editor (clean ~newlines:(t.input = Compose) value))
+
+let paste_key t (key, _) =
+  if t.input <> Normal then
+    match key with
+    | `Enter -> if t.input = Compose then insert_text t "\n" else insert_text t " "
+    | `ASCII char -> insert_text t (String.make 1 char)
+    | `Uchar uchar ->
+        let buffer = Buffer.create 4 in
+        append_utf8 buffer uchar;
+        insert_text t (Buffer.contents buffer)
+    | _ -> ()
 
 let submit t =
   match t.input with
@@ -594,13 +615,22 @@ let key t (key, mods) =
     reset_keys t;
     match key with
     | `Escape -> t.input <- Normal
+    | `Enter when t.input = Compose && List.mem `Meta mods -> insert_text t "\n"
+    | `ASCII 'l' when t.input = Compose && List.mem `Ctrl mods -> insert_text t "\n"
     | `Enter -> submit t
-    | `Backspace -> set_input t (remove_last (input_value t))
+    | `Backspace -> edit t Text_edit.backspace
+    | `Delete -> edit t Text_edit.delete
+    | `Arrow `Left -> edit t Text_edit.left
+    | `Arrow `Right -> edit t Text_edit.right
+    | `Arrow `Up when t.input = Compose -> edit t Text_edit.up
+    | `Arrow `Down when t.input = Compose -> edit t Text_edit.down
+    | `Home -> edit t Text_edit.home
+    | `End -> edit t Text_edit.ending
     | `ASCII char when mods = [] || mods = [ `Shift ] ->
-        set_input t (input_value t ^ clean ~newlines:false (String.make 1 char))
+        insert_text t (String.make 1 char)
     | `Uchar uchar when mods = [] || mods = [ `Shift ] ->
-        let b = Buffer.create 4 in
-        append_utf8 b uchar;
-        set_input t (input_value t ^ clean ~newlines:false (Buffer.contents b))
+        let buffer = Buffer.create 4 in
+        append_utf8 buffer uchar;
+        insert_text t (Buffer.contents buffer)
     | _ -> ())
   else normal_key t (key, mods)

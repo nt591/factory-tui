@@ -123,7 +123,11 @@ plugins, modify shell startup files, or require global OCaml tool installations.
 - Arrow keys or `hjkl` navigate. Mouse wheel and Page Up/Down scroll.
   Conversations follow new messages until you scroll back; End resumes following.
 - `/` searches title, repository, or task ID. Escape clears the finished search.
-- `i` composes a reply; Enter queues it. Escape keeps a task-specific draft.
+- `i` composes a reply; Enter queues it. Ctrl-L or Alt-Enter inserts a newline.
+  Arrows move the cursor, Home/End move within a line, and Backspace/Delete edit.
+  Multiline paste preserves newlines without submitting or activating shortcuts.
+  Escape keeps a task-specific draft. Cursor movement uses Unicode codepoints,
+  not complete grapheme clusters; combining sequences need care when editing.
 - `n` creates a task. `m` edits the next-run model; `H` cycles Codex / Claude.
   Both harnesses are simulated. Selection starts no process.
 - `s` starts a simulated run, `x` interrupts it. Activity retains each run's
