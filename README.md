@@ -363,6 +363,7 @@ See [docs/gateway.md](docs/gateway.md) for validation rules and the next checks.
 - `lib/domain/`: task/run types and state transitions.
 - `lib/storage/`: snapshots, replay events, SQLite, and background saves.
 - `lib/agent/`: harness decoding, supervision, Codex, gateway, and dry-run preview.
+- `lib/workspace/`: explicit isolated jj workspace creation and bounded real diffs.
 - `lib/terminal/`: controller, rendering, startup config, and app loop.
 - `lib/demo/`: `Demo.Seed` fixtures and `Demo.Runner` fake process execution.
 - `lib/support/`: shared resource-scope binding operators.
@@ -370,6 +371,17 @@ See [docs/gateway.md](docs/gateway.md) for validation rules and the next checks.
 
 Subsystem folders preserve the current `Factory_tui.Model`, `Factory_tui.Ui`, etc.
 module APIs. Dune includes subdirectories without adding namespace layers.
+
+## Workspace layer
+
+The isolated jj workspace API is implemented and tested in temporary repositories.
+It resolves an exact base, creates a new outside-source workspace, and returns
+real bounded diffs. It never fetches, merges, pushes, deletes, or converts a
+Git-only repository automatically. Ordinary jj creation may snapshot source
+uncommitted files, so UI integration must disclose that behavior.
+
+Workspace task association and the creation/review UI are not implemented yet.
+See [docs/workspaces.md](docs/workspaces.md) for the API limits and next steps.
 
 ## Module interfaces
 

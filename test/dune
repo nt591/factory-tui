@@ -47,3 +47,8 @@
  (name test_execution)
  (modules test_execution)
  (libraries factory_tui unix sqlite3))
+
+(test
+ (name test_workspace)
+ (modules test_workspace)
+ (libraries factory_tui unix))

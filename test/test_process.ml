@@ -84,16 +84,24 @@ let () =
            (fun (decoded : Harness.decoded) ->
              decoded.event = Some (Model.Message ("reply", "hello")))
            !output);
-      let started = Unix.gettimeofday () in
-      let delivered = ref None in
-      ignore
-        (ok
-           (run
-              ~on_event:(fun _ ->
-                if !delivered = None then delivered := Some (Unix.gettimeofday ()))
-              (config (completed ^ "sleep 0.3\n"))));
+      let marker = Filename.concat directory "callback-delivered" in
+      let result =
+        ok
+          (run
+             ~on_event:(fun _ ->
+               let channel = open_out marker in
+               close_out channel)
+             (config
+                (completed
+               ^ "attempts=0\n\
+                  while [ ! -f callback-delivered ]; do\n\
+                 \  attempts=$((attempts + 1))\n\
+                 \  [ $attempts -lt 200 ] || exit 1\n\
+                 \  sleep 0.01\n\
+                  done\n")))
+      in
       check "callback arrives before process exit"
-        (Option.get !delivered -. started < 0.25 && Unix.gettimeofday () -. started >= 0.3);
+        (result.succeeded && Sys.file_exists marker);
       check "zero exit alone not success" (not (ok (run (config "exit 0\n"))).succeeded);
       check "completion with nonzero exit not success"
         (not (ok (run (config (completed ^ "exit 3\n")))).succeeded);

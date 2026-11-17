@@ -25,6 +25,8 @@ Place task/lifecycle types in lib/domain, persistence in lib/storage, harness
 and process code in lib/agent, and UI/controller/startup code in lib/terminal.
 Keep seed fixtures, timed demo events, and fake runners in lib/demo behind the
 Demo namespace. Demo runners use callbacks, not a direct Controller dependency.
+Workspace creation and review APIs belong in lib/workspace. Use temporary jj
+repositories in tests; never automatically initialize or fetch a real repository.
 Shared small helpers belong in lib/support. Use Scope let@ bindings to flatten
 cleanup scopes when nested callbacks obscure the control flow. Preserve lexical
 cleanup order and Fun.protect exception behavior.

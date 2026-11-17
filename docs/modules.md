@@ -7,6 +7,7 @@ lib/
   domain/     # Task, run, message, and lifecycle data
   storage/    # Snapshot codec, event replay, SQLite, persistence worker
   agent/      # Harness decoder, process supervision, Codex, gateway, preview
+  workspace/  # Isolated jj creation and real diffs
   terminal/   # Controller, rendering, configuration, app loop
   demo/       # Seed data, timed fixture events, fake process runner
   support/    # Small shared control-flow helpers
@@ -36,6 +37,10 @@ against these interfaces during the normal Dune build.
   run-record encoder used by the SQL store. JSON parsing helpers remain private.
 - `Events`: replay envelope encode/decode and an abstract file/FIFO source. Callers
   close the source through an idempotent operation, not its raw descriptor.
+- `Workspace`: abstract validated workspace identity, exact-base creation, and
+  bounded real diffs. No automatic Git conversion, fetching, integration, or deletion.
+- `Command`: bounded plain stdout capture and stderr draining for jj operations;
+  internal descriptors and spawn/cleanup helpers are private.
 - `Execution`: explicit headless task execution, checkpoint-before-spawn, event
   reduction, resume ownership checks, and final persistence. No UI default starts it.
 - `Invocation_preview`: validated JSON preview of execution arguments and safety

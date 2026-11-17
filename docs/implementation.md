@@ -62,9 +62,12 @@ Acceptance does not merge, push, or delete a workspace.
    Dry-run invocation must disclose no credentials. Verify protocol compatibility
    against a loopback fixture before an explicitly requested real gateway check.
    Configuration validity does not prove model compatibility.
-7. **Isolated jj workspaces and review — not started.** Create one workspace per
-   task in an explicitly selected repository. Use temporary repositories in tests.
-   Show changes for review. Acceptance remains separate from merge and push.
+7. **Isolated jj workspaces and review — API complete; task/UI integration pending.**
+   `Workspace` resolves an exact base and creates a new destination outside the
+   source checkout without fetching or integrating. `Workspace.diff` returns a
+   bounded real patch. Temporary-repository tests verify isolation, exact parent,
+   source preservation, and rejection of unsafe inputs. Details: `docs/workspaces.md`.
+   Next persist workspace identity on tasks and add explicit creation/review UI. Acceptance remains separate from merge and push.
    Real calls and workspace changes require explicit live mode and user action.
 8. **Distribution and lifecycle — partial.** Vim navigation, repository sidebar,
    bordered cards, multiline editing/paste, Help/Settings tabs, and terminal smoke tests
