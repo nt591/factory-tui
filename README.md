@@ -90,7 +90,7 @@ to inspect attachment and formatter availability. LazyVim's normal format mappin
 Without the LazyVim override, start Neovim from the switch environment:
 
 ```sh
-opam exec --switch=. -- nvim lib/model.ml
+opam exec --switch=. -- nvim lib/domain/model.ml
 ```
 
 Run `opam exec --switch=. -- dune build @install` after changing dependencies so
@@ -330,6 +330,17 @@ The check opens no database, reads no key, starts no agent, and makes no network
 request. Valid settings do not prove model or Responses compatibility. Gateway
 provider construction is implemented but not connected to live UI execution.
 See [docs/gateway.md](docs/gateway.md) for validation rules and the next checks.
+
+## Source organization
+
+- `lib/domain/`: task/run types and state transitions.
+- `lib/storage/`: snapshots, replay events, SQLite, and background saves.
+- `lib/agent/`: harness decoding, supervision, Codex, gateway, and dry-run preview.
+- `lib/terminal/`: controller, rendering, startup config, app loop, and fixtures.
+- `bin/`, `test/`, `scripts/`, `docs/`: entry point, checks, tooling, and guidance.
+
+Subsystem folders preserve the current `Factory_tui.Model`, `Factory_tui.Ui`, etc.
+module APIs. Dune includes subdirectories without adding namespace layers.
 
 ## Module interfaces
 

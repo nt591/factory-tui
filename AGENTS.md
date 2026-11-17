@@ -20,3 +20,8 @@ delete a workspace. Use fake harnesses and temporary workspaces for tests.
 Add an explicit .mli for each core module. Export supported entry points, not
 implementation helpers. Keep resource handles abstract. Expose records only
 when callers need their structure for state reduction, rendering, or persistence.
+
+Place task/lifecycle types in lib/domain, persistence in lib/storage, harness
+and process code in lib/agent, and UI/controller/startup code in lib/terminal.
+Keep .ml/.mli pairs together. The library uses include_subdirs unqualified, so
+module basenames must remain unique. Update documented paths with file moves.

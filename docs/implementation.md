@@ -91,7 +91,8 @@ jj bookmark set main -r @-
 ```
 
 Update this plan and README with verified behavior and remaining limits in the
-same commit. Keep business logic out of `bin/main.ml`. Tests must not use live
+same commit. Keep business logic out of `bin/main.ml`. Follow the subsystem layout in
+`docs/modules.md`; keep implementation/interface pairs together. Tests must not use live
 agents, credentials, or real workspaces. Preserve simulation labels until an
 explicit live path exists. Never push without an explicit request.
 

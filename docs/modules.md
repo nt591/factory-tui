@@ -1,5 +1,30 @@
 # Module boundaries
 
+## Source layout
+
+```text
+lib/
+  domain/     # Task, run, message, and lifecycle data
+  storage/    # Snapshot codec, event replay, SQLite, persistence worker
+  agent/      # Harness decoder, process supervision, Codex, gateway, preview
+  terminal/   # Controller, rendering, configuration, app loop, fixtures
+  dune
+bin/          # CLI entry point
+test/        # Unit and integration checks
+```
+
+The subsystem grouping follows the organizational idea in Hack's
+`hphp/hack/src`, without copying its scale or build graph. Dune's
+`include_subdirs unqualified` keeps one wrapped `Factory_tui` library, so existing
+module names and `.mli` APIs do not change. File names must be unique across these
+directories. Each implementation and its interface stay beside each other.
+
+These are source groups, not enforced library-level dependency boundaries.
+Splitting them into independent Dune libraries is a later refactor if it provides
+useful dependency enforcement. The current terminal/controller/fixture integration
+is coupled; moving directories alone does not remove that coupling.
+
+
 Each library module has an explicit interface. The compiler checks implementations
 against these interfaces during the normal Dune build.
 
