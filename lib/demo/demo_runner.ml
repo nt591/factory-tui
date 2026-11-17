@@ -1,5 +1,16 @@
 open Model
 
+type context = {
+  tasks : unit -> Model.task list;
+  snapshot : unit -> Snapshot.t;
+  pending_events : unit -> Model.envelope list;
+  acknowledge_events : unit -> unit;
+  receive : Model.envelope -> unit;
+  report_error : string -> unit;
+  enabled : unit -> bool;
+  quitting : unit -> bool;
+}
+
 type run = { task_id : string; run_id : string; handle : Run_handle.t }
 type t = { mutable runs : run list }
 
@@ -16,43 +27,41 @@ printf '%s\n' '{"type":"item.updated","item":{"type":"agent_message","id":"reply
 printf '%s\n' '{"type":"turn.completed"}'
 |}
 
-let active controller run =
+let active context run =
   List.exists
     (fun (task : task) ->
       task.id = run.task_id && task.state = Working
       && match task.active with Some active -> active.id = run.run_id | None -> false)
-    controller.Controller.tasks
+    (context.tasks ())
 
-let deliver controller run =
+let deliver context run =
   List.iter
     (fun (decoded : Harness.decoded) ->
       Option.iter
         (fun event ->
-          Controller.receive controller
-            { task_id = run.task_id; run_id = run.run_id; event })
+          context.receive { task_id = run.task_id; run_id = run.run_id; event })
         decoded.event)
     (Run_handle.drain run.handle)
 
-let poll runner controller ~storage =
+let poll runner context ~storage =
   runner.runs <-
     List.filter
       (fun run ->
-        if not (active controller run) then Run_handle.cancel run.handle;
-        deliver controller run;
+        if not (active context run) then Run_handle.cancel run.handle;
+        deliver context run;
         match Run_handle.outcome run.handle with
         | None -> true
         | Some outcome ->
             (* Completion is published after output stops; drain once more before exit. *)
-            deliver controller run;
+            deliver context run;
             let send event =
-              Controller.receive controller
-                { task_id = run.task_id; run_id = run.run_id; event }
+              context.receive { task_id = run.task_id; run_id = run.run_id; event }
             in
             (match outcome with
             | Error error ->
                 send (Failed error);
                 send (Exited 1);
-                controller.status <- "Fake harness error: " ^ error
+                context.report_error ("Fake harness error: " ^ error)
             | Ok result when result.interrupted -> send Interrupted
             | Ok result ->
                 let code =
@@ -62,7 +71,7 @@ let poll runner controller ~storage =
             Run_handle.close run.handle;
             false)
       runner.runs;
-  if controller.fake_harness && not controller.quit then
+  if context.enabled () && not (context.quitting ()) then
     List.iter
       (fun (task : task) ->
         match task.active with
@@ -72,8 +81,8 @@ let poll runner controller ~storage =
                     (fun existing ->
                       existing.task_id = task.id && existing.run_id = run.id)
                     runner.runs) ->
-            let snapshot = Controller.snapshot controller in
-            let events = controller.storage_events in
+            let snapshot = context.snapshot () in
+            let events = context.pending_events () in
             let queued =
               List.filter (fun (m : message) -> List.mem m.id run.submitted) task.messages
             in
@@ -86,7 +95,7 @@ let poll runner controller ~storage =
               | Some worker -> Persistence.submit worker snapshot ~events
             in
             (match submitted with
-            | Ok () -> controller.storage_events <- []
+            | Ok () -> context.acknowledge_events ()
             | Error _ -> ());
             let checkpoint () =
               match (submitted, storage) with
@@ -102,16 +111,16 @@ let poll runner controller ~storage =
             runner.runs <-
               runner.runs @ [ { task_id = task.id; run_id = run.id; handle } ]
         | _ -> ())
-      controller.tasks
+      (context.tasks ())
 
-let close runner controller =
+let close runner context =
   List.iter (fun run -> Run_handle.cancel run.handle) runner.runs;
   List.iter
     (fun run ->
       Run_handle.close run.handle;
-      deliver controller run;
-      if active controller run then
-        Controller.receive controller
+      deliver context run;
+      if active context run then
+        context.receive
           { task_id = run.task_id; run_id = run.run_id; event = Interrupted })
     runner.runs;
   runner.runs <- []

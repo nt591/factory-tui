@@ -106,3 +106,7 @@ OxCaml is deferred at the user's request. Continue on the verified standard OCam
 switch. `docs/oxcaml.md` records the bootstrap failure, interrupted newer attempt,
 and required application/editor checks before adopting compiler extensions. This
 TODO does not block any of the product steps above.
+
+Demo seed data and fake runners live in `lib/demo` as `Demo.Seed` and
+`Demo.Runner`. Runner ownership is abstract and delivery uses a callback context,
+so fixture implementation does not depend on the terminal controller.

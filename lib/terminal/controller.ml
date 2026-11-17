@@ -69,9 +69,9 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     tasks =
       (if fake_harness then
          (Snapshot.recover
-            { tasks = Demo.seed (); drafts = []; selected = "T-102"; serial = 200 })
+            { tasks = Demo.Seed.seed (); drafts = []; selected = "T-102"; serial = 200 })
            .tasks
-       else Demo.seed ());
+       else Demo.Seed.seed ());
     selected = "T-102";
     focus = Board;
     zoom = false;
@@ -99,7 +99,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
        else
          List.map
            (fun (delay, e) -> (Unix.gettimeofday () +. delay, e))
-           (Demo.schedule "T-102" "demo-102"));
+           (Demo.Seed.schedule "T-102" "demo-102"));
     last_click = None;
     prefix = No_prefix;
     count = 0;
@@ -297,7 +297,7 @@ let act t action =
                     t.schedules
                     @ List.map
                         (fun (delay, e) -> (Unix.gettimeofday () +. delay, e))
-                        (Demo.schedule task.id run_id);
+                        (Demo.Seed.schedule task.id run_id);
                 t.status <-
                   (if t.fake_harness then
                      "Local fake harness queued. No Codex or model call."
@@ -634,3 +634,15 @@ let key t (key, mods) =
         insert_text t (Buffer.contents buffer)
     | _ -> ())
   else normal_key t (key, mods)
+
+let demo_context t : Demo.Runner.context =
+  {
+    tasks = (fun () -> t.tasks);
+    snapshot = (fun () -> snapshot t);
+    pending_events = (fun () -> t.storage_events);
+    acknowledge_events = (fun () -> t.storage_events <- []);
+    receive = receive t;
+    report_error = (fun error -> t.status <- error);
+    enabled = (fun () -> t.fake_harness);
+    quitting = (fun () -> t.quit);
+  }

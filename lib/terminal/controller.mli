@@ -84,3 +84,4 @@ val submit : t -> unit
 val key : t -> Notty.Unescape.key -> unit
 val insert_text : t -> string -> unit
 val paste_key : t -> Notty.Unescape.key -> unit
+val demo_context : t -> Demo.Runner.context

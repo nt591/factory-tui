@@ -11,7 +11,7 @@ let ok = function Ok value -> value | Error error -> failwith error
 
 let snapshot () : Snapshot.t =
   {
-    tasks = Demo.seed ();
+    tasks = Demo.Seed.seed ();
     drafts = [ ("T-102", "Keep this draft") ];
     selected = "T-102";
     serial = 255;

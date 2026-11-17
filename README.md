@@ -363,7 +363,8 @@ See [docs/gateway.md](docs/gateway.md) for validation rules and the next checks.
 - `lib/domain/`: task/run types and state transitions.
 - `lib/storage/`: snapshots, replay events, SQLite, and background saves.
 - `lib/agent/`: harness decoding, supervision, Codex, gateway, and dry-run preview.
-- `lib/terminal/`: controller, rendering, startup config, app loop, and fixtures.
+- `lib/terminal/`: controller, rendering, startup config, and app loop.
+- `lib/demo/`: `Demo.Seed` fixtures and `Demo.Runner` fake process execution.
 - `lib/support/`: shared resource-scope binding operators.
 - `bin/`, `test/`, `scripts/`, `docs/`: entry point, checks, tooling, and guidance.
 

@@ -7,7 +7,8 @@ lib/
   domain/     # Task, run, message, and lifecycle data
   storage/    # Snapshot codec, event replay, SQLite, persistence worker
   agent/      # Harness decoder, process supervision, Codex, gateway, preview
-  terminal/   # Controller, rendering, configuration, app loop, fixtures
+  terminal/   # Controller, rendering, configuration, app loop
+  demo/       # Seed data, timed fixture events, fake process runner
   support/    # Small shared control-flow helpers
   dune
 bin/          # CLI entry point
@@ -59,10 +60,13 @@ against these interfaces during the normal Dune build.
   deletion, line navigation, and codepoint movement. It performs no UI actions.
 - `Ui`: frame/hitbox data, render, mouse dispatch, and tested text wrapping. Theme,
   borders, image composition, and pane rendering helpers stay private.
-- `Fake_runner`: abstract ownership of fixture runs with poll/close. Its fixed
-  script, running handles, and checkpoint details remain private.
+- `Demo.Runner`: abstract ownership of fixture runs with poll/close. Its fixed
+  script, running handles, and checkpoint details remain private. It receives a
+  callback context rather than depending on Controller or terminal rendering.
 - `App`: snapshot and interactive entry points only.
-- `Demo`: seed data and timed fixture events only.
+- `Demo`: namespace for `Seed` (seed data/timed events) and `Runner` (fake
+  subprocess delivery). Implementations live together under `lib/demo`.
+  Controller supplies the runner callback context; demo code never imports it.
 
 No functor is required for these boundaries. Keep modules small and add a functor
 only when a concrete dependency must be parameterized; do not expose internals to

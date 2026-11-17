@@ -56,7 +56,7 @@ let interactive ?(fake_harness = false) ~events ~database () =
             Sys.signal Sys.sigterm (Sys.Signal_handle (fun _ -> t.quit <- true))
           in
           let last_saved = ref (Controller.snapshot t) in
-          let runner = Fake_runner.create () in
+          let runner = Demo.Runner.create () in
           let persist () =
             Option.iter
               (fun worker ->
@@ -78,7 +78,7 @@ let interactive ?(fake_harness = false) ~events ~database () =
           in
           let@ () =
             on_exit (fun () ->
-                Fake_runner.close runner t;
+                Demo.Runner.close runner (Controller.demo_context t);
                 Notty_unix.Term.release term;
                 Sys.set_signal Sys.sigterm previous_term;
                 Option.iter
@@ -107,7 +107,7 @@ let interactive ?(fake_harness = false) ~events ~database () =
                     | Error error -> t.status <- "Replay error: " ^ error)
                   (Events.poll source))
               source;
-            Fake_runner.poll runner t ~storage:worker;
+            Demo.Runner.poll runner (Controller.demo_context t) ~storage:worker;
             persist ();
             let width, height = Notty_unix.Term.size term in
             let frame = Ui.render t ~width ~height in
