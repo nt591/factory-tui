@@ -132,3 +132,58 @@ python3 scripts/smoke-invocation.py
 ```
 
 A preview is not evidence of provider compatibility or successful live execution.
+
+## Explicit headless execution
+
+```sh
+printf '%s' 'Inspect this workspace without changing files.' | \
+  ./scripts/run.sh --run-codex \
+    --codex-executable /absolute/path/to/codex \
+    --workspace /absolute/existing/workspace --model model-id \
+    --database /absolute/path/to/board.sqlite
+```
+
+This is real execution when given a real Codex executable. It can incur model
+usage and use that executable's existing authentication. `--ignore-user-config`
+does not isolate authentication. Supply `--gateway PATH` to use an explicit
+non-secret provider file. Only the named environment reference is configured;
+Codex accesses the credential when executing. The application does not import
+shell credentials or create a gateway key.
+
+The command requires explicit executable, workspace, model, database, and a
+nonempty stdin prompt capped at 64 KiB. It does not read the default startup TOML.
+Prompts remain on stdin, not process arguments. The workspace must already exist;
+this increment does not create isolated jj workspaces. Read-only sandbox and
+never-approval settings are requested; there is no interactive approval channel.
+Do not treat this as a production execution workflow until the installed-Codex
+loopback and gateway compatibility checks are complete.
+
+Execution acknowledges its Working snapshot in SQLite before spawning. It applies
+streamed events through the same task reducer, preserves ordered known events,
+and saves a terminal snapshot before reporting success. Storage failure cancels
+execution or prevents launch; errors are returned instead of claiming data saved.
+Ctrl-C/SIGTERM request cancellation. Run history records non-simulated execution;
+messages from those runs are not labeled as simulated. Earlier snapshots missing
+this field default to simulation. Default TUI runs remain simulated, even when
+viewing history created by this explicit command.
+
+Add `--resume ID` only for a thread already recorded in the same database. Resume
+must match that task's recorded workspace and Codex harness. A returned different
+thread identity is rejected. New prompts append to the existing chat; queued
+instructions join the next prompt. Accepted tasks cannot be resumed. Exit zero
+without completion yields Needs you and a nonzero CLI exit.
+
+The CLI prints a small task/thread/state summary, not conversation text. Database
+conversation and tool content remains sensitive. An initial storage/checkpoint
+failure prevents launch; a later storage failure can leave an interrupted Working
+snapshot that recovers to Needs you on reopening.
+
+Validation uses fake executables only:
+
+```sh
+python3 scripts/smoke-execution.py
+```
+
+Unit tests cover persistence, explicit resume, mismatched identity, malformed
+harness output, cancellation, and checkpoint refusal. These do not prove live
+Codex, model gateway, or platform sandbox compatibility.

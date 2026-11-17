@@ -40,6 +40,7 @@ let run_record (run : run_record) =
       ("started", `Float run.started_at);
       ("ended", option (fun n -> `Float n) run.ended_at);
       ("status", string (status run.status));
+      ("simulated", boolean run.simulated);
     ]
 
 let task (task : task) =
@@ -155,6 +156,13 @@ let decode_record json =
       started_at = time (field "started" json);
       ended_at = opt time (field "ended" json);
       status = decode_status (text (field "status" json));
+      simulated =
+        (match json with
+        | `Assoc fields -> (
+            match List.assoc_opt "simulated" fields with
+            | None -> true
+            | Some value -> bool value)
+        | _ -> invalid ());
     }
   in
   if run.status = Running <> (run.ended_at = None) then invalid ();

@@ -42,3 +42,8 @@
  (name test_scope)
  (modules test_scope)
  (libraries factory_tui))
+
+(test
+ (name test_execution)
+ (modules test_execution)
+ (libraries factory_tui unix sqlite3))

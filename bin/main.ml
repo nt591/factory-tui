@@ -10,6 +10,7 @@ let () =
   and fake_harness = ref false
   and check_gateway = ref None
   and dry_run = ref false
+  and run_codex = ref false
   and executable = ref None
   and directory = ref None
   and model = ref None
@@ -17,6 +18,9 @@ let () =
   and gateway_file = ref None in
   Arg.parse
     [
+      ( "--run-codex",
+        Arg.Set run_codex,
+        " Execute a read-only agent explicitly; stdin prompt and --database required" );
       ( "--dry-run-codex",
         Arg.Set dry_run,
         " Show invocation JSON; no process, database, or credentials" );
@@ -57,7 +61,65 @@ let () =
     (fun _ -> raise (Arg.Bad "Unexpected positional argument."))
     "factory-tui [--snapshot] [--events PATH] [--database PATH]";
   try
-    if !dry_run then (
+    if !run_codex then (
+      if
+        !dry_run || !snapshot || !events <> "" || !config <> None || !fake_harness
+        || !check_gateway <> None
+      then
+        invalid_arg
+          "Live execution cannot be combined with other execution modes or default \
+           config.";
+      let required name = function
+        | Some value -> value
+        | None -> invalid_arg ("Run requires " ^ name ^ ".")
+      in
+      let executable = required "--codex-executable" !executable
+      and directory = required "--workspace" !directory
+      and model = required "--model" !model
+      and database = required "--database" !database in
+      let buffer = Bytes.create 65537 in
+      let rec read offset =
+        if offset = Bytes.length buffer then offset
+        else
+          let count = input stdin buffer offset (Bytes.length buffer - offset) in
+          if count = 0 then offset else read (offset + count)
+      in
+      let count = read 0 in
+      if count > 65536 then invalid_arg "Run prompt exceeds 64 KiB.";
+      let cancelled = ref false in
+      let signals =
+        List.map
+          (fun signal ->
+            (signal, Sys.signal signal (Sys.Signal_handle (fun _ -> cancelled := true))))
+          [ Sys.sigint; Sys.sigterm ]
+      in
+      let result =
+        Fun.protect
+          ~finally:(fun () ->
+            List.iter (fun (signal, handler) -> Sys.set_signal signal handler) signals)
+          (fun () ->
+            Execution.run ~executable ~directory ~model ~thread_id:!thread_id
+              ~gateway_file:!gateway_file ~database
+              ~prompt:(Bytes.sub_string buffer 0 count) ~cancelled:(fun () -> !cancelled))
+      in
+      match result with
+      | Error error ->
+          prerr_endline error;
+          exit 2
+      | Ok summary ->
+          print_endline
+            (Yojson.Basic.to_string
+               (`Assoc
+                  [
+                    ("task_id", `String summary.task_id);
+                    ("state", `String (Model.label summary.state));
+                    ("succeeded", `Bool summary.succeeded);
+                    ( "thread_id",
+                      match summary.thread_id with None -> `Null | Some id -> `String id
+                    );
+                  ]));
+          if not summary.succeeded then exit 1)
+    else if !dry_run then (
       if
         !snapshot || !database <> None || !events <> "" || !config <> None
         || !fake_harness || !check_gateway <> None
@@ -83,7 +145,7 @@ let () =
       if
         !directory <> None || !model <> None || !thread_id <> None
         || !gateway_file <> None || !executable <> None
-      then invalid_arg "Codex invocation options require --dry-run-codex.";
+      then invalid_arg "Codex invocation options require --dry-run-codex or --run-codex.";
       if !check_gateway <> None then (
         if
           !snapshot || !database <> None || !events <> "" || !config <> None

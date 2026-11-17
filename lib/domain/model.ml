@@ -23,6 +23,7 @@ type run_record = {
   started_at : float;
   ended_at : float option;
   status : run_status;
+  simulated : bool;
 }
 
 type run = {
@@ -107,7 +108,7 @@ let set_harness task harness =
   if task.state = Done then Error "Accepted tasks are read-only."
   else Ok { task with harness; revision = task.revision + 1 }
 
-let start task run_id =
+let start ?(simulated = true) task run_id =
   if List.exists (fun (run : run_record) -> run.run_id = run_id) task.runs then
     Error "Run ID is already recorded."
   else if task.state = Working || task.state = Done then
@@ -135,6 +136,7 @@ let start task run_id =
                 started_at = Unix.gettimeofday ();
                 ended_at = None;
                 status = Running;
+                simulated;
               };
             ];
         active =
@@ -204,7 +206,9 @@ let apply task (envelope : envelope) =
                   (fun (record : run_record) -> record.run_id = run.id)
                   task.runs
               with
-              | Some record -> harness_label record.harness ^ " (simulated)"
+              | Some record ->
+                  harness_label record.harness
+                  ^ if record.simulated then " (simulated)" else ""
               | None -> "Agent (simulated)"
             in
             let message = { id; author; text; queued = false } in

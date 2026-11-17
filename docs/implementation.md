@@ -37,7 +37,7 @@ Acceptance does not merge, push, or delete a workspace.
    errors, and PTY save/reopen with task drafts and interruption recovery.
    Live-agent pre-spawn durability will require a separate checkpoint gate.
    Unconfigured launches create no database. Stored conversations are sensitive.
-5. **Codex supervision — process and fake UI complete; live adapter pending.**
+5. **Codex supervision — process/fake UI and explicit headless path implemented.**
    The Codex-style decoder, bounded runner, and background delivery handle are
    tested with fake executables. `--fake-harness` starts nothing on launch; an
    explicit Start streams fixture events into chat. Stop/shutdown cancel and join.
@@ -48,7 +48,10 @@ Acceptance does not merge, push, or delete a workspace.
    unverified; a loopback integration is still required. `--dry-run-codex` exposes
    a structured invocation preview with no executable, credential, or database
    access. CLI tests verify no process side effect and rejection of conflicting
-   modes.
+   modes. `--run-codex` explicitly executes with a required database and stdin
+   prompt, preserving known events and non-simulated run origin. Fake tests cover
+   resume identity, cancellation, malformed output, and checkpoint refusal.
+   Installed Codex, gateway, sandbox, and live UI integration remain unverified.
 6. **Gateway setup — validation and provider builder complete; integration pending.**
    `Gateway` validates a capped non-secret TOML file, HTTPS/loopback endpoints, and
    environment-key references without reading secrets or contacting the network.

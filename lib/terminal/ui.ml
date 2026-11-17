@@ -265,7 +265,8 @@ let render t ~width:cols ~height:rows =
                 in
                 wrap inner
                   ("run " ^ record.run_id ^ ": " ^ harness_label record.harness ^ " / "
-                 ^ record.model ^ " / " ^ status))
+                 ^ record.model ^ " / " ^ status
+                  ^ if record.simulated then " / simulated" else " / live"))
               task.runs
           @ [ "" ]
           @

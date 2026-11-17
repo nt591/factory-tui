@@ -6,7 +6,8 @@ Rust/GPUI app in `../factory` is not a dependency and is not modified.
 The interface borrows bottom's dashboard structure: bordered panes, visible
 focus, compact status widgets, mouse selection, search, and pane expansion.
 Session rules are adapted from Factory's Rust session and event reducers, not
-linked through FFI. This is an interaction prototype, not a live agent runner.
+linked through FFI. The TUI remains a simulated interaction prototype; explicit headless Codex
+execution is available separately and requires deliberate invocation.
 
 ## Run
 
@@ -302,7 +303,7 @@ selections are simulated labels, not executable selection. No live Codex is run.
 See [docs/harness.md](docs/harness.md) for limits and lifecycle guarantees. This
 runner is not a security sandbox and does not contain descendants that escape
 the process group. The fake UI path is verified. A pure Codex invocation builder validates explicit
-resume identity and read-only arguments without launching anything. Live execution
+resume identity and read-only arguments without launching anything. Explicit headless execution is tested with fake executables; installed Codex
 and gateway compatibility remain unverified.
 
 ## Inspect an agent invocation without running it
@@ -320,6 +321,28 @@ credential is accessed. A missing or malformed explicit gateway file is an error
 This command does not prove live or gateway compatibility.
 
 `python3 scripts/smoke-invocation.py` checks the CLI with temporary fixture files.
+
+## Explicit headless agent execution
+
+```sh
+printf '%s' 'Inspect the workspace without changing files.' | \
+  ./scripts/run.sh --run-codex --codex-executable /absolute/path/to/codex \
+    --workspace /absolute/existing/workspace --model model-id \
+    --database /absolute/path/to/board.sqlite
+```
+
+**This can make real model calls and use existing Codex authentication.** It is
+not an automatic startup behavior. A Working checkpoint is saved before launch;
+events and final state are persisted. Ctrl-C/SIGTERM cancels the process group.
+Use `--gateway PATH` for explicit provider settings and `--resume ID` for a thread
+already recorded in this database/workspace. Read-only sandbox settings are
+requested. The CLI returns only a small summary; open the database in the TUI to
+inspect the chat. TUI Start still uses simulation, not this execution path.
+
+Only fake-executable execution has been verified. Installed-Codex/gateway
+compatibility, interactive approvals, and isolated workspace creation remain
+pending. See [docs/harness.md](docs/harness.md) for the full safety boundary.
+`python3 scripts/smoke-execution.py` runs fake CLI execution checks only.
 
 ## Gateway configuration validation
 

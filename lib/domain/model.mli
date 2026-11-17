@@ -10,6 +10,7 @@ type run_record = {
   started_at : float;
   ended_at : float option;
   status : run_status;
+  simulated : bool;
 }
 
 type run = {
@@ -55,7 +56,7 @@ val make : id:string -> title:string -> repository:string -> task
 val system : task -> string -> task
 val set_model : task -> string -> (task, string) result
 val set_harness : task -> harness -> (task, string) result
-val start : task -> string -> (task, string) result
+val start : ?simulated:bool -> task -> string -> (task, string) result
 val send : task -> id:string -> string -> (task, string) result
 val accept : task -> (task, string) result
 val apply : task -> envelope -> task option
