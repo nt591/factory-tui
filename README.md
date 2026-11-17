@@ -44,6 +44,23 @@ ac_cv_func_pipe2=no ac_cv_func_dup3=no ac_cv_func_accept4=no \
 
 Use standard OCaml first. OxCaml is not required by this prototype.
 
+## Alternate compiler builds
+
+The default project-local switch is unchanged. Build scripts accept explicit
+switch and build-directory overrides to keep experimental artifacts separate:
+
+```sh
+FACTORY_OPAM_SWITCH=<switch-name> FACTORY_BUILD_DIR="$PWD/_build-ox" ./scripts/check.sh
+FACTORY_OPAM_SWITCH=<switch-name> FACTORY_BUILD_DIR="$PWD/_build-ox" ./scripts/run.sh --fake-harness
+uv run --with pyte python scripts/smoke-terminal.py \
+  --binary "$PWD/_build-ox/default/bin/main.exe"
+```
+
+`scripts/build.sh` builds `@install` by default or accepts Dune targets.
+`scripts/check.sh` builds and runs all unit tests. Formatting and the editor
+continue using the standard project switch unless configured separately.
+OxCaml compatibility is under investigation; it is not yet a supported build.
+
 ## Editor and formatting
 
 Install the project-local developer tools:

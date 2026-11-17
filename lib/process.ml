@@ -17,9 +17,6 @@ type outcome = {
   stderr_bytes : int;
 }
 
-external spawn : string -> string array -> Unix.file_descr array -> string -> int
-  = "factory_spawn"
-
 external monotonic : unit -> float = "factory_monotonic"
 
 let defaults ~executable ~arguments ~directory =
@@ -79,7 +76,7 @@ let run config ~prompt ~cancelled ~on_event =
     if cancelled () then raise (Process_error "Run cancelled before process launch.");
     let descriptors = ref [] in
     let pipe () =
-      let a, b = Unix.pipe ~cloexec:true () in
+      let a, b = Spawn.safe_pipe () in
       descriptors := a :: b :: !descriptors;
       (a, b)
     in
@@ -95,10 +92,11 @@ let run config ~prompt ~cancelled ~on_event =
           descriptors := List.filter (( <> ) fd) !descriptors
         in
         let pid =
-          spawn config.executable
-            (Array.of_list config.arguments)
-            [| stdin_read; stdout_write; stderr_write |]
-            config.directory
+          Spawn.spawn ~prog:config.executable
+            ~argv:(config.executable :: config.arguments)
+            ~cwd:(Spawn.Working_dir.Path config.directory) ~stdin:stdin_read
+            ~stdout:stdout_write ~stderr:stderr_write
+            ~setpgid:Spawn.Pgid.new_process_group ()
         in
         let status = ref None in
         let stop_child () =

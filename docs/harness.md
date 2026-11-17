@@ -26,15 +26,18 @@ are supported for tests. Output is delivered through a callback before process
 exit. Callbacks must return promptly; a blocking callback cannot be preempted.
 Callback failures cancel the process and return an error.
 
-A small C binding uses `posix_spawn` to assign the child a separate process group
-and select its working directory without calling fork in the threaded OCaml
-runtime. Cancellation sends SIGKILL to that group and reaps the direct child.
-Parent exit terminates remaining ordinary descendants and drains remaining pipes.
+The maintained `spawn` library handles working directory, standard-stream
+redirection, and process-group creation. `Spawn.safe_pipe` coordinates pipe
+creation with spawning on macOS to avoid descriptor-inheritance races. A small
+C binding remains only for the monotonic clock.
+
+Cancellation sends SIGKILL to the child group and reaps the direct child. Parent
+exit terminates remaining ordinary descendants and drains remaining pipes.
 Output pipes that stay open after parent exit have a bounded cleanup interval.
 The macOS zombie transition can briefly refuse group signals; the runner checks
 and reaps the child rather than treating this as successful cancellation of a
-running process. The working-directory binding uses the macOS/Linux `_np` API.
-macOS builds are verified; portability to other Unix systems is not verified.
+running process. macOS builds and lifecycle tests are verified; other platforms
+are not yet verified.
 
 This is lifecycle supervision, not a security sandbox. Descendants that deliberately
 create a new session/group can escape group cancellation. No process-containment

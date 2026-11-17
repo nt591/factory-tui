@@ -9,6 +9,7 @@ depends: [
   "uutf"
   "sqlite3"
   "toml"
+  "spawn"
   "odoc" {with-doc}
 ]
 build: [

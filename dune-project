@@ -4,4 +4,4 @@
 (package
  (name factory_tui)
  (synopsis "Mouse-enabled terminal software factory prototype")
- (depends ocaml dune notty yojson uutf sqlite3 toml))
+ (depends ocaml dune notty yojson uutf sqlite3 toml spawn))

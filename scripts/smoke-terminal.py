@@ -19,9 +19,10 @@ import pyte
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--preview", type=Path)
+parser.add_argument("--binary", type=Path, help="Use an alternate compiler build")
 args = parser.parse_args()
 root = Path(__file__).resolve().parent.parent
-binary = root / "_build/default/bin/main.exe"
+binary = args.binary.resolve() if args.binary else root / "_build/default/bin/main.exe"
 master, slave = pty.openpty()
 original = termios.tcgetattr(slave)
 cols, rows = 120, 36

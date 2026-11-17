@@ -11,7 +11,7 @@ against these interfaces during the normal Dune build.
   close the source through an idempotent operation, not its raw descriptor.
 - `Harness`: normalized decoded event plus raw JSON. Parser exceptions and helpers
   stay private. Unknown events can be inspected without extending the public type.
-- `Process`: configuration, outcome, and a bounded runner. Spawn bindings, clocks,
+- `Process`: configuration, outcome, and a bounded runner. Spawn setup, clocks,
   descriptors, signal handling, and cleanup helpers remain private.
 - `Run_handle`: abstract background ownership with cancel, drain, outcome, close.
   Queue, mutex, and worker thread cannot be accessed by callers.
