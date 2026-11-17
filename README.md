@@ -134,13 +134,16 @@ uv run --with pyte --with pillow python scripts/smoke-terminal.py \
 
 The preview uses the macOS Menlo font. Omit `--preview` for a portable smoke.
 
-## Next increments
+## Implementation sequence
 
-1. Validate the board and task-detail experience in a real terminal.
-2. Add opt-in durable state and explicit restart recovery.
-3. Port bounded process supervision and cancellation with fake harness tests.
-4. Add isolated workspaces and explicit live-agent execution.
-5. Measure executable size, idle memory/CPU, and build time against GPUI.
+Follow [docs/implementation.md](docs/implementation.md), adapted from the native
+Factory app. The terminal shell and simulated session steps are complete.
+Composition exists; next-run harness/model selection and run history are next,
+followed by opt-in SQLite, bounded supervision, gateway setup, isolated jj
+workspaces/review, and distribution.
+
+Use tested increments and move local `main` to each completed jj commit.
+No remote is configured and nothing is pushed without an explicit request.
 
 A lighter UI does not eliminate execution, durability, or safety work. No
 performance comparison with the Rust application has been established yet.
