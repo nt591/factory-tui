@@ -23,6 +23,8 @@ against these interfaces during the normal Dune build.
   private. This is not yet an abstract controller with a read-only view model.
 - `Ui`: frame/hitbox data, render, mouse dispatch, and tested text wrapping. Theme,
   borders, image composition, and pane rendering helpers stay private.
+- `Fake_runner`: abstract ownership of fixture runs with poll/close. Its fixed
+  script, running handles, and checkpoint details remain private.
 - `App`: snapshot and interactive entry points only.
 - `Demo`: seed data and timed fixture events only.
 

@@ -59,12 +59,18 @@ type t = {
   mutable page_rows : int;
   mutable storage_events : envelope list;
   mutable retain_events : bool;
+  fake_harness : bool;
   external_events : bool;
 }
 
-let create ?(external_events = false) () =
+let create ?(external_events = false) ?(fake_harness = false) () =
   {
-    tasks = Demo.seed ();
+    tasks =
+      (if fake_harness then
+         (Snapshot.recover
+            { tasks = Demo.seed (); drafts = []; selected = "T-102"; serial = 200 })
+           .tasks
+       else Demo.seed ());
     selected = "T-102";
     focus = Board;
     zoom = false;
@@ -87,7 +93,7 @@ let create ?(external_events = false) () =
     quit = false;
     serial = 200;
     schedules =
-      (if external_events then []
+      (if external_events || fake_harness then []
        else
          List.map
            (fun (delay, e) -> (Unix.gettimeofday () +. delay, e))
@@ -98,6 +104,7 @@ let create ?(external_events = false) () =
     page_rows = 12;
     storage_events = [];
     retain_events = false;
+    fake_harness;
     external_events;
   }
 
@@ -252,7 +259,9 @@ let act t action =
       t.input <- New_task;
       t.new_title <- ""
   | Toggle_pause ->
-      if t.external_events then
+      if t.fake_harness then
+        t.status <- "Process fixture updates cannot be paused. Use x to stop."
+      else if t.external_events then
         t.status <- "Replay input stays live. Pause is available for the demo only."
       else (
         t.paused <- not t.paused;
@@ -276,12 +285,16 @@ let act t action =
             | Error error -> t.status <- error
             | Ok task ->
                 replace t task;
-                t.schedules <-
-                  t.schedules
-                  @ List.map
-                      (fun (delay, e) -> (Unix.gettimeofday () +. delay, e))
-                      (Demo.schedule task.id run_id);
-                t.status <- "Simulated run started. Cards follow lifecycle events."))
+                if not t.fake_harness then
+                  t.schedules <-
+                    t.schedules
+                    @ List.map
+                        (fun (delay, e) -> (Unix.gettimeofday () +. delay, e))
+                        (Demo.schedule task.id run_id);
+                t.status <-
+                  (if t.fake_harness then
+                     "Local fake harness queued. No Codex or model call."
+                   else "Simulated run started. Cards follow lifecycle events.")))
   | Stop -> (
       match selected t with
       | Some { active = Some run; id; _ } ->

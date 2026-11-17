@@ -1,7 +1,8 @@
 # Harness supervision
 
 This layer is implemented in OCaml and is independent of the Rust app. It is
-not yet connected to the UI. The visible Start action still uses demo timers.
+connected to the UI only through explicit `--fake-harness` mode. Default Start
+uses demo timers.
 No Codex invocation, gateway credentials, or real workspace access occurs here.
 
 ## Event decoder
@@ -53,7 +54,8 @@ it. Draining consumes events in order. Closing cancels and joins the worker.
 A checkpoint callback must return success before spawning. Tests verify that a
 refused checkpoint prevents any executable side effect. UI storage integration
 must submit and acknowledge the Working snapshot in that callback before a live
-run starts. This gate is an API, not yet an implemented live UI workflow.
+run starts. The fake UI path submits and acknowledges this checkpoint before spawn.
+A live Codex workflow has not been implemented.
 
 ## Validation
 
@@ -67,5 +69,22 @@ malformed output, line/stream/event limits, callback failure, timeout, cancellat
 parent exit with inherited pipes, bounded foreground delivery, checkpoint refusal,
 and cancel/join. They never invoke Codex, load credentials, or modify real workspaces.
 
-Next: wire an explicit fake-harness mode into the TUI, then add Codex invocation,
-resume identity and gateway validation as separate tested increments.
+## Fake process UI
+
+```sh
+./scripts/run.sh --fake-harness
+./scripts/run.sh --fake-harness --database /tmp/factory-fixture.sqlite
+```
+
+Startup creates no harness process. Select a task and press `s` to run a fixed
+shell fixture through the real process supervisor. Its output streams into chat;
+validated completion plus exit moves the card to Ready. Replies during work remain
+queued. `x` interrupts; exit cancels and joins pending runners. The banner makes
+clear that no model call or Codex agent is involved. Harness/model selectors are
+only simulated labels here, not a choice of fixture executable. Replay and fake
+process modes cannot be combined.
+
+Controller/runner tests and the PTY smoke verify this path, including SQLite
+checkpoint refusal, output replacement, cancellation, shutdown, and saved events.
+Next add Codex invocation, resume identity, and gateway validation in separate
+increments; fake tests do not prove live compatibility.

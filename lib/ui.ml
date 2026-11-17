@@ -112,7 +112,9 @@ let render t ~width:cols ~height:rows =
   in
   let header =
     Printf.sprintf " FACTORY / terminal     %s  %s"
-      (if t.external_events then "FIXTURE REPLAY" else "SIMULATION")
+      (if t.fake_harness then "FAKE HARNESS / NO MODEL CALLS"
+       else if t.external_events then "FIXTURE REPLAY"
+       else "SIMULATION")
       (if t.paused then "[PAUSED]" else "[UPDATING]")
   in
   paint 0 0 (line cols A.(fg accent ++ bg background ++ st bold) header);
@@ -524,7 +526,10 @@ let render t ~width:cols ~height:rows =
         "SESSION SETTINGS";
         "";
         ("Execution: "
-        ^ if t.external_events then "fixture replay" else "simulated agents");
+        ^
+        if t.fake_harness then "local process fixtures"
+        else if t.external_events then "fixture replay"
+        else "simulated agents");
         "No live agent starts from this menu.";
         "";
         "STORAGE";

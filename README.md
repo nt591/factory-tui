@@ -258,17 +258,27 @@ Tests use temporary files and fake data. They verify rollback under injected
 failure, bounded busy-lock handling, cross-process ownership, 200 coalesced saves
 without event loss, final flush, and a PTY save/reopen path through TOML.
 
-## Harness layer (not yet connected to the UI)
+## Local process fixture mode
 
 The OCaml process runner and background delivery handle are implemented and tested
 with fake executables. They cover streamed JSONL events, concurrent stderr draining,
 bounded output, timeout, cancellation, process-group cleanup, event-queue overflow,
 and checkpoint refusal before spawn. No Codex or credentials are used in tests.
-The visible UI still starts simulated timer events, not an agent process.
+Default Start still uses demo timers. To exercise the actual supervisor:
+
+```sh
+./scripts/run.sh --fake-harness
+```
+
+Launch starts no process. Press `s` to start a fixed local shell fixture, `x` to
+stop it. Events stream into chat and move the card automatically. Shutdown cancels
+and joins the fixture. With SQLite enabled, the Working snapshot is acknowledged
+before spawn. The banner says FAKE HARNESS / NO MODEL CALLS. Harness and model
+selections are simulated labels, not executable selection. No live Codex is run.
 
 See [docs/harness.md](docs/harness.md) for limits and lifecycle guarantees. This
 runner is not a security sandbox and does not contain descendants that escape
-the process group. The next increment connects an explicit fake-harness mode.
+the process group. The fake UI path is verified; live invocation and resume are the next increment.
 
 ## Module interfaces
 

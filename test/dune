@@ -17,3 +17,8 @@
  (name test_process)
  (modules test_process)
  (libraries factory_tui unix threads))
+
+(test
+ (name test_fake_runner)
+ (modules test_fake_runner)
+ (libraries factory_tui unix threads sqlite3))

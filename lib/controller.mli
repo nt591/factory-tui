@@ -59,10 +59,11 @@ type t = {
   mutable page_rows : int;
   mutable storage_events : envelope list;
   mutable retain_events : bool;
+  fake_harness : bool;
   external_events : bool;
 }
 
-val create : ?external_events:bool -> unit -> t
+val create : ?external_events:bool -> ?fake_harness:bool -> unit -> t
 val contains : string -> string -> bool
 val visible : t -> Model.task list
 val repositories : t -> string list

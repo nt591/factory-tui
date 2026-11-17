@@ -6,9 +6,13 @@ let () =
   and events = ref ""
   and database = ref None
   and config = ref None
-  and no_config = ref false in
+  and no_config = ref false
+  and fake_harness = ref false in
   Arg.parse
     [
+      ( "--fake-harness",
+        Arg.Set fake_harness,
+        " Use local process fixtures; s starts one explicitly" );
       ("--snapshot", Arg.Set snapshot, " Render one non-interactive demo frame");
       ("--size", Arg.Set_string size, "COLSxROWS Snapshot size (default 120x36)");
       ( "--events",
@@ -28,7 +32,7 @@ let () =
     "factory-tui [--snapshot] [--events PATH] [--database PATH]";
   try
     if !snapshot then (
-      if !database <> None || !events <> "" || !config <> None then
+      if !database <> None || !events <> "" || !config <> None || !fake_harness then
         invalid_arg "Snapshot mode does not open storage or event sources.";
       App.snapshot ~size:!size (Controller.create ()))
     else
@@ -43,7 +47,9 @@ let () =
           exit 2
       | Ok database -> (
           match
-            App.interactive ~events:!events ~database:(Option.value ~default:"" database)
+            App.interactive ~fake_harness:!fake_harness ~events:!events
+              ~database:(Option.value ~default:"" database)
+              ()
           with
           | Ok () -> ()
           | Error error ->

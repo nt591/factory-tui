@@ -7,11 +7,12 @@ let snapshot ~size t =
     invalid_arg "Snapshot dimensions must be between 1 and 1000.";
   Notty_unix.output_image (Ui.render t ~width ~height).image
 
-let interactive ~events ~database =
-  if not (Unix.isatty Unix.stdin && Unix.isatty Unix.stdout) then
+let interactive ?(fake_harness = false) ~events ~database () =
+  if fake_harness && events <> "" then Error "Fake harness and replay cannot be combined."
+  else if not (Unix.isatty Unix.stdin && Unix.isatty Unix.stdout) then
     Error "Interactive mode needs a terminal. Use --snapshot for a headless preview."
   else
-    let t = Controller.create ~external_events:(events <> "") () in
+    let t = Controller.create ~external_events:(events <> "") ~fake_harness () in
     t.database_path <- (if database = "" then None else Some database);
     let opened =
       if database = "" then Ok None
@@ -54,6 +55,7 @@ let interactive ~events ~database =
                   Sys.signal Sys.sigterm (Sys.Signal_handle (fun _ -> t.quit <- true))
                 in
                 let last_saved = ref (Controller.snapshot t) in
+                let runner = Fake_runner.create () in
                 let persist () =
                   Option.iter
                     (fun worker ->
@@ -77,6 +79,7 @@ let interactive ~events ~database =
                 in
                 Fun.protect
                   ~finally:(fun () ->
+                    Fake_runner.close runner t;
                     Notty_unix.Term.release term;
                     Sys.set_signal Sys.sigterm previous_term;
                     Option.iter
@@ -105,6 +108,7 @@ let interactive ~events ~database =
                               | Error error -> t.status <- "Replay error: " ^ error)
                             (Events.poll source))
                         source;
+                      Fake_runner.poll runner t ~storage:worker;
                       persist ();
                       let width, height = Notty_unix.Term.size term in
                       let frame = Ui.render t ~width ~height in

@@ -237,6 +237,37 @@ try:
         process.wait(timeout=3)
         check("default-config UI exits cleanly", process.returncode == 0)
 
+    with tempfile.TemporaryDirectory(prefix="factory-process-ui-") as directory:
+        database = Path(directory) / "board.sqlite"
+        screen.reset()
+        process = subprocess.Popen([str(binary), "--fake-harness", "--no-config", "--database", str(database)],
+                                   stdin=slave, stdout=slave, stderr=slave, env=env)
+        pump(0.4)
+        check("fake harness mode is explicit", "FAKE HARNESS / NO MODEL CALLS" in text())
+        with sqlite3.connect(database) as db:
+            saved = json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
+            check("fake UI startup launches no run", all(t["active"] is None for t in saved["tasks"]))
+        send(b"hgg")
+        send(b"s")
+        pump(1.2)
+        send(b"e")
+        check("process fixture moves selected card to Ready", "T-101 / Ready / conversation" in text())
+        check("process fixture streams into chat", "Local fixture checks are complete" in text())
+        send(b"iAnother fixture turn\r")
+        send(b"s")
+        send(b"x")
+        pump(0.4)
+        check("process fixture stop leaves Needs you", "T-101 / Needs you / conversation" in text())
+        send(b"iFinal fixture turn\r")
+        send(b"s")
+        process.terminate()
+        process.wait(timeout=3)
+        check("fake UI SIGTERM cancels and exits", process.returncode == 0)
+        with sqlite3.connect(database) as db:
+            saved = json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
+            task = next(t for t in saved["tasks"] if t["id"] == "T-101")
+            check("shutdown records fixture interruption", task["state"] == "needs_you" and task["active"] is None)
+            check("process events are stored", db.execute("SELECT count(*) FROM events").fetchone()[0] > 0)
 
 finally:
     if process.poll() is None:
