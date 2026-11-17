@@ -1,0 +1,71 @@
+# Harness supervision
+
+This layer is implemented in OCaml and is independent of the Rust app. It is
+not yet connected to the UI. The visible Start action still uses demo timers.
+No Codex invocation, gateway credentials, or real workspace access occurs here.
+
+## Event decoder
+
+`Harness.decode` accepts Codex-style JSONL events for thread identity, turn start,
+completion/failure, streamed agent messages, and command/tool/file activity.
+Known event fields are validated. Unknown events retain their raw JSON for
+inspection. Errors do not echo source content. Tool payloads are retained as JSON.
+The decoder is not evidence of compatibility with an installed Codex version.
+
+## Process layer
+
+`Process.run` takes an absolute executable, arguments, and working directory.
+It passes arguments directly without building a shell command and delivers the
+prompt through stdin. A nonblocking select loop writes stdin while concurrently
+draining stdout/stderr. Stderr is counted and drained, not retained.
+
+Limits: 1 MiB prompt and JSONL line, 16 MiB per output stream, 100,000 events,
+with a default five-minute timeout measured on a monotonic clock. Smaller limits
+are supported for tests. Output is delivered through a callback before process
+exit. Callbacks must return promptly; a blocking callback cannot be preempted.
+Callback failures cancel the process and return an error.
+
+A small C binding uses `posix_spawn` to assign the child a separate process group
+and select its working directory without calling fork in the threaded OCaml
+runtime. Cancellation sends SIGKILL to that group and reaps the direct child.
+Parent exit terminates remaining ordinary descendants and drains remaining pipes.
+Output pipes that stay open after parent exit have a bounded cleanup interval.
+The macOS zombie transition can briefly refuse group signals; the runner checks
+and reaps the child rather than treating this as successful cancellation of a
+running process. The working-directory binding uses the macOS/Linux `_np` API.
+macOS builds are verified; portability to other Unix systems is not verified.
+
+This is lifecycle supervision, not a security sandbox. Descendants that deliberately
+create a new session/group can escape group cancellation. No process-containment
+claim is made for such executables. Run cancellation is immediate, not graceful.
+
+Success requires exit zero, an explicit turn-completed event, and no fatal event
+or cancellation. Exit zero alone is not success. The outcome is published only
+after output draining finishes.
+
+## Foreground delivery
+
+`Run_handle` executes the runner on a background thread. The delivery queue is
+bounded to 128 events by default. Overflow cancels the process and produces a
+terminal error. Completion has separate storage, so a full queue cannot discard
+it. Draining consumes events in order. Closing cancels and joins the worker.
+
+A checkpoint callback must return success before spawning. Tests verify that a
+refused checkpoint prevents any executable side effect. UI storage integration
+must submit and acknowledge the Working snapshot in that callback before a live
+run starts. This gate is an API, not yet an implemented live UI workflow.
+
+## Validation
+
+```sh
+opam exec --switch=. -- dune exec test/test_process.exe
+```
+
+Tests use executable shell fixtures in temporary directories. They cover prompt
+delivery, event streaming, concurrent stderr draining, completion/exit gates,
+malformed output, line/stream/event limits, callback failure, timeout, cancellation,
+parent exit with inherited pipes, bounded foreground delivery, checkpoint refusal,
+and cancel/join. They never invoke Codex, load credentials, or modify real workspaces.
+
+Next: wire an explicit fake-harness mode into the TUI, then add Codex invocation,
+resume identity and gateway validation as separate tested increments.

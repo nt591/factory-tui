@@ -258,6 +258,18 @@ Tests use temporary files and fake data. They verify rollback under injected
 failure, bounded busy-lock handling, cross-process ownership, 200 coalesced saves
 without event loss, final flush, and a PTY save/reopen path through TOML.
 
+## Harness layer (not yet connected to the UI)
+
+The OCaml process runner and background delivery handle are implemented and tested
+with fake executables. They cover streamed JSONL events, concurrent stderr draining,
+bounded output, timeout, cancellation, process-group cleanup, event-queue overflow,
+and checkpoint refusal before spawn. No Codex or credentials are used in tests.
+The visible UI still starts simulated timer events, not an agent process.
+
+See [docs/harness.md](docs/harness.md) for limits and lifecycle guarantees. This
+runner is not a security sandbox and does not contain descendants that escape
+the process group. The next increment connects an explicit fake-harness mode.
+
 ## Implementation sequence
 
 Follow [docs/implementation.md](docs/implementation.md), adapted from the native

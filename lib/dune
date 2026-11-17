@@ -1,3 +1,6 @@
 (library
  (name factory_tui)
+ (foreign_stubs
+  (language c)
+  (names process_spawn))
  (libraries notty notty.unix yojson uutf unix sqlite3 threads toml))

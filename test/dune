@@ -12,3 +12,8 @@
  (name test_config)
  (modules test_config)
  (libraries factory_tui unix))
+
+(test
+ (name test_process)
+ (modules test_process)
+ (libraries factory_tui unix threads))

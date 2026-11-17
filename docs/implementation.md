@@ -37,8 +37,10 @@ Acceptance does not merge, push, or delete a workspace.
    errors, and PTY save/reopen with task drafts and interruption recovery.
    Live-agent pre-spawn durability will require a separate checkpoint gate.
    Unconfigured launches create no database. Stored conversations are sensitive.
-5. **Codex supervision — not started.** Add a validated event decoder and bounded
-   process runner. Test concurrent stdout/stderr draining, cancellation, process
+5. **Codex supervision — process layer complete; UI/live adapter pending.**
+   A validated Codex-style decoder, bounded process runner, and background delivery
+   handle are tested with local fake executables. Details: `docs/harness.md`.
+   Next connect an explicit fake-harness UI path, then add invocation/resume. Test concurrent stdout/stderr draining, cancellation, process
    cleanup, resume identity, and overflow handling with fake executables. Save
    the initial Working state before spawning. Process exit alone is not success.
 6. **Gateway setup — not started.** Validate non-secret endpoint/model settings
