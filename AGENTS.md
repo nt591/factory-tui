@@ -8,7 +8,9 @@ commit. Do not skip safety gates to match the native application feature list.
 Do not edit the in-flight Rust application at ../factory.
 Tests must not start agents, read credentials, or modify real workspaces.
 Keep simulation labels visible. Accepting a task does not merge or push code.
-Run dune build and dune runtest before committing.
+Run scripts/format.sh --check, dune build, and dune runtest before committing.
+Use scripts/format.sh to format OCaml and Dune files. Keep the ocamlformat
+version in .ocamlformat and scripts/setup-editor.sh consistent.
 Write comments only for non-obvious safety conditions or choices. Use plain English.
 
 Live execution must be explicitly enabled and explicitly started. Setup must

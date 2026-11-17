@@ -68,6 +68,7 @@ existing tested history. No remote is configured; do not fetch or push.
 For each increment:
 
 ```sh
+./scripts/format.sh --check
 opam exec --switch=. -- dune build @install
 opam exec --switch=. -- dune runtest --force
 # Run the PTY smoke when input, rendering, or lifecycle changes.

@@ -44,6 +44,40 @@ ac_cv_func_pipe2=no ac_cv_func_dup3=no ac_cv_func_accept4=no \
 
 Use standard OCaml first. OxCaml is not required by this prototype.
 
+## Editor and formatting
+
+Install the project-local developer tools:
+
+```sh
+./scripts/setup-editor.sh
+./scripts/format.sh          # format OCaml and Dune files
+./scripts/format.sh --check  # fail if formatting differs
+```
+
+`.ocamlformat` pins 0.29.0 with the conventional profile and a 90-column margin.
+`ocamllsp` 1.23.1 is installed in the same opam switch as the compiler and libraries.
+Formatting is checked before each implementation commit.
+
+For LazyVim, enable its OCaml extra and copy `docs/editor/ocaml.lua` into
+`~/.config/nvim/lua/plugins/ocaml.lua`. The override launches LSP and formatting
+through the project-local opam switch, rather than a Mason-installed server or
+whatever switch happens to be on the shell PATH. It also handles `.mli` buffers.
+The override is installed in this machine's Neovim config. Headless checks verified
+LSP attachment, hover, and Conform formatting for `.ml`, plus `.mli` attachment.
+Restart Neovim after installing the override. Use `:LspInfo` and `:ConformInfo`
+to inspect attachment and formatter availability. LazyVim's normal format mapping
+(`<leader>cf`) uses ocamlformat for OCaml buffers.
+
+Without the LazyVim override, start Neovim from the switch environment:
+
+```sh
+opam exec --switch=. -- nvim lib/model.ml
+```
+
+Run `opam exec --switch=. -- dune build @install` after changing dependencies so
+LSP has current Dune/Merlin build metadata. The editor setup does not install
+plugins, modify shell startup files, or require global OCaml tool installations.
+
 ## Interface
 
 - Click a card to focus it and inspect its conversation and activity.
