@@ -9,6 +9,8 @@ against these interfaces during the normal Dune build.
   run-record encoder used by the SQL store. JSON parsing helpers remain private.
 - `Events`: replay envelope encode/decode and an abstract file/FIFO source. Callers
   close the source through an idempotent operation, not its raw descriptor.
+- `Codex`: pure invocation construction with explicit directory/model/thread
+  validation; no subprocess or credentials are accessed.
 - `Harness`: normalized decoded event plus raw JSON. Parser exceptions and helpers
   stay private. Unknown events can be inspected without extending the public type.
 - `Process`: configuration, outcome, and a bounded runner. Spawn setup, clocks,

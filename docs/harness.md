@@ -91,3 +91,17 @@ Controller/runner tests and the PTY smoke verify this path, including SQLite
 checkpoint refusal, output replacement, cancellation, shutdown, and saved events.
 Next add Codex invocation, resume identity, and gateway validation in separate
 increments; fake tests do not prove live compatibility.
+
+## Codex invocation builder
+
+`Codex.invocation` builds a process configuration only. It does not spawn Codex,
+read credentials, or open a database. It requests JSONL, ignores user config,
+sets read-only sandboxing and never approvals, and passes the prompt through stdin.
+An explicit thread ID selects `exec resume`; no `--last` or implicit session lookup
+is used. The working directory is set by the supervisor for both new and resumed
+runs. Model/thread IDs reject option-like and control-character values.
+
+Argument forms were inspected against the installed Codex help on November 17,
+2026. Pure tests validate the constructed arguments. No live compatibility or
+native resume claim follows from those checks. The TUI still exposes fake runs
+only; gateway configuration and loopback integration remain the next steps.

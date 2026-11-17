@@ -295,7 +295,9 @@ selections are simulated labels, not executable selection. No live Codex is run.
 
 See [docs/harness.md](docs/harness.md) for limits and lifecycle guarantees. This
 runner is not a security sandbox and does not contain descendants that escape
-the process group. The fake UI path is verified; live invocation and resume are the next increment.
+the process group. The fake UI path is verified. A pure Codex invocation builder validates explicit
+resume identity and read-only arguments without launching anything. Live execution
+and gateway compatibility remain unverified.
 
 ## Module interfaces
 

@@ -43,8 +43,9 @@ Acceptance does not merge, push, or delete a workspace.
    explicit Start streams fixture events into chat. Stop/shutdown cancel and join.
    With SQLite, the Working checkpoint is acknowledged before spawning. Tests
    verify checkpoint refusal, stream replacement, queued replies, and stored
-   process events. Details: `docs/harness.md`. Next add invocation and resume
-   identity checks; installed Codex and gateway compatibility remain unverified.
+   process events. Details: `docs/harness.md`. A pure invocation builder validates model/directory and explicit resume identity
+   and sets read-only execution. Installed Codex and gateway compatibility remain
+   unverified; a loopback integration is still required.
 6. **Gateway setup — not started.** Validate non-secret endpoint/model settings
    and explicit credential references. Setup starts no agent and reads no secret.
    Dry-run invocation must disclose no credentials. Verify protocol compatibility
