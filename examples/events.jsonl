@@ -1,0 +1,6 @@
+{"task_id":"T-102","run_id":"demo-102","type":"turn.started"}
+{"task_id":"T-102","run_id":"demo-102","type":"message","item_id":"reply","text":"Reviewing the event protocol."}
+{"task_id":"T-102","run_id":"demo-102","type":"tool","item_id":"tests","text":"dune runtest\nFixture checks passed."}
+{"task_id":"T-102","run_id":"demo-102","type":"message","item_id":"reply","text":"The event protocol is ready for review."}
+{"task_id":"T-102","run_id":"demo-102","type":"turn.completed"}
+{"task_id":"T-102","run_id":"demo-102","type":"process.exited","code":0}
