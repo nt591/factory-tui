@@ -137,6 +137,30 @@ uv run --with pyte --with pillow python scripts/smoke-terminal.py \
 
 The preview uses the macOS Menlo font. Omit `--preview` for a portable smoke.
 
+## Storage layer (not yet connected to the UI)
+
+`Snapshot` and `Storage` implement versioned SQLite persistence independently of
+terminal rendering. Stored data includes tasks, messages, tools, next-run settings,
+immutable run records, task-specific drafts, selection, and the ID counter. Runs
+also have their own SQL table; event batches have a monotonic cursor for paging.
+Snapshots, run rows, and appended events commit or roll back together.
+
+The storage API requires an absolute path with an existing parent. It refuses
+symbolic links, foreign databases, unsupported schema versions, and concurrent
+Factory TUI ownership. New databases and lock files are private (0600). The
+advisory sidecar lock remains after close. This lock coordinates Factory TUI
+processes, not unrelated applications that ignore it.
+
+Restart recovery moves Working tasks to Needs you, records interruption, retains
+queued replies and drafts, and never resumes an agent. Invalid snapshots return
+an error instead of silently replacing conversation history.
+
+Storage tests use temporary files and fake data. They verify transaction rollback
+under an injected failure, bounded busy-lock handling, and cross-process ownership.
+The current UI still runs in memory; it does not open a database. Background
+saves, final-flush integration, and the opt-in database flag are the next increment.
+Conversation and tool content in a saved database must be treated as sensitive.
+
 ## Implementation sequence
 
 Follow [docs/implementation.md](docs/implementation.md), adapted from the native

@@ -50,3 +50,16 @@ let poll source =
     source.discarded <- true;
     results @ [Error "Event line exceeds 64 KiB."]
   ) else results
+
+let encode (envelope : envelope) =
+  let fields = match envelope.event with
+    | Turn_started -> ["type", `String "turn.started"]
+    | Thread_started id -> ["type", `String "thread.started"; "thread_id", `String id]
+    | Message (id, text) -> ["type", `String "message"; "item_id", `String id; "text", `String text]
+    | Tool (id, text) -> ["type", `String "tool"; "item_id", `String id; "text", `String text]
+    | Turn_completed -> ["type", `String "turn.completed"]
+    | Failed text -> ["type", `String "turn.failed"; "text", `String text]
+    | Input_requested text -> ["type", `String "input.requested"; "text", `String text]
+    | Interrupted -> ["type", `String "run.interrupted"]
+    | Exited code -> ["type", `String "process.exited"; "code", `Int code] in
+  Yojson.Basic.to_string (`Assoc (["task_id", `String envelope.task_id; "run_id", `String envelope.run_id] @ fields))
