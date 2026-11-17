@@ -47,8 +47,7 @@ let interactive ~events ~database =
           (fun () ->
             let source = if events = "" then None else Some (Events.open_source events) in
             Fun.protect
-              ~finally:(fun () ->
-                Option.iter (fun (s : Events.source) -> Unix.close s.fd) source)
+              ~finally:(fun () -> Option.iter Events.close_source source)
               (fun () ->
                 let term = Notty_unix.Term.create ~mouse:true () in
                 let previous_term =

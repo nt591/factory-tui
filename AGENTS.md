@@ -16,3 +16,7 @@ Write comments only for non-obvious safety conditions or choices. Use plain Engl
 Live execution must be explicitly enabled and explicitly started. Setup must
 not start an agent or import credentials. Acceptance does not merge, push, or
 delete a workspace. Use fake harnesses and temporary workspaces for tests.
+
+Add an explicit .mli for each core module. Export supported entry points, not
+implementation helpers. Keep resource handles abstract. Expose records only
+when callers need their structure for state reduction, rendering, or persistence.

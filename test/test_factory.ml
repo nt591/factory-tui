@@ -496,12 +496,19 @@ let () =
       close_out out;
       let source = Events.open_source path in
       Fun.protect
-        ~finally:(fun () -> Unix.close source.fd)
+        ~finally:(fun () -> Events.close_source source)
         (fun () ->
           check "partial replay lines wait" (Events.poll source = []);
           let out = open_out_gen [ Open_append; Open_wronly ] 0o600 path in
           output_char out '\n';
           close_out out;
           check "appended replay lines consumed" (List.length (Events.poll source) = 1);
-          check "replay does not duplicate events" (Events.poll source = [])));
+          check "replay does not duplicate events" (Events.poll source = []);
+          Events.close_source source;
+          Events.close_source source;
+          check "closed replay source rejects polling"
+            (try
+               ignore (Events.poll source);
+               false
+             with Invalid_argument _ -> true)));
   Printf.printf "Passed %d checks. No live agents or workspace access.\n" !tests

@@ -31,7 +31,12 @@ let decode line =
   | Yojson.Basic.Util.Type_error _ -> Error "Event must be a JSON object."
 
 (* The input file is a replay source, not an agent execution interface. *)
-type source = { fd : Unix.file_descr; mutable pending : string; mutable discarded : bool }
+type source = {
+  fd : Unix.file_descr;
+  mutable pending : string;
+  mutable discarded : bool;
+  mutable closed : bool;
+}
 
 let open_source path =
   let fd = Unix.openfile path [ Unix.O_RDONLY; Unix.O_NONBLOCK ] 0 in
@@ -39,9 +44,10 @@ let open_source path =
   if kind <> Unix.S_REG && kind <> Unix.S_FIFO then (
     Unix.close fd;
     invalid_arg "Event source must be a regular file or FIFO.");
-  { fd; pending = ""; discarded = false }
+  { fd; pending = ""; discarded = false; closed = false }
 
 let poll source =
+  if source.closed then invalid_arg "Event source is closed.";
   let bytes = Bytes.create 8192 in
   let count =
     try Unix.read source.fd bytes 0 8192
@@ -91,3 +97,8 @@ let encode (envelope : envelope) =
     (`Assoc
        ([ ("task_id", `String envelope.task_id); ("run_id", `String envelope.run_id) ]
        @ fields))
+
+let close_source source =
+  if not source.closed then (
+    source.closed <- true;
+    Unix.close source.fd)

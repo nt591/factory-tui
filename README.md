@@ -270,6 +270,16 @@ See [docs/harness.md](docs/harness.md) for limits and lifecycle guarantees. This
 runner is not a security sandbox and does not contain descendants that escape
 the process group. The next increment connects an explicit fake-harness mode.
 
+## Module interfaces
+
+All core modules have explicit `.mli` interfaces. Database, persistence worker,
+run delivery, and replay sources have abstract handles. Domain records remain
+inspectable for reducers, serialization, and rendering. Internal codec, spawn,
+and navigation helpers are not exported. The controller state remains an exposed
+UI record; it is not claimed to be fully encapsulated yet.
+
+See [docs/modules.md](docs/modules.md) for the intended boundaries.
+
 ## Implementation sequence
 
 Follow [docs/implementation.md](docs/implementation.md), adapted from the native
