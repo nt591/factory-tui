@@ -9,6 +9,8 @@ against these interfaces during the normal Dune build.
   run-record encoder used by the SQL store. JSON parsing helpers remain private.
 - `Events`: replay envelope encode/decode and an abstract file/FIFO source. Callers
   close the source through an idempotent operation, not its raw descriptor.
+- `Invocation_preview`: validated JSON preview of execution arguments and safety
+  flags. It can load an explicit non-secret gateway file but never starts a run.
 - `Gateway`: abstract validated endpoint and environment-reference configuration.
   Parsing/validation errors omit file contents; no credentials/network are read.
 - `Codex`: pure invocation construction with explicit directory/model/thread

@@ -45,7 +45,10 @@ Acceptance does not merge, push, or delete a workspace.
    verify checkpoint refusal, stream replacement, queued replies, and stored
    process events. Details: `docs/harness.md`. A pure invocation builder validates model/directory and explicit resume identity
    and sets read-only execution. Installed Codex and gateway compatibility remain
-   unverified; a loopback integration is still required.
+   unverified; a loopback integration is still required. `--dry-run-codex` exposes
+   a structured invocation preview with no executable, credential, or database
+   access. CLI tests verify no process side effect and rejection of conflicting
+   modes.
 6. **Gateway setup — validation and provider builder complete; integration pending.**
    `Gateway` validates a capped non-secret TOML file, HTTPS/loopback endpoints, and
    environment-key references without reading secrets or contacting the network.

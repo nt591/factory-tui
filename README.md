@@ -301,6 +301,22 @@ the process group. The fake UI path is verified. A pure Codex invocation builder
 resume identity and read-only arguments without launching anything. Live execution
 and gateway compatibility remain unverified.
 
+## Inspect an agent invocation without running it
+
+```sh
+./scripts/run.sh --dry-run-codex \
+  --codex-executable /absolute/path/to/codex \
+  --workspace /absolute/existing/workspace --model model-id
+```
+
+Optional `--resume ID` selects an exact thread; `--gateway PATH` adds the validated
+non-secret provider settings. Output is structured JSON, not a shell command to
+copy with ambiguous quoting. No executable, database, default user config, or
+credential is accessed. A missing or malformed explicit gateway file is an error.
+This command does not prove live or gateway compatibility.
+
+`python3 scripts/smoke-invocation.py` checks the CLI with temporary fixture files.
+
 ## Gateway configuration validation
 
 A separate non-secret gateway TOML file holds `base_url` and `key_environment`

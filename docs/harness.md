@@ -105,3 +105,30 @@ Argument forms were inspected against the installed Codex help on November 17,
 2026. Pure tests validate the constructed arguments. No live compatibility or
 native resume claim follows from those checks. The TUI still exposes fake runs
 only; gateway configuration and loopback integration remain the next steps.
+
+## Invocation preview
+
+Inspect the actual argument builder through the CLI without starting an agent:
+
+```sh
+./scripts/run.sh --dry-run-codex \
+  --codex-executable /absolute/path/to/codex \
+  --workspace /absolute/existing/workspace --model model-id
+```
+
+Add `--resume <explicit-thread-id>` and/or `--gateway <non-secret-config.toml>`
+for those variants. The executable is explicit so the preview does not select a
+shell function, guess an installation path, or execute a version probe. The output
+is JSON with separate argument strings, working directory, timeout, stdin prompt
+source, and explicit no-process/no-credentials/no-database flags.
+
+The preview does not read default Factory config. Interactive/storage/snapshot
+options cannot be combined with it. Invocation-specific options outside dry-run
+are rejected rather than silently ignored. The CLI smoke uses a temporary fake
+executable with a marker and verifies it is never started:
+
+```sh
+python3 scripts/smoke-invocation.py
+```
+
+A preview is not evidence of provider compatibility or successful live execution.
