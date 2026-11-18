@@ -436,3 +436,10 @@ instead of being clipped behind it. Short values keep their existing selection
 and hints; very narrow panes use compact instructions. Whole-grapheme clipping
 changes display only. Unit/active-run and long-model PTY checks verify queue
 visibility, unchanged captured run identity, and complete stored model values.
+
+Transcript search banners prioritize match count and navigation when the query
+exceeds the pane width. Short queries retain the existing layout; long-query
+previews use a grapheme-safe ellipsis without changing the full editor or search
+query. `Search_banner.ml/.mli` formats the text independently of matching and
+input dispatch. Unit/compact-render and long-query PTY checks verify counts,
+query retention, and no task/run creation from match navigation.

@@ -139,6 +139,9 @@ against these interfaces during the normal Dune build.
   Appended output and earlier stream growth do not move a paused reading view.
   Explicit scrolling/search seeking changes the anchor; End resumes following.
   Its bounded visible-row selection prevents offscreen chat image construction.
+- `Search_banner`: pure width-aware query/match-position text. Long queries give
+  display priority to counts and navigation; the full query remains in Chat_search
+  and Text_edit. No matching, input dispatch, or persistence lives in this module.
 - `Chat_search`: abstract transient query/matching-message selection, anchored
   by stable message ID. It searches content/authors without modifying tasks.
   Unchanged immutable messages reuse query matches; indexed membership supports

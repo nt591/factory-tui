@@ -209,10 +209,9 @@ let render t ~width:cols ~height:rows =
           else
             let position, count = Chat_search.position t.chat_search in
             let description =
-              Printf.sprintf " /chat %s%s · %d/%d messages · n/N matches"
-                (Chat_search.query t.chat_search)
-                (if t.input = Chat_search then "▏" else "")
-                position count
+              Search_banner.text ~width:(r.w - 2)
+                ~query:(Chat_search.query t.chat_search)
+                ~editing:(t.input = Chat_search) ~position ~count
             in
             I.(line (r.w - 2) (emphasis accent) description <-> content)));
     panes := ({ r with h = chat_height }, Conversation) :: !panes;

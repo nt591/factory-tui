@@ -933,6 +933,16 @@ printf '%s\\n' '{"type":"turn.completed"}'
         preview(args.preview.with_stem(args.preview.stem + "-long-card"))
     send(b"e")
     check("long card opens the complete instruction", "CARD_END" in text())
+    send(b"S")
+    send(b"\x1b[200~" + long_title.encode() + b"\x1b[201~")
+    send(b"\r")
+    deadline = time.monotonic() + 5
+    while "1/1 messages · n/N" not in screen.display[4] and time.monotonic() < deadline:
+        pump(0.05)
+    check("long chat query keeps its match count and navigation visible", "1/1 messages · n/N" in screen.display[4])
+    if args.preview:
+        preview(args.preview.with_stem(args.preview.stem + "-long-query"))
+    send(b"\x1b")
     if args.preview:
         preview(args.preview.with_stem(args.preview.stem + "-long-card-chat"))
     send(b"m")

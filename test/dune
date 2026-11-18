@@ -272,3 +272,8 @@
  (name test_composer_guidance)
  (modules test_composer_guidance)
  (libraries factory_tui notty))
+
+(test
+ (name test_search_banner)
+ (modules test_search_banner)
+ (libraries factory_tui notty))
