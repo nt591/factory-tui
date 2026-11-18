@@ -60,6 +60,7 @@ type t = {
   mutable creation_job : Task_creation.job option;
   mutable creation_request : Task_creation.request option;
   mutable tasks : task list;
+  task_updates : Task_updates.t;
   mutable selected : string;
   mutable focus : focus;
   mutable zoom : bool;

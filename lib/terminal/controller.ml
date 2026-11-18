@@ -60,6 +60,7 @@ type t = {
   mutable creation_job : Task_creation.job option;
   mutable creation_request : Task_creation.request option;
   mutable tasks : task list;
+  task_updates : Task_updates.t;
   mutable selected : string;
   mutable focus : focus;
   mutable zoom : bool;
@@ -120,6 +121,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     workspace_form = None;
     creation_job = None;
     creation_request = None;
+    task_updates = Task_updates.create ();
     tasks =
       (if fake_harness then
          (Snapshot.recover
@@ -247,6 +249,7 @@ let receive t event =
   let previous_state = Option.map (fun (task : task) -> task.state) (selected t) in
   let tasks = reduce t.tasks event in
   let changed = tasks <> t.tasks in
+  if changed then Task_updates.record t.task_updates event;
   if changed && t.retain_events then t.storage_events <- t.storage_events @ [ event ];
   t.tasks <- tasks;
   Option.iter
@@ -269,6 +272,7 @@ let snapshot t : Snapshot.t =
   { tasks = t.tasks; drafts = t.drafts; selected = t.selected; serial = t.serial }
 
 let restore t saved =
+  Task_updates.reset t.task_updates;
   let guidance = Restart_guidance.describe saved in
   let saved = Snapshot.recover saved in
   t.tasks <- saved.tasks;

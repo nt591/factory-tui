@@ -758,3 +758,15 @@ retain the one-second teardown bound, assert exact error outcomes/direct-child
 reaping and include intentionally delayed readiness. Timeout, cancellation and
 pipe-drain bounds are unchanged. Runtime Process code is byte-identical; startup
 latency remains an unresolved operational input, not a diagnosed cleanup defect.
+
+Task_updates.ml/.mli tracks distinct accepted message/tool/lifecycle update keys
+per task and run in abstract transient state. Stream replacements share a key;
+stale reducer-rejected events add nothing. Cards show a new-update count and compact
+rows use [N new]. Markers follow exact task identity across state movement. Visible
+conversation or Activity clears the selected task after layout, but board-only
+layouts and modal-obscured details do not. Restoring snapshots resets markers rather
+than treating historical content as new. This is a detail-view change indicator,
+not proof a user read every message or tool. No marker is saved or alters task/run
+state. Pure event/visibility/compact/modal tests and the board-history replay PTY
+verify background chunks, automatic movement, selected-chat stability and badge
+clear on inspecting the moved task. Existing fixture suite covers normal layouts.

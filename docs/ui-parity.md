@@ -632,3 +632,10 @@ Transcript match counters and n/N navigation use indexed ordinals and an ordered
 array, avoiding scans through large result lists. Selected message IDs stay stable
 across streamed updates/reorder. Large-result tests verify every destination,
 wraparound, selected removal and index pruning; public search behavior is unchanged.
+
+Background cards expose launch-local new-update badges for accepted messages/tools
+and attention/completion events. Multiple chunks of one stream item count once.
+Compact lists show [N new]. Markers follow task identity when cards move, and clear
+when task detail is visible outside a modal; board-only selection cannot clear them.
+Pure visibility/state tests and replay PTY checks verify movement and clearing.
+These markers are not unread receipts; already-viewed history is not badged on restart.

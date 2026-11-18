@@ -737,3 +737,10 @@ that deliberately waits 1.1 seconds before readiness proves that startup is not
 counted as teardown. Separate timeout/cancellation and inherited-pipe bounds remain
 unchanged. Shell fixtures remain because JSONL delivery and descendants are the
 boundary under test. These checks do not guarantee arbitrary script startup time.
+
+Task-update unit checks cover distinct stream/tool/run keys, stale-event exclusion,
+compact badge text, board-only and modal-obscured retention, visible detail clearing,
+restore reset and snapshot isolation. The board-history PTY now selects another task,
+appends two chunks of one background message, checks one badge, completes the run,
+verifies the badge follows Ready while selection stays fixed, then inspects that
+card and checks badge clearing. No agent, credentials or real workspace are used.

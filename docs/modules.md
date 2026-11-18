@@ -406,3 +406,10 @@ Chat_search's private match array and ID-to-ordinal index serve both membership 
 position lookup. The selected value is still a stable message ID, not a saved index.
 Sync replaces current array/index together and prunes removed matches. Counters and
 next/previous movement avoid list traversal without changing seek or cache rules.
+
+Task_updates owns abstract launch-local per-task sets of run-scoped message, tool
+and lifecycle keys. Controller records only accepted reducer events. Ui shows badges
+and clears the selected set only when conversation/Activity content is visible
+without a modal. Compact Task_row receives a count without changing task text or
+identity. Snapshot restore drops transient marks. They are not persisted unread
+receipts and do not prove content comprehension.

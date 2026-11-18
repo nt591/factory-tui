@@ -139,6 +139,7 @@ let render t ~width:cols ~height:rows =
     summary.hits;
   let body_y = 3 and body_h = max 0 (rows - 6) in
   let task = selected t in
+  let detail_visible = ref false in
   let conversation r =
     let draft_rows = max 1 (List.length (wrap (max 1 (r.w - 6)) (draft t))) in
     let composer_height =
@@ -175,6 +176,7 @@ let render t ~width:cols ~height:rows =
     in
     let searching = t.input = Chat_search || Chat_search.query t.chat_search <> "" in
     let available = max 0 (chat_height - 2 - if searching then 1 else 0) in
+    if available > 0 then detail_visible := true;
     if t.focus = Conversation then t.page_rows <- max 1 available;
     let view =
       Chat_viewport.update t.chat_viewport ~task_id:t.selected ~rows:anchors
@@ -284,6 +286,7 @@ let render t ~width:cols ~height:rows =
       |> List.concat_map (wrap inner)
     in
     let capacity = max 0 (r.h - 2) in
+    if capacity > 0 then detail_visible := true;
     let requested =
       if t.focus = Activity then t.scroll else Pane_scroll.position t.pane_scroll Activity
     in
@@ -389,7 +392,9 @@ let render t ~width:cols ~height:rows =
             in
             hit (r.x + 1) (r.y + 1 + i) content_width 1 (Select task.id);
             line content_width a
-              (Task_row.text ~width:content_width ~selected:(task.id = t.selected) task))
+              (Task_row.text
+                 ~updates:(Task_updates.count t.task_updates task.id)
+                 ~width:content_width ~selected:(task.id = t.selected) task))
           tasks
       in
       let title =
@@ -455,7 +460,11 @@ let render t ~width:cols ~height:rows =
                            (max 1 (w - 6))
                            (clean ~newlines:false (repository_label task.repository)));
                       line (w - 6) (attr muted)
-                        (if pending = 0 then
+                        (if Task_updates.count t.task_updates task.id > 0 then
+                           let updates = Task_updates.count t.task_updates task.id in
+                           Printf.sprintf "%d new update%s" updates
+                             (if updates = 1 then "" else "s")
+                         else if pending = 0 then
                            Printf.sprintf "%d messages" (List.length task.messages)
                          else
                            Printf.sprintf "%d msg / %d queued" (List.length task.messages)
@@ -579,6 +588,10 @@ let render t ~width:cols ~height:rows =
            board { x = sidebar_width; y = body_y; w = main_width; h = top };
            details
              { x = sidebar_width; y = body_y + top; w = main_width; h = body_h - top });
+  if
+    !detail_visible && (not t.help) && t.review = None && t.workspace_form = None
+    && t.live_confirmation = None
+  then Task_updates.clear t.task_updates t.selected;
   let pending_keys =
     (if t.count = 0 then "" else string_of_int t.count)
     ^ match t.prefix with No_prefix -> "" | Go -> "g" | Window -> "Ctrl-W "

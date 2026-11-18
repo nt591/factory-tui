@@ -224,3 +224,8 @@ measure from event delivery, keeping the existing one-second bound and checking
 specific errors/direct-child reaping. Delayed-readiness coverage prevents startup
 misclassification. Runtime code was restored byte-for-byte; the cause of delayed
 startup and arbitrary launch-time guarantees remain unresolved.
+
+Background-update badges have pure event/visibility tests and a replay PTY covering
+stream chunk deduplication, automatic column movement, stable selected chat and
+clear-on-inspection. Marks are launch-local and do not prove all content was read;
+modal/board-only views retain them and snapshot restore does not badge old history.

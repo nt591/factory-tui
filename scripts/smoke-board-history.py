@@ -132,6 +132,64 @@ def main():
                 "Latest stays followed on later output",
                 "[Latest / End]" not in tui.text(),
             )
+            tui.send(b"b")
+            tui.send(b"\x1b[<0;5;8M")
+            tui.wait(
+                "other task selected",
+                lambda: "T-101 / Queued / conversation" in tui.text(),
+            )
+            with replay.open("a") as output:
+                output.write(event("background", "Background chunk"))
+                output.write(event("background", "Background final reply"))
+            tui.wait("background badge", lambda: "1 new update" in tui.text())
+            tui.check(
+                "background streaming counts one item rather than chunks",
+                "2 new updates" not in tui.text(),
+            )
+            if args.preview:
+                tui.preview(args.preview.with_stem(args.preview.stem + "-background"))
+            with replay.open("a") as output:
+                output.write(
+                    json.dumps(
+                        {
+                            "task_id": "T-102",
+                            "run_id": "demo-102",
+                            "type": "turn.completed",
+                        }
+                    )
+                    + "\n"
+                )
+                output.write(
+                    json.dumps(
+                        {
+                            "task_id": "T-102",
+                            "run_id": "demo-102",
+                            "type": "process.exited",
+                            "code": 0,
+                        }
+                    )
+                    + "\n"
+                )
+            tui.wait(
+                "moved task retains badge",
+                lambda: "2 new updates" in tui.text() and "Ready 2" in tui.text(),
+            )
+            tui.check(
+                "background completion keeps selected conversation unchanged",
+                "T-101 / Queued / conversation" in tui.text(),
+            )
+            tui.send(b"\x1b[<0;95;8M")
+            tui.wait(
+                "updated task inspected",
+                lambda: (
+                    "T-102 / Ready / conversation" in tui.text()
+                    and "new updates" not in tui.text()
+                ),
+            )
+            tui.check(
+                "inspecting moved task clears badge without starting a run",
+                "Background final reply" in tui.text(),
+            )
             tui.send(b"q")
             tui.wait_exit()
             tui.check(

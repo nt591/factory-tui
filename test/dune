@@ -372,3 +372,8 @@
  (name test_search_navigation)
  (modules test_search_navigation)
  (libraries factory_tui))
+
+(test
+ (name test_task_updates)
+ (modules test_task_updates)
+ (libraries factory_tui notty))

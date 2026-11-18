@@ -875,3 +875,10 @@ The reply border summarizes message delivery: captured queued instructions show
 captured set is acknowledged, the border shows only the remaining queued count.
 Unsent drafts are not counted. These labels report delivery state, not agent
 progress; they do not start or interrupt a run.
+
+Cards show “new updates” when messages, tools, or attention/completion events arrive
+while their task detail is not visible. Stream replacements of the same item count
+once; badges follow cards as they move columns. Compact lists show `[N new]`.
+Viewing that task's conversation or Activity clears its badge, unless a modal
+covers the detail. These are launch-local change indicators, not unread receipts:
+opening detail does not prove all content was read. Restart does not badge old history.
