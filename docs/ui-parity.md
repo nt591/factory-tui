@@ -502,3 +502,12 @@ Unit and temporary-board PTY checks verify counts, empty-column skipping, exact
 selected-card/chat identity, shorter-column clamping, filters, current-state
 movement and unchanged saved tasks/runs. Column scrolling follows the destination
 so an aligned card is visible before it is opened.
+
+
+Board summary text is width-aware: filtered counts remain visible with long
+repository labels/search queries, and Archive retains accepted counts. Display
+repository suffixes share the sidebar map; exact filters are unchanged. Visible
+label/search spans define click targets rather than fixed screen coordinates.
+Narrow count-first fallback omits the view-label action; tiny text exposes no
+hidden targets. Pure/temporary-board PTY checks verify widths, counts, full-query
+editing via mouse, archive clicks, modal isolation and unchanged saved task data.

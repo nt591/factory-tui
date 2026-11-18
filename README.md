@@ -778,3 +778,11 @@ Transcript author labels wrap across rows instead of losing their suffix at the
 pane edge. All wrapped header rows keep the author/queued styling. Imported long
 authors and queued/sent labels remain readable and searchable; the original stored
 message stays unchanged. Body-row anchors do not shift when an author grows.
+
+
+The board summary keeps filtered task counts visible when repository labels or
+search queries are long. It uses the same distinguishing repository suffixes as
+the sidebar; full repository/filter identity is unchanged. Click the displayed
+view label to toggle Archive, or the displayed `/` search text to edit the full
+query. Hitboxes follow these labels rather than fixed terminal columns. On very
+small widths, counts take priority and omitted controls have no click target.

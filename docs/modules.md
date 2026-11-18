@@ -275,3 +275,11 @@ It has no Controller or rendering dependency and mutates no tasks. Controller
 keeps focus, selection guidance, scroll resets and input dispatch; the renderer
 still reports compact/column mode and page capacity. Missing filtered selections
 have no invented horizontal destination, while list moves enter from an edge.
+
+
+`Board_summary` is the pure width-aware board header layout. It receives a display
+repository label, count and raw query, sanitizes display text and returns bounded
+text plus non-overlapping control spans. Count visibility takes priority over
+long labels. Ui supplies shortest-distinguishing repository suffixes but leaves
+stored identities and filter values unchanged; it maps returned actions to normal
+controller dispatch. The module does not own tasks, input editors or persistence.

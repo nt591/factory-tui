@@ -115,18 +115,19 @@ let render t ~width:cols ~height:rows =
         1
         (line meter_width (emphasis (state_color state)) body))
     states;
-  let query = if t.query = "" then " / search tasks" else " / " ^ t.query in
   let summary =
-    Printf.sprintf " %s  |  %d tasks%s  |%s"
-      (if t.archive then "Archive"
-       else match t.repository with None -> "Session board" | Some repo -> repo)
-      (List.length board_tasks)
-      (if t.archive then " accepted" else "")
-      query
+    Board_summary.make ~width:main_width ~archive:t.archive
+      ~repository:(Option.map repository_label t.repository)
+      ~count:(List.length board_tasks) ~query:t.query
   in
-  paint sidebar_width 2 (line main_width (attr muted) summary);
-  hit sidebar_width 2 (min 19 main_width) 1 Toggle_archive;
-  hit (max 0 (cols - 24)) 2 24 1 Begin_search;
+  paint sidebar_width 2 (line main_width (attr muted) summary.text);
+  List.iter
+    (fun (item : Board_summary.hit) ->
+      hit (sidebar_width + item.x) 2 item.width 1
+        (match item.action with
+        | Board_summary.Toggle_archive -> Toggle_archive
+        | Board_summary.Search -> Begin_search))
+    summary.hits;
   let body_y = 3 and body_h = max 0 (rows - 6) in
   let task = selected t in
   let conversation r =

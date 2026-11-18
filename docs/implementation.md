@@ -525,3 +525,15 @@ is changed. Controller applies only the selected identity and existing viewport
 follow behavior. Pure tests and a temporary-board PTY check verify aligned cards,
 shorter columns, empty-state skipping, counts, opening the selected chat, filters,
 current-state movement, edge cases, bounded deltas, and saved task/run isolation.
+
+
+`Board_summary.ml/.mli` lays out the view label, filtered task count and search
+text within the actual main-content width. Long labels/queries are abbreviated
+without changing exact repository/filter values; repository labels reuse the
+sidebar's distinguishing suffix map. Counts take priority, including accepted
+counts in Archive. The module returns label/search spans so Ui targets match
+visible controls, including compact count-first fallback with no hidden label hit.
+Extremely small widths show bounded count text with no absent control targets.
+Pure tests and a temporary-board PTY check cover long paths/queries, compact
+counts, Unicode-safe spans, visible search/archive clicks, exact query editing,
+modal isolation and unchanged persisted task/run data.

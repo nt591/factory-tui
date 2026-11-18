@@ -450,3 +450,19 @@ Checks cover row-aligned horizontal movement, skipping the empty column, counts,
 short-column clamping, destination visibility and its expanded chat. Final saved
 tasks/runs/drafts remain exact; only selection changes. HOME/XDG are isolated.
 No agent, credentials or real workspace are accessed. `--binary` avoids rebuilding.
+
+
+## Filtered board summary fixture
+
+```sh
+uv run --with pyte --with pillow python scripts/smoke-board-summary.py \
+  --preview /tmp/factory-board-summary.png
+```
+
+A temporary SQLite board has a long repository identity and task title. An empty
+replay file prevents timed events. The TUI filters by repository and a long query,
+resizes to 60 columns, verifies visible counts, clicks the displayed search span
+to inspect the complete query, and clicks the view label to enter Archive. Saved
+tasks/runs remain exact. HOME/XDG are temporary; no model, credentials or real
+workspace are used. `--binary` avoids rebuilding. Pure `test_board_summary` covers
+sanitation, fallback widths, non-overlapping spans and input/modal isolation.

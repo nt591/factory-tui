@@ -101,11 +101,13 @@ def main():
             )
             tui.send(b"R" * 2)
             tui.wait(
-                "exact-path filter", lambda: " /fixture/beta/service  |" in tui.text()
+                "exact-path filter", lambda: " beta/service  |" in tui.screen.display[2]
             )
             tui.check(
                 "short labels retain exact-path filtering and selected chat",
-                "Queued 1" in tui.text() and "Repository task 00" in tui.text(),
+                "Queued 1" in tui.text()
+                and "T-01" in tui.text()
+                and "Repository task 00" in tui.text(),
             )
             if args.preview:
                 tui.preview(args.preview.with_stem(args.preview.stem + "-labels"))
