@@ -329,3 +329,9 @@ include parent components; normalized collisions fall back to original strings.
 `Repository_labels.ml/.mli` performs no path lookup or workspace operation. Exact
 filter actions, task data, and full Activity paths remain unchanged. Unit and
 sidebar PTY tests cover same-named repositories, filtering, and persisted identity.
+
+Overflowing Activity panes display a visible wrapped-row range and above/below
+arrows in their lower border. The same bounded window selects content and derives
+the cue; it does not consume a tool-output row or change page size. Fitting panes
+show no overflow indicator. Unit and streaming PTY checks cover initial/middle/
+final ranges, retained output capacity, and unchanged snapshot behavior.

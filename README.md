@@ -611,7 +611,9 @@ rather than clipping them. Run history includes active run age and recorded ende
 duration. Age starts at confirmation (including pre-spawn waits), not process
 spawn; wall-clock anomalies show unavailable time rather than invented values. Workspace tasks show their exact review base. Focus
 Activity and press `e` to inspect full-width metadata, tools, and run history;
-scroll as needed. Inspection does not change the task or its workspace.
+scroll as needed. Overflowing Activity shows the visible wrapped-row range and
+above/below arrows in its border without consuming an output row. Inspection does
+not change the task or its workspace.
 
 Selecting a card also refreshes the footer with its task ID and next-step guidance,
 without clearing storage errors or starting a run.

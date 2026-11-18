@@ -320,3 +320,10 @@ same visible entry. Full path strings still drive filters and workspace identity
 and Activity retains the complete path. `Repository_labels` is pure with an
 explicit interface. Unit and sidebar PTY tests check ambiguous names and retained
 stored identity; unusually long distinguishing labels can still be ellipsized.
+
+Activity shows `rows first-last/total` with above/below arrows in its lower border
+when metadata/tool/history content overflows. Counts refer to wrapped display rows,
+not commands or completion progress. The indicator uses the same window as visible
+output and takes no content space. It remains visible when another pane has focus;
+fitting content has no false overflow cue. Unit and PTY tests verify ranges and
+unchanged page capacity. Narrow borders can clip the cue; expansion exposes it.

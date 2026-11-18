@@ -41,7 +41,7 @@ let glyph a s = I.string a s
 let wrap cols text = Text_layout.wrap cols (clean text)
 let wrap_title cols text = Text_layout.wrap_words cols (clean ~newlines:false text)
 
-let border cols rows ~title ~color ~focused content =
+let border ?(footer = "") cols rows ~title ~color ~focused content =
   if cols < 2 || rows < 2 then fit cols rows content
   else
     let a = if focused then emphasis color else attr muted in
@@ -53,7 +53,15 @@ let border cols rows ~title ~color ~focused content =
             |> hsnap ~align:`Left (cols - 2))
         <|> glyph a "╮")
     in
-    let bottom = glyph a ("╰" ^ horizontal ^ "╯") in
+    let bottom =
+      if footer = "" then glyph a ("╰" ^ horizontal ^ "╯")
+      else
+        I.(
+          glyph a "╰"
+          <|> (glyph a ("─ " ^ clean ~newlines:false footer ^ " " ^ horizontal)
+              |> hsnap ~align:`Left (cols - 2))
+          <|> glyph a "╯")
+    in
     let middle =
       I.(
         uchar a (Uchar.of_int 0x2502) 1 (rows - 2)
@@ -278,20 +286,25 @@ let render t ~width:cols ~height:rows =
     let requested =
       if t.focus = Activity then t.scroll else Pane_scroll.position t.pane_scroll Activity
     in
-    let offset = max 0 (min requested (max 0 (List.length rows - capacity))) in
+    let window =
+      Board_window.make ~manual:true ~capacity ~selected:0 ~scroll:requested rows
+    in
+    let offset = window.offset in
     if capacity > 0 then (
       Pane_scroll.remember t.pane_scroll Activity offset;
       if t.focus = Activity then (
         t.page_rows <- max 1 capacity;
         t.scroll <- offset));
-    let window : Chat_viewport.view = { offset; distance = 0; following = false } in
+    let footer =
+      let cue = Board_window.cue window in
+      if cue = "" then "" else "rows " ^ cue
+    in
     let content =
       I.vcat
-        (Chat_viewport.visible_rows window ~height:capacity rows
-        |> List.map (fun row -> I.hpad 1 1 (line inner (attr muted) row)))
+        (window.items |> List.map (fun row -> I.hpad 1 1 (line inner (attr muted) row)))
     in
     paint r.x r.y
-      (border r.w r.h
+      (border ~footer r.w r.h
          ~title:
            ((match task with None -> "Task" | Some task -> task.id)
            ^ " / activity"

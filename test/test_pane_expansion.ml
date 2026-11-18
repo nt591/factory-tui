@@ -51,6 +51,9 @@ let () =
   let frame, expanded = render 120 36 in
   check "expanded Activity shows long command on one line"
     (Controller.contains expanded command);
+  check "expanded Activity shows hidden output range without reducing capacity"
+    (Controller.contains (List.nth (String.split_on_char '\n' expanded) 32) "rows 1-28/"
+    && t.page_rows = 28);
   check "expanded pane identifies task"
     (Controller.contains expanded "task / activity / expanded");
   check "expanded Activity hides chat and composer"
@@ -67,6 +70,17 @@ let () =
   let _, bottom = render 120 36 in
   check "G reaches end of expanded tool output"
     (Controller.contains bottom "Output line 49");
+  let total =
+    Activity_content.lines ~now:0. ~expanded:true ~raw:false ~waiting:false
+      (Controller.selected t)
+    |> List.concat_map (Ui.wrap 116)
+    |> List.length
+  in
+  let footer = List.nth (String.split_on_char '\n' bottom) 32 in
+  check "Activity bottom range matches output and indicates only content above"
+    (Controller.contains footer
+       (Printf.sprintf "rows %d-%d/%d ↑" (total - 27) total total)
+    && not (Controller.contains footer "↓"));
   Controller.key t (`ASCII 'g', []);
   Controller.key t (`ASCII 'g', []);
   ignore (render 120 36);
@@ -133,5 +147,19 @@ let () =
   check "expansion never changes saved conversations or drafts"
     (Controller.snapshot t = snapshot);
   check "expansion starts no run" ((Option.get (Controller.selected t)).active = None);
+  let short = Controller.create ~external_events:true () in
+  short.tasks <- [ Model.make ~id:"short" ~title:"Short activity" ~repository:"fixture" ];
+  short.selected <- "short";
+  short.focus <- Controller.Activity;
+  short.zoom <- true;
+  short.activity_expanded <- true;
+  let frame = Ui.render short ~width:120 ~height:36 in
+  let buffer = Buffer.create 8192 in
+  Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (120, 36) frame.image;
+  check "fitting Activity has no false overflow cue"
+    (not
+       (Controller.contains
+          (List.nth (String.split_on_char '\n' (Buffer.contents buffer)) 32)
+          "rows "));
   Printf.printf "Passed %d pane expansion checks. Rendering and navigation only.\n"
     !checks

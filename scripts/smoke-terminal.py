@@ -708,6 +708,9 @@ printf '%s\\n' '{"type":"turn.completed"}'
         def top_activity_line():
             return screen.display[4][82:118].strip()
         check("Activity wheel reaches its own metadata row", top_activity_line().startswith("run: demo-102"))
+        check("Activity border shows visible tool range and overflow directions",
+              "rows 4-31/" in screen.display[32][80:] and "↑" in screen.display[32][80:]
+              and "↓" in screen.display[32][80:])
         activity_top = top_activity_line()
         with replay.open("a") as output:
             output.write(replay_event("later", "New output while reading history"))
