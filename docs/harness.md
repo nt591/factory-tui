@@ -268,10 +268,13 @@ preview. Enable write access only with an explicit live-UI flag:
 ```
 
 This selects Codex's requested `workspace-write` sandbox for isolated workspace
-**tasks**, not the source repository. SQLite and per-run confirmation are still
+**tasks**, not the source repository. This policy also allows temporary-directory
+writes (including `TMPDIR`) and Codex's own runtime state; it is not a filesystem
+allowlist containing only the task directory. The confirmation discloses the
+workspace and temporary-directory access. SQLite and per-run confirmation are still
 required. The banner says LIVE WRITE / CONFIRMED CALLS and the confirmation says
-WRITE ACCESS: task workspace. Setup/launch starts no process and paste cannot
-confirm. Demo/unattached tasks cannot obtain write-mode runs. No startup TOML
+WRITE ACCESS: workspace + temp directories. Setup/launch starts no process;
+paste cannot confirm. Demo/unattached tasks cannot obtain write-mode runs. No startup TOML
 setting silently enables writes. `--workspace-write` is rejected outside live UI;
 headless execution and its dry-run continue to use read-only policy.
 
@@ -293,7 +296,54 @@ write-policy argument, then streams completion. Unit/PTY checks verify explicit
 confirmation, output, a real reviewable patch, untouched source checkout, captured
 policy, backward-compatible persistence, and unchanged earlier run records. This
 verifies our policy plumbing and workflow, **not OS sandbox enforcement**. A fake
-executable is not a security sandbox. Real Codex code-editing, network restrictions,
-and privilege-escalation denial still require a separately approved integration
-check. The earlier installed-Codex loopback returns no tool calls and does not
-prove those properties.
+executable is not a security sandbox. The installed-Codex sentinel integration
+below now checks specific write and escalation-denial cases. Network restrictions, all protected path variants, and
+full containment are not established by that finite probe. The earlier
+installed-Codex answer/resume loopback returns no tool calls and does not prove
+those properties.
+
+## Installed Codex sandbox sentinel probe
+
+```sh
+python3 scripts/smoke-codex-sandbox.py --codex /absolute/path/to/codex
+```
+
+This opt-in script starts the installed executable with a loopback Responses
+fixture and a dummy key. HOME and CODEX_HOME are isolated; only PATH/LANG and
+script-created environment settings are passed to the child. It obtains the
+read-only invocation from the app's dry-run builder, then changes only the sandbox
+policy for the write case, as the app's tested `Codex.with_policy` does. It does
+not drive the live TUI or claim end-to-end provider verification.
+
+The agent advertises its tools; the server returns a fixed shell-tool call:
+write one sentinel in the workspace, one in an ordinary sibling directory, and one in a separate runtime
+TMPDIR. It observes the subsequent tool result and verifies file presence/content.
+A third case explicitly requests `require_escalated` with never approvals, checking
+an explicit refusal and no sentinel writes. If the installed tool cannot express
+that request, the test fails rather than claiming approval refusal was verified.
+Only script-owned temporary paths are touched. The test never requests changes
+to real repositories, personal files, or credentials.
+
+Verified locally on November 17, 2026, macOS 26.7.1 arm64, codex-cli 0.166.0:
+
+- Read-only: workspace, runtime TMPDIR, and ordinary sibling writes denied.
+- Workspace-write: workspace and runtime TMPDIR writes allowed; sibling denied.
+- Workspace-write plus escalation request: explicit never-approval refusal;
+  no workspace, TMPDIR, or sibling writes occurred.
+
+The first probe mistakenly made the entire temporary test root TMPDIR, which
+made its supposed sibling test path writable. The corrected probe assigns TMPDIR
+to a separate child directory. This revealed an overly narrow UI disclosure, not
+a demonstrated sandbox bypass. The confirmation/docs now explicitly include
+workspace + temporary directories. Do not describe workspace-write as task-only.
+
+These are exact observed cases, not a general security audit: permitted auxiliary
+paths, protected metadata, symlink variants, network access, session isolation,
+and descendant containment need independent coverage. A real gateway/model/tool
+selection is still unverified. Interactive approval/steering is still unsupported;
+the current execution policy denies escalation rather than asking the user.
+
+Shared fixed-answer/function-call fixtures live in `scripts/fixtures/`. Pure
+fixture tests (`python3 scripts/test-responses.py`) validate event sequences and
+advertised tool shapes without a subprocess, network server, or filesystem work.
+The original answer/resume integration stays a separate opt-in command.

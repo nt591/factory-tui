@@ -22,6 +22,7 @@ accessible help/settings. The staged native-app implementation remains the guide
 | Settings/history | Next-run model/harness settings do not rewrite captured run records. Requested read/write policy is captured per run and legacy snapshots default read-only. Live Codex-only preflight and active model-capture tests. | Implemented; Claude is simulation only |
 | SQLite and restart | Versioned snapshots, separate run rows, ordered events, transaction rollback, exclusive ownership, coalesced bounded writes, shutdown flush, Working recovery. Storage and PTY save/reopen cover real temporary databases. | Implemented |
 | Low-effort configuration | Optional default/XDG TOML, explicit file, CLI override/no-config, capped reads and rejected unknown fields. Argument-free startup discovery and optional editable workspace defaults with no creation on launch are covered by the PTY smoke. | Implemented |
+| Installed sandbox cases | Opt-in loopback fixed-tool sentinel probe on Codex 0.166.0/macOS: read-only deny, task/temp writes allow, ordinary sibling deny, never-escalation refuse. No real credentials or model. | Exact cases verified; not a security audit |
 | Supervision | Bounded stdout/stderr/lines/events, monotonic timeout, cancellation/process-group cleanup, checkpoint-before-spawn, bounded queue/separate outcome. Fake-process tests plus confirmed live-mode PTY path. | Implemented within documented process-group limits |
 | Codex/provider/resume | Pure preview, explicit headless execution and live UI; exact thread ownership/mismatch checks. Installed Codex 0.166.0 execution/resume passed an isolated loopback Responses fixture. | Implemented; real gateway/UI provider behavior not verified |
 | Isolated workspaces | Explicit W form, existing jj source, new outside-source task workspace, exact base, no automatic conversion/fetch, disclosure of source snapshot. Temporary jj tests and PTY create/save/reopen. | Implemented |
@@ -36,13 +37,14 @@ accessible help/settings. The staged native-app implementation remains the guide
 
 ## Remaining work, not claimed complete
 
-1. **Code-writing sandbox validation and approvals.** Live UI can explicitly
-   request workspace-write for isolated tasks, with per-run confirmation, recorded
-   policy, and no automatic escalation. Fake-process tests verify editing and a
-   real reviewable diff without modifying source. Real Codex OS-sandbox enforcement
-   and tool permissions are not proven by those tests. The adapter still uses
-   never approvals; interactive approval/steering needs a suitable harness protocol
-   rather than pretending exec JSONL provides one.
+1. **Broader sandbox validation and approvals.** The installed Codex 0.166.0
+   loopback sentinel probe now exercises fixed shell commands on macOS: read-only
+   write denial, workspace + runtime TMPDIR write access, ordinary sibling denial,
+   and explicit never-approval escalation refusal. Its corrected TMPDIR layout
+   also exposed a task-only disclosure error; the UI/docs now include temporary
+   directories. This finite probe does not prove all auxiliary/protected paths,
+   symlink variants, network restrictions, or containment. Interactive approval/
+   steering still needs a suitable harness protocol rather than exec JSONL.
 2. **Real provider compatibility.** Loopback fixtures prove protocol plumbing,
    not a model's tools, reasoning, credentials, billing, or provider behavior.
    Real gateway checks need user-selected configuration and explicit approval;
@@ -62,7 +64,7 @@ accessible help/settings. The staged native-app implementation remains the guide
 
 The active goal is not marked complete by this audit. The UI and local execution
 foundation are verified, but the full software-factory implementation still has
-sandbox-validation and provider/release boundaries that must not be replaced with
+broader security and provider/release boundaries that must not be replaced with
 narrow fixture success claims.
 
 ## Repeat the verification
@@ -81,6 +83,7 @@ Optional installed-agent loopback integration (dummy credentials only):
 
 ```sh
 python3 scripts/smoke-codex-local.py --codex /absolute/path/to/codex
+python3 scripts/smoke-codex-sandbox.py --codex /absolute/path/to/codex
 ```
 
 For a packaged binary pass `--binary` to the PTY smoke. Package/installation

@@ -56,7 +56,10 @@ Acceptance does not merge, push, or delete a workspace.
    Confirmed live UI integration passes fake-process tests and the PTY smoke.
    `--live-ui --workspace-write` explicitly selects task-directory write policy,
    shown in confirmation and captured per run. Fixture editing/review is tested.
-   Real gateway UI behavior, sandbox enforcement, and approvals remain unverified.
+   An installed-Codex loopback sentinel probe verifies read-only/write boundaries
+   and never-approval escalation refusal on this Mac, including permitted TMPDIR
+   access. The confirmation discloses temp directories. Real gateway UI behavior,
+   broader sandbox coverage, and interactive approvals remain unverified.
 6. **Gateway setup — validation and provider builder complete; integration pending.**
    `Gateway` validates a capped non-secret TOML file, HTTPS/loopback endpoints, and
    environment-key references without reading secrets or contacting the network.

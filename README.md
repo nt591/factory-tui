@@ -407,7 +407,8 @@ Next-run selector changes do not alter active runs. Replies while Working stay
 queued. Resume uses the task's saved thread and verifies returned identity.
 Acceptance does not merge/push/delete. Requested sandboxing defaults to read-only;
 explicit workspace-write is described below. Interactive approvals and real
-code-writing sandbox validation remain pending.
+broader code-writing sandbox validation remain pending. Specific local sentinel
+cases are verified as documented below.
 
 The UI integration is verified using fake executables, not a real gateway. The
 installed-Codex loopback execution/resume check covers the headless path separately.
@@ -427,14 +428,17 @@ old launches remain read-only. `v` reviews actual changes; acceptance never
 merges, pushes, or deletes anything.
 
 Codex is instructed to use `workspace-write` with never approvals—there is no
-interactive approval channel or automatic permission escalation. No danger-full-
+interactive approval channel or automatic permission escalation. The requested
+write policy also allows temporary directories and harness runtime state, not
+only task files; the confirmation discloses workspace + temporary directories. No danger-full-
 access flag or extra writable directory is added. Restart without this flag to
 return to read-only. Headless execution and preview remain read-only.
 
 Unit and terminal tests use a fake executable editing a **temporary** task
-workspace and verify the resulting real diff. They do not prove installed Codex's
-OS sandbox, tool permissions, or real provider behavior; those need a separate
-explicit integration check. See [docs/harness.md](docs/harness.md).
+workspace and verify the resulting real diff. They do not by themselves prove installed Codex's OS sandbox. An additional
+opt-in sentinel probe now verifies specific read-only/write/never-escalation cases
+on the installed executable against a local fixture. It is not a complete
+security audit or real provider test. See [docs/harness.md](docs/harness.md).
 
 ## Inspect an agent invocation without running it
 
@@ -563,6 +567,18 @@ performance comparison with the Rust application has been established yet.
 See [docs/audit.md](docs/audit.md) for a requirement-by-requirement evidence map.
 The usable board/chat, persistence, workspace creation/review, and local package
 are implemented. Current Codex execution defaults to read-only and supports explicit confirmed
-workspace-write in live UI. Interactive approvals, actual sandbox validation,
+workspace-write in live UI. Interactive approvals, broader sandbox/security validation,
 real gateway behavior, and fresh-machine
 release validation are not claimed complete. OxCaml remains a deferred TODO.
+
+Optional installed-Codex sandbox checks use a fixed loopback fixture and isolated
+sentinel paths, not a real gateway or model:
+
+```sh
+python3 scripts/test-responses.py
+python3 scripts/smoke-codex-sandbox.py --codex /absolute/path/to/codex
+```
+
+The local probe verifies denial of read-only writes, workspace + temporary-directory
+access in write mode, denial of ordinary sibling writes, and never-approval
+escalation refusal. See `docs/harness.md` for the tested scope and exclusions.

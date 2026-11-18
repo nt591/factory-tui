@@ -47,6 +47,9 @@ or notarized. Do not claim Windows/Linux portability from this local verificatio
 A copied macOS binary may require manual Gatekeeper handling on another machine;
 use normal platform security checks rather than bypassing them automatically.
 
+Development checks require Python 3.9 or later for pure fixture tests; the
+installed OCaml executable does not require Python.
+
 Application/compiler dependencies are recorded in build metadata. Standard OCaml
 5.3.0, ocamllsp 1.23.1, and ocamlformat 0.29.0 are the verified development tools.
 OxCaml stays an optional deferred experiment. `factory_tui.opam.locked` records the current transitive application dependency

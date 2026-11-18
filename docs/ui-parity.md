@@ -57,8 +57,10 @@ literal matching, visible message counts, and n/N navigation anchored to IDs.
 Changes review is implemented as a full-screen pane rather than a drawer.
 
 Live workspace-write must be explicit on launch; the banner and confirmation
-disclose it. Run history shows requested policy. Fixture tests demonstrate a
-reviewable file change, not installed Codex sandbox enforcement.
+disclose it. Run history shows requested policy. Fixture tests demonstrate a reviewable file change. An opt-in installed-Codex
+sentinel probe additionally checks exact read-only/write/escalation cases locally;
+it is not a security audit. Write confirmations include temporary-directory
+access, which is permitted by the harness policy alongside workspace writes.
 
 While reading earlier chat, appended output and growth in previous streamed
 messages preserve a task/message/row anchor. End explicitly resumes following.

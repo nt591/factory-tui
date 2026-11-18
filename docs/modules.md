@@ -129,3 +129,9 @@ Cleanup belongs to the lexical remainder, so keep post-cleanup result inspection
 outside it: the app loop ends its scope before inspecting final storage errors.
 The helper does not acquire resources, infer ownership, or register an automatic
 global cleanup stack; place each binding after successful acquisition.
+
+Loopback Responses fixtures are grouped under `scripts/fixtures/`, with separate
+answer/resume and sandbox-sentinel integration entry points. The sandbox fixture
+uses only supplied temporary command paths and never chooses a real provider.
+Pure fixture tests run under `scripts/check.sh` without a server or subprocess;
+installed-agent execution remains a separate explicit opt-in command.

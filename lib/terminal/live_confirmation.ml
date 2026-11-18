@@ -36,7 +36,7 @@ let render ?(policy = Model.Read_only) task ~width:cols ~height:rows =
         (match policy with
         | Model.Read_only -> "Read-only sandbox requested / no interactive approvals."
         | Model.Workspace_write ->
-            "WRITE ACCESS: task workspace / no interactive approvals.");
+            "WRITE ACCESS: workspace + temp directories; no approvals.");
         "";
       ]
       @ details

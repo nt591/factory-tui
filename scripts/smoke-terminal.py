@@ -522,7 +522,7 @@ printf '%s\\n' '{"type":"turn.completed"}'
         check("write mode startup changes no task files", not write_marker.exists())
         send(b"iImplement fixture\r")
         send(b"s")
-        check("write confirmation is explicit", "WRITE ACCESS: task workspace" in text() and not write_marker.exists())
+        check("write confirmation is explicit", "WRITE ACCESS: workspace + temp directories" in text() and not write_marker.exists())
         if args.preview:
             preview(args.preview.with_stem(args.preview.stem + "-write-confirmation"))
         send(b"\x1b[200~y\r\x1b[201~")

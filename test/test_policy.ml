@@ -120,7 +120,8 @@ printf '%s\n' '{"type":"turn.completed"}'
   let buffer = Buffer.create 4096 in
   Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (88, 13) view.image;
   check "write permission is visible before confirming"
-    (Controller.contains (Buffer.contents buffer) "WRITE ACCESS: task workspace");
+    (Controller.contains (Buffer.contents buffer)
+       "WRITE ACCESS: workspace + temp directories");
   Controller.paste_key controller (`ASCII 'y', []);
   check "paste cannot approve writes"
     ((Option.get (Controller.selected controller)).active = None
