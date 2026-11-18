@@ -1,7 +1,15 @@
 type field = Jj | Source | Parent | Revision | Model | Task
 type t
 
-val create : source:string -> parent:string -> revision:string -> model:string -> t
+val create :
+  ?jj:string ->
+  source:string ->
+  parent:string ->
+  revision:string ->
+  model:string ->
+  unit ->
+  t
+
 val fields : field list
 val label : field -> string
 val current : t -> field

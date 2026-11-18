@@ -1,4 +1,4 @@
-type t = { database : string option }
+type t = { database : string option; workspace : Workspace_defaults.t }
 
 val parse : base:string -> home:string -> string -> (t, string) result
 val load : home:string -> string -> (t, string) result
@@ -11,3 +11,11 @@ val resolve :
   no_config:bool ->
   database:string option ->
   (string option, string) result
+
+val resolve_settings :
+  home:string ->
+  xdg:string option ->
+  config:string option ->
+  no_config:bool ->
+  database:string option ->
+  (t, string) result

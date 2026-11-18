@@ -49,6 +49,7 @@ type t = {
   mutable confirmation_readable : bool;
   mutable review : Review.t option;
   mutable jj_executable : string;
+  mutable workspace_defaults : Workspace_defaults.t;
   mutable workspace_form : Workspace_form.t option;
   mutable creation_job : Task_creation.job option;
   mutable creation_request : Task_creation.request option;
@@ -95,6 +96,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     confirmation_readable = true;
     review = None;
     jj_executable = "";
+    workspace_defaults = Workspace_defaults.empty;
     workspace_form = None;
     creation_job = None;
     creation_request = None;
@@ -374,7 +376,17 @@ let act t action =
               let w = Option.get task.workspace in
               (w.source, Filename.dirname w.directory, w.base, task.model)
         in
-        t.workspace_form <- Some (Workspace_form.create ~source ~parent ~revision ~model);
+        let defaults = t.workspace_defaults in
+        let source = Option.value ~default:source defaults.source
+        and parent = Option.value ~default:parent defaults.parent
+        and revision = Option.value ~default:revision defaults.revision
+        and model = Option.value ~default:model defaults.model in
+        let jj =
+          if t.jj_executable <> "" then t.jj_executable
+          else Option.value ~default:"" defaults.jj
+        in
+        t.workspace_form <-
+          Some (Workspace_form.create ~jj ~source ~parent ~revision ~model ());
         t.help <- false;
         t.input <- Normal;
         t.status <-
@@ -925,3 +937,7 @@ let live_context t : Live_runner.context =
     report_error = (fun error -> t.status <- "Live error: " ^ error);
     quitting = (fun () -> t.quit);
   }
+
+let set_workspace_defaults t defaults =
+  t.workspace_defaults <- defaults;
+  t.jj_executable <- Option.value ~default:t.jj_executable defaults.Workspace_defaults.jj

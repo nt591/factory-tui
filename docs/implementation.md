@@ -76,7 +76,9 @@ Acceptance does not merge, push, or delete a workspace.
    snapshots; legacy tasks still load. `W` opens a modal creation form when SQLite
    is configured. A bounded background job creates the workspace, then selects its
    Queued chat without starting an agent. Form and PTY checks verify input safety,
-   persistence/reopening, and isolation. `v` opens explicit background diff review
+   persistence/reopening, and isolation. Optional TOML workspace defaults prefill
+   the editable form and jj review path without commands or directory creation.
+   `v` opens explicit background diff review
    with real patch/empty/error states and task-bound result ownership. Horizontal
    scrolling uses terminal cells, with h/l, arrows, 0, and Ctrl-wheel verified on
    long Unicode lines. Review never

@@ -288,9 +288,40 @@ working directory. `--no-config` ignores the default config; combine it with
 `--database` to use explicit storage without reading user configuration.
 `--config` and `--no-config` cannot be combined. A missing default config is
 optional; a missing explicit config or a malformed existing config is an error.
-Unknown fields are rejected. The only supported setting is `[storage].database`.
+Unknown fields are rejected. `[storage].database` controls persistence; optional
+`[workspace]` fields prefill the creation form, as described below.
 Config reads are capped at 64 KiB and errors do not echo file content. Do not
 put credentials in this file. Snapshot mode does not read the default config.
+
+## Optional workspace form defaults
+
+Add this to your startup TOML after configuring SQLite:
+
+```toml
+[workspace]
+jj = "/absolute/path/to/jj"
+source = "~/dev/project"
+parent = "~/dev/factory-workspaces"
+revision = "main@origin"
+model = "coding-large"
+```
+
+Every field is optional. Paths accept `~/`, absolute paths, or paths relative to
+this config file. Source and parent must already exist when you create a task;
+reading this configuration creates no directories, fetches no revisions, and
+starts no agents. Press `W`, type the task instruction, then explicitly create
+with Ctrl-S. All fields remain editable before submission.
+
+Configured source/parent/revision/model values override remembered task values
+only for the fields you set. Unset fields retain the latest workspace-backed
+task's source, parent, exact base, and model. The jj path starts from configuration;
+manual creation/review edits reuse that chosen path for this session. Restarting
+uses the config again. This also prefills jj for changes review, avoiding retyping.
+Task instructions are always blank. `--no-config` bypasses these defaults.
+
+There is no config key that silently enables live execution, write access, or a
+credential. Defaults never move an existing task to a different workspace or
+change past run history. Change fields in the form for a one-off task.
 
 ## Persistent conversations
 
@@ -475,7 +506,8 @@ press `W` to create a workspace-backed task: Tab/Shift-Tab selects fields, Enter
 moves to the next, Ctrl-S creates, and Escape cancels before submission. The form
 shows the source-snapshot disclosure. Creation runs in the background and selects
 the new Queued chat; it starts no agent. Source, parent, exact base, and model are
-remembered from previous workspace-backed tasks. jj's path remains explicit.
+remembered from previous workspace-backed tasks unless overridden by optional
+TOML workspace defaults. jj's path is explicit but can be configured once.
 
 Press `v` to open real changes review for the selected workspace task. Opening
 runs nothing: enter jj's absolute path if needed, then Enter/`r` refreshes in the

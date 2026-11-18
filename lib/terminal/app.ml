@@ -9,7 +9,8 @@ let snapshot ~size t =
     invalid_arg "Snapshot dimensions must be between 1 and 1000.";
   Notty_unix.output_image (Ui.render t ~width ~height).image
 
-let interactive ?(fake_harness = false) ?live ~events ~database () =
+let interactive ?(fake_harness = false) ?live
+    ?(workspace_defaults = Workspace_defaults.empty) ~events ~database () =
   if live <> None && (fake_harness || events <> "" || database = "") then
     Error "Live UI needs SQLite and cannot use replay or fake mode."
   else if fake_harness && events <> "" then
@@ -18,6 +19,7 @@ let interactive ?(fake_harness = false) ?live ~events ~database () =
     Error "Interactive mode needs a terminal. Use --snapshot for a headless preview."
   else
     let t = Controller.create ~external_events:(events <> "") ~fake_harness () in
+    Controller.set_workspace_defaults t workspace_defaults;
     t.database_path <- (if database = "" then None else Some database);
     let opened =
       if database = "" then Ok None

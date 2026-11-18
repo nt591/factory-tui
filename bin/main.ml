@@ -152,14 +152,14 @@ let () =
         | None -> invalid_arg "Live UI requires --codex-executable."
       in
       let home = Option.value ~default:(Sys.getcwd ()) (Sys.getenv_opt "HOME") in
-      let database =
+      let settings =
         match
-          Config.resolve ~home
+          Config.resolve_settings ~home
             ~xdg:(Sys.getenv_opt "XDG_CONFIG_HOME")
             ~config:!config ~no_config:!no_config ~database:!database
         with
-        | Ok (Some path) -> path
-        | Ok None -> invalid_arg "Live UI requires SQLite via TOML or --database."
+        | Ok ({ database = Some _; _ } as settings) -> settings
+        | Ok _ -> invalid_arg "Live UI requires SQLite via TOML or --database."
         | Error error -> invalid_arg error
       in
       let live =
@@ -169,7 +169,11 @@ let () =
               (if !workspace_write then Model.Workspace_write else Model.Read_only)
         | Error error -> invalid_arg error
       in
-      match App.interactive ~live ~events:"" ~database () with
+      match
+        App.interactive ~live ~workspace_defaults:settings.workspace ~events:""
+          ~database:(Option.get settings.database)
+          ()
+      with
       | Ok () -> ()
       | Error error ->
           prerr_endline error;
@@ -225,17 +229,18 @@ let () =
       else
         let home = Option.value ~default:(Sys.getcwd ()) (Sys.getenv_opt "HOME") in
         match
-          Config.resolve ~home
+          Config.resolve_settings ~home
             ~xdg:(Sys.getenv_opt "XDG_CONFIG_HOME")
             ~config:!config ~no_config:!no_config ~database:!database
         with
         | Error error ->
             prerr_endline error;
             exit 2
-        | Ok database -> (
+        | Ok settings -> (
             match
               App.interactive ~fake_harness:!fake_harness ~events:!events
-                ~database:(Option.value ~default:"" database)
+                ~workspace_defaults:settings.workspace
+                ~database:(Option.value ~default:"" settings.database)
                 ()
             with
             | Ok () -> ()

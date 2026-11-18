@@ -1,14 +1,14 @@
 open Scope
 
-type t = { database : string option }
+type t = { database : string option; workspace : Workspace_defaults.t }
 
-let empty = { database = None }
+let empty = { database = None; workspace = Workspace_defaults.empty }
 
 exception Invalid of string
 
 let path ~base ~home value =
   if value = "" || String.exists (fun c -> Char.code c < 32 || Char.code c = 127) value
-  then raise (Invalid "Database path must not be empty or contain controls.");
+  then raise (Invalid "Configured path must not be empty or contain controls.");
   let value =
     if value = "~" then home
     else if String.starts_with ~prefix:"~/" value then
@@ -32,12 +32,11 @@ let parse ~base ~home source =
         Table.iter
           (fun key _ ->
             if not (List.mem (Table.Key.to_string key) allowed) then
-              raise
-                (Invalid "Unknown config field. Only [storage].database is supported."))
+              raise (Invalid "Unknown config field in storage or workspace defaults."))
           table
       in
       let get name table = Table.find_opt (Table.Key.of_string name) table in
-      check_keys [ "storage" ] table;
+      check_keys [ "storage"; "workspace" ] table;
       let database =
         match get "storage" table with
         | None -> None
@@ -49,7 +48,56 @@ let parse ~base ~home source =
             | Some _ -> raise (Invalid "storage.database must be a string."))
         | Some _ -> raise (Invalid "storage must be a TOML table.")
       in
-      Ok { database }
+      let workspace =
+        match get "workspace" table with
+        | None -> Workspace_defaults.empty
+        | Some (TTable defaults) ->
+            check_keys [ "jj"; "source"; "parent"; "revision"; "model" ] defaults;
+            let optional name =
+              match get name defaults with
+              | None -> None
+              | Some (TString value)
+                when String.trim value <> ""
+                     && String.length value <= 4096
+                     && not
+                          (String.exists
+                             (fun c -> Char.code c < 32 || Char.code c = 127)
+                             value) ->
+                  Some value
+              | _ ->
+                  raise
+                    (Invalid
+                       "Workspace defaults must be nonempty strings without controls.")
+            in
+            let configured_path name = Option.map (path ~base ~home) (optional name) in
+            let revision = optional "revision" in
+            (match revision with
+            | Some value when value.[0] = '-' || String.length value > 1024 ->
+                raise
+                  (Invalid
+                     "Workspace revision must be an explicit revision, not an option.")
+            | _ -> ());
+            let model = optional "model" in
+            Option.iter
+              (fun model ->
+                match
+                  Model.set_model
+                    (Model.make ~id:"config-validation" ~title:"" ~repository:"")
+                    model
+                with
+                | Error _ -> raise (Invalid "Invalid workspace default model ID.")
+                | Ok _ -> ())
+              model;
+            {
+              Workspace_defaults.jj = configured_path "jj";
+              source = configured_path "source";
+              parent = configured_path "parent";
+              revision;
+              model;
+            }
+        | Some _ -> raise (Invalid "workspace must be a TOML table.")
+      in
+      Ok { database; workspace }
     with
     | Invalid message -> Error message
     | Toml.Parser.Error _ -> Error "Invalid TOML config. Source content was not printed."
@@ -87,7 +135,7 @@ let default_path ~home ~xdg =
   in
   Filename.concat base "factory-tui/config.toml"
 
-let resolve ~home ~xdg ~config ~no_config ~database =
+let resolve_settings ~home ~xdg ~config ~no_config ~database =
   if no_config && config <> None then Error "--config and --no-config cannot be combined."
   else
     let loaded =
@@ -109,7 +157,16 @@ let resolve ~home ~xdg ~config ~no_config ~database =
     | Ok config -> (
         try
           Ok
-            (match database with
-            | None -> config.database
-            | Some value -> Some (path ~base:(Sys.getcwd ()) ~home value))
+            {
+              config with
+              database =
+                (match database with
+                | None -> config.database
+                | Some value -> Some (path ~base:(Sys.getcwd ()) ~home value));
+            }
         with Invalid error -> Error error)
+
+let resolve ~home ~xdg ~config ~no_config ~database =
+  Result.map
+    (fun settings -> settings.database)
+    (resolve_settings ~home ~xdg ~config ~no_config ~database)

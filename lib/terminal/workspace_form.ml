@@ -11,12 +11,12 @@ let label = function
   | Model -> "Next-run model"
   | Task -> "Task instruction"
 
-let create ~source ~parent ~revision ~model =
+let create ?(jj = "") ~source ~parent ~revision ~model () =
   {
     current = Source;
     values =
       [
-        (Jj, Text_edit.create "");
+        (Jj, Text_edit.create jj);
         (Source, Text_edit.create source);
         (Parent, Text_edit.create parent);
         (Revision, Text_edit.create revision);

@@ -631,6 +631,8 @@ let render t ~width:cols ~height:rows =
         "Config: ~/.config/factory-tui/config.toml or --config PATH";
         {|[storage] database = "board.sqlite"|};
         "Database changes take effect on the next launch.";
+        "Optional [workspace]: jj, source, parent, revision, model prefill W.";
+        "Defaults never create workspaces or enable live execution.";
         "Stored conversations and tool output are sensitive.";
         "";
         "NEXT RUN / SELECTED TASK";

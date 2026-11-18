@@ -583,6 +583,60 @@ printf '%s\\n' '{"type":"turn.completed"}'
         wait_exit(5)
         check("anchored history UI exits cleanly", process.returncode == 0)
 
+    with tempfile.TemporaryDirectory(prefix="factory-workspace-defaults-") as temporary:
+        directory=Path(temporary).resolve()
+        source=directory / "source"
+        source.mkdir()
+        subprocess.run(["/opt/homebrew/bin/jj", "git", "init", "--colocate", str(source)],
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        parent=directory / "tasks"
+        parent.mkdir()
+        config=directory / "config.toml"
+        config.write_text('[storage]\ndatabase="board.sqlite"\n[workspace]\n'
+                          'jj="/opt/homebrew/bin/jj"\nsource="source"\nparent="tasks"\n'
+                          'revision="@"\nmodel="configured-model"\n')
+        screen.reset()
+        process=subprocess.Popen([str(binary), "--config", str(config)],
+                                 stdin=slave, stdout=slave, stderr=slave, env=env)
+        wait_ready()
+        check("workspace config alone creates no directory", list(parent.iterdir())==[])
+        send(b"W")
+        check("configured jj visible in new form", "/opt/homebrew/bin/jj" in text())
+        check("configured model visible in new form", "configured-model" in text())
+        send(b"\t"*4)
+        send(b"Only type the task instruction")
+        pump(0.3)
+        check("form reaches blank instruction with defaults", "Only type the task instruction" in text())
+        if args.preview:
+            preview(args.preview.with_stem(args.preview.stem + "-workspace-defaults"))
+        send(b"\x13")
+        deadline=time.monotonic()+5
+        while "Workspace task created" not in text() and time.monotonic()<deadline:
+            pump(0.05)
+        check("prefilled form creates on explicit submit", "Workspace task created" in text())
+        send(b"q")
+        wait_exit(5)
+        with sqlite3.connect(directory / "board.sqlite") as db:
+            saved=json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
+        created=next(task for task in saved["tasks"] if task.get("workspace"))
+        check("workspace config applied to created task", created["model"]=="configured-model"
+              and created["workspace"]["source"]==str(source)
+              and Path(created["workspace"]["directory"]).parent==parent)
+        check("prefilled creation starts no run", created["runs"]==[] and created["active"] is None)
+        screen.reset()
+        process=subprocess.Popen([str(binary), "--config", str(config)],
+                                 stdin=slave, stdout=slave, stderr=slave, env=env)
+        wait_ready()
+        send(b"W")
+        check("jj default restored on next launch", "/opt/homebrew/bin/jj" in text())
+        send(b"\x1b")
+        send(b"v")
+        check("configured jj available for review without retyping", "/opt/homebrew/bin/jj" in text())
+        send(b"\x1b")
+        send(b"q")
+        wait_exit(5)
+        check("defaults test exits cleanly", process.returncode==0)
+
 
 finally:
     if process.poll() is None:

@@ -49,6 +49,7 @@ type t = {
   mutable confirmation_readable : bool;
   mutable review : Review.t option;
   mutable jj_executable : string;
+  mutable workspace_defaults : Workspace_defaults.t;
   mutable workspace_form : Workspace_form.t option;
   mutable creation_job : Task_creation.job option;
   mutable creation_request : Task_creation.request option;
@@ -113,3 +114,4 @@ val poll_creation : t -> storage:Persistence.t option -> unit
 val finish_creation : t -> storage:Persistence.t option -> unit
 val enable_live : t -> Live_runner.config -> (unit, string) result
 val live_context : t -> Live_runner.context
+val set_workspace_defaults : t -> Workspace_defaults.t -> unit

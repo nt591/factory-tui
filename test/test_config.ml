@@ -33,6 +33,44 @@ let () =
       "[storage]\ndatabase='a'\ndatabase='b'";
       String.make 65537 ' ';
     ];
+  let settings =
+    ok
+      (parse
+         {|[storage]
+database = "board.sqlite"
+[workspace]
+jj = "/tools/jj"
+source = "repo"
+parent = "~/tasks"
+revision = "main@origin"
+model = "coding-small"
+|})
+  in
+  check "workspace paths resolved relative to config and home"
+    (settings.workspace.jj = Some "/tools/jj"
+    && settings.workspace.source = Some "/config/repo"
+    && settings.workspace.parent = Some "/home/test/tasks");
+  check "workspace revision and model stay literal"
+    (settings.workspace.revision = Some "main@origin"
+    && settings.workspace.model = Some "coding-small");
+  check "partial workspace defaults supported"
+    ((ok (parse "[workspace]\njj='/tools/jj'")).workspace.source = None);
+  check "empty workspace table optional"
+    ((ok (parse "[workspace]\n")).workspace = Workspace_defaults.empty);
+  List.iter
+    (fun source ->
+      check "unsafe workspace defaults rejected" (Result.is_error (parse source)))
+    [
+      "[workspace]\njj=1";
+      "workspace=true";
+      "[workspace]\nsource=''";
+      "[workspace]\nparent=\"bad\\u0000path\"";
+      "[workspace]\nrevision='--last'";
+      "[workspace]\nmodel='-option'";
+      "[workspace]\nunknown='value'";
+      "[workspace]\nworkspace_write=true";
+      "[workspace]\napi_key='accidental-secret'";
+    ];
   check "default config path"
     (Config.default_path ~home:"/home/test" ~xdg:None
     = "/home/test/.config/factory-tui/config.toml");
@@ -86,6 +124,31 @@ let () =
         (ok (resolve ~no_config:true ~database:"/cli.sqlite" ()) = Some "/cli.sqlite");
       check "conflicting config options fail"
         (Result.is_error (resolve ~no_config:true ~config:filename ()));
+      write
+        "[storage]\n\
+         database='board.sqlite'\n\
+         [workspace]\n\
+         source='repo'\n\
+         parent='tasks'\n\
+         jj='/tools/jj'";
+      let settings =
+        ok
+          (Config.resolve_settings ~home:dir ~xdg:(Some dir) ~config:None ~no_config:false
+             ~database:(Some "/override.sqlite"))
+      in
+      check "CLI database override preserves workspace defaults"
+        (settings.database = Some "/override.sqlite"
+        && settings.workspace.source = Some (Filename.concat config_dir "repo"));
+      let ignored =
+        ok
+          (Config.resolve_settings ~home:dir ~xdg:(Some dir) ~config:None ~no_config:true
+             ~database:None)
+      in
+      check "no-config bypasses workspace defaults"
+        (ignored.workspace = Workspace_defaults.empty);
+      check "defaults do not create source or parent"
+        ((not (Sys.file_exists (Filename.concat config_dir "repo")))
+        && not (Sys.file_exists (Filename.concat config_dir "tasks")));
       check "config parsing creates no database"
         (not (Sys.file_exists (Filename.concat config_dir "board.sqlite")));
       write "bad TOML = ['hidden secret'";

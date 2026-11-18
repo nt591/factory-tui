@@ -84,6 +84,34 @@ let () =
   Controller.key controller (`Escape, []);
   check "escape cancels form only"
     (controller.workspace_form = None && not controller.quit);
+  let defaults : Workspace_defaults.t =
+    {
+      jj = Some "/tools/jj";
+      source = Some "/configured/source";
+      parent = Some "/configured/tasks";
+      revision = Some "main@origin";
+      model = Some "custom-model";
+    }
+  in
+  Controller.set_workspace_defaults controller defaults;
+  let saved = Controller.snapshot controller in
+  Controller.act controller Controller.Begin_workspace;
+  let form = Option.get controller.workspace_form in
+  check "workspace defaults prefill all form fields"
+    (Workspace_form.value form Workspace_form.Jj = "/tools/jj"
+    && Workspace_form.value form Workspace_form.Source = "/configured/source"
+    && Workspace_form.value form Workspace_form.Parent = "/configured/tasks"
+    && Workspace_form.value form Workspace_form.Revision = "main@origin"
+    && Workspace_form.value form Workspace_form.Model = "custom-model");
+  check "workspace defaults never prefill instruction"
+    (Workspace_form.value form Workspace_form.Task = "");
+  check "prefilling form creates no job or task"
+    (controller.creation_request = None
+    && controller.creation_job = None
+    && Controller.snapshot controller = saved);
+  Controller.act controller Controller.Cancel_workspace;
+  Controller.set_workspace_defaults controller Workspace_defaults.empty;
+  controller.jj_executable <- "";
   let temporary = Filename.temp_file "factory-form" "" in
   Sys.remove temporary;
   Unix.mkdir temporary 0o700;
@@ -154,6 +182,17 @@ let () =
             (let reference = Option.get task.workspace in
              Workspace_form.value form Workspace_form.Source = source
              && Workspace_form.value form Workspace_form.Revision = reference.base);
+          check "session jj executable reused"
+            (Workspace_form.value form Workspace_form.Jj = "/opt/homebrew/bin/jj");
+          Controller.act controller Controller.Cancel_workspace;
+          Controller.set_workspace_defaults controller
+            { Workspace_defaults.empty with revision = Some "configured-base" };
+          Controller.act controller Controller.Begin_workspace;
+          let form = Option.get controller.workspace_form in
+          check "explicit defaults override saved values only for specified fields"
+            (Workspace_form.value form Workspace_form.Revision = "configured-base"
+            && Workspace_form.value form Workspace_form.Source = source
+            && Workspace_form.value form Workspace_form.Jj = "/opt/homebrew/bin/jj");
           check "new instruction starts blank"
             (Workspace_form.value form Workspace_form.Task = "");
           Controller.act controller Controller.Cancel_workspace;

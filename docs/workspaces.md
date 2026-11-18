@@ -69,8 +69,11 @@ can leave a created directory without persisted task metadata.
 Storage is required rather than silently creating real workspaces in a throwaway
 demo board. Replay mode cannot create workspaces. Normal `n` still creates a demo
 task only. New forms remember source, parent, exact base, and model from the most
-recent workspace-backed task, including after restart. The jj executable remains
-explicit and the task instruction starts blank.
+recent workspace-backed task, including after restart. The jj executable remains explicit and the task instruction starts blank.
+Optional `[workspace]` startup defaults can prefill jj/source/parent/revision/model
+without any process or directory creation. Configured fields override remembered
+values; unspecified fields keep task-derived defaults. jj changes in creation or
+review are reused during the session, then restored from config on next launch.
 
 Form/controller tests and the PTY smoke create workspaces only in temporary jj
 repositories. They cover modal keyboard/mouse isolation, paste safety, field
