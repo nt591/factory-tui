@@ -258,7 +258,8 @@ let render t ~width:cols ~height:rows =
   let activity r =
     let inner = max 1 (r.w - 4) in
     let rows =
-      Activity_content.lines ~expanded:t.tools_expanded ~raw:t.raw_tools
+      Activity_content.lines ~now:(Unix.gettimeofday ()) ~expanded:t.tools_expanded
+        ~raw:t.raw_tools
         ~waiting:(List.mem t.selected t.live_waiting_tasks)
         task
       |> List.concat_map (wrap inner)

@@ -187,3 +187,8 @@
  (name test_column_scroll)
  (modules test_column_scroll)
  (libraries factory_tui notty))
+
+(test
+ (name test_run_time)
+ (modules test_run_time)
+ (libraries factory_tui))

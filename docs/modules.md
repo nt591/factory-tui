@@ -97,6 +97,9 @@ against these interfaces during the normal Dune build.
   and overflow labels; the helper changes no task or viewport state.
 - `Board_guidance`: pure empty-state copy and action selection for live, demo,
   archive, and filtered boards. It starts no jobs and owns no persistence.
+- `Run_time`: pure run-age/recorded-duration text from supplied timestamps. It
+  never changes lifecycle state or reads the clock. Invalid/reversed times remain
+  unavailable instead of being represented as zero duration.
 - `Activity_content`: pure logical task metadata, tool groups, and captured-run
   rows. It has no controller, rendering, process, or storage dependency. The UI
   wraps each row at the actual pane width before computing scroll bounds.

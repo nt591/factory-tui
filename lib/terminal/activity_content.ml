@@ -7,21 +7,21 @@ let run_status = function
   | Stopped -> "interrupted"
   | Awaiting_input -> "needs input"
 
-let run_line (record : run_record) =
+let run_line ~now (record : run_record) =
   "run " ^ record.run_id ^ ": " ^ harness_label record.harness ^ " / " ^ record.model
   ^ " / " ^ run_status record.status
   ^ (if record.simulated then " / simulated" else " / live")
-  ^
-  match record.policy with
-  | Read_only -> " / read-only"
-  | Workspace_write -> " / workspace-write"
+  ^ (match record.policy with
+    | Read_only -> " / read-only"
+    | Workspace_write -> " / workspace-write")
+  ^ " / " ^ Run_time.describe ~now record
 
 let tool_lines ~raw (id, payload) =
   let activity = Tool_activity.describe ~id payload in
   (activity.summary :: (if raw then Tool_activity.raw payload else activity.details))
   @ [ "" ]
 
-let lines ~expanded ~raw ~waiting = function
+let lines ~now ~expanded ~raw ~waiting = function
   | None -> [ "No task selected." ]
   | Some (task : task) ->
       [ task.title; "repo: " ^ task.repository ]
@@ -42,4 +42,5 @@ let lines ~expanded ~raw ~waiting = function
              (if raw then "raw" else "readable")
            :: List.concat_map (tool_lines ~raw) task.tools
          else [ Printf.sprintf "▸ %d tool items / t expands" (List.length task.tools) ])
-      @ [ "" ] @ List.map run_line task.runs
+      @ [ "" ]
+      @ List.map (run_line ~now) task.runs

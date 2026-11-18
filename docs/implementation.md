@@ -154,6 +154,11 @@ Acceptance does not merge, push, or delete a workspace.
    top positions differ from selection-following, and keyboard/state transitions
    restore following only in the target column. Unit and dedicated PTY fixtures
    verify independence, clamping, selection/movement, and snapshot isolation.
+   Activity run history shows age for active records and frozen duration for ended
+   records, using supplied wall-clock timestamps. Run age begins at confirmation,
+   including checkpoint/cleanup waits, not necessarily process spawn. Pure
+   `Run_time` handles invalid/reversed/missing timestamps without inventing time
+   or changing completion. Unit and fixture PTY tests verify the displayed values.
    UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,

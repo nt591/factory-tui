@@ -572,7 +572,9 @@ Tab cycles to Activity and the board, and Ctrl-W moves focus as usual. Drafts an
 selection survive these layout changes; explicit `e` zoom remains separate.
 
 Activity wraps long task titles, repository/workspace paths, and next-model IDs
-rather than clipping them. Workspace tasks show their exact review base. Focus
+rather than clipping them. Run history includes active run age and recorded ended
+duration. Age starts at confirmation (including pre-spawn waits), not process
+spawn; wall-clock anomalies show unavailable time rather than invented values. Workspace tasks show their exact review base. Focus
 Activity and press `e` to inspect full-width metadata, tools, and run history;
 scroll as needed. Inspection does not change the task or its workspace.
 

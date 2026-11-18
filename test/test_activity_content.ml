@@ -41,7 +41,7 @@ let () =
     }
   in
   let lines ?(expanded = true) ?(raw = false) ?(waiting = false) task =
-    Activity_content.lines ~expanded ~raw ~waiting task
+    Activity_content.lines ~now:10. ~expanded ~raw ~waiting task
   in
   check "empty selection has actionable identity" (lines None = [ "No task selected." ]);
   let content = lines (Some task) in
@@ -67,6 +67,18 @@ let () =
   check "run history keeps captured model and write policy"
     (contains content
        "run run: Codex / recorded-model / completed / live / workspace-write");
+  check "terminal duration appears in activity history"
+    (contains content "recorded duration 1s");
+  let running =
+    {
+      task with
+      runs =
+        List.map
+          (fun (run : run_record) -> { run with ended_at = None; status = Running })
+          task.runs;
+    }
+  in
+  check "active history reports run age" (contains (lines (Some running)) "run age 10s");
   let plain = { task with workspace = None; tools = []; runs = [] } in
   check "unattached task does not invent workspace or tools"
     (contains (lines (Some plain)) "workspace: not attached"

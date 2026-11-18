@@ -211,3 +211,12 @@ task moving to another state restores following in that destination. Explicit
 manual top positions do not snap back to an offscreen selected card. `Column_scroll`
 keeps this state abstract and transient. Unit and dedicated terminal tests cover
 independence, boundary scrolling, state movement, modal isolation, and persistence.
+
+Activity run history shows `run age` for a Running record and `recorded duration`
+when an end timestamp exists. Values come from the saved confirmation/end times,
+not progress estimates or measured process CPU time. Run age includes checkpoint
+and previous-process cleanup waits before spawn. Ended values stay fixed as the
+UI redraws. Missing/reversed/nonfinite times show `time unavailable`. Pure
+`Run_time.ml/.mli` takes the clock value as input and modifies no run/task state.
+Unit checks and the fake-harness PTY path cover display; simulated/live labels
+remain visible next to the captured settings and outcome.
