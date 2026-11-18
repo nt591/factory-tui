@@ -295,14 +295,15 @@ accepted tasks. Filtering does not close a selected conversation outside the
 board filter. Unit/render tests cover repository/query/empty/archive counts, and
 the forty-repository PTY fixture checks counters after clicking a repository.
 
-Run confirmation wraps complete task/model/workspace/thread details. The overlay
-grows vertically to fit when the terminal permits; otherwise it shows a resize
-message and exposes no Run target. The minimum remains 64x13, but long details
-can require more rows. No identity suffix is silently clipped from an authorizing
-view. The Run button follows the computed disclosure row; malformed UTF-8 and
-controls are sanitized. Unit and PTY fixtures check complete identity visibility
-and blocked confirmation when content cannot fit. Very long titles can require a
-larger terminal; scrollable confirmation is not implemented.
+Run confirmation wraps complete task/model/workspace/thread details. Its bounded
+viewport supports Vim/arrows, paging keys, and body-only wheel input. Row ranges
+and pinned Run/Cancel controls remain visible. Run is unavailable until all rows
+have been shown, including any gap skipped by End. New dialogs, resize/reflow,
+and changed disclosures reset coverage. Current run identity/policy are rechecked
+at confirmation; paste never authorizes. The minimum remains 64x13. Pure tests and
+`scripts/smoke-confirmation.py` check complete identity tails, paging, gap blocking,
+resize reset, mouse Cancel/Run, and one temporary fixed-harness run. Displayed-row
+coverage does not prove that a person read the disclosure.
 
 Streaming changes reuse the wrapped rows and anchor objects of unchanged message
 records. This avoids rewrapping older history for each updated response. Current
@@ -420,7 +421,7 @@ MODEL, REPLAY, LIVE READ, or LIVE WRITE. Tiny heights retain the header rather t
 replace it with footer navigation. The normal wide title/disclosure remains
 unchanged. Unit tests include 20-column one/two/three-row rendering in all modes,
 and PTY resize checks verify the 20x8 simulation and live-read badges. Mode display
-is not authorization; complete live-run confirmation must still fit before Run.
+is not authorization; every live-run disclosure row must still be shown before Run.
 
 Reply-composer selection guidance follows execution mode. Live Codex tasks display
 Codex-only controls instead of simulated harness cycling; imported Claude tasks

@@ -78,6 +78,11 @@ accessible help/settings. The staged native-app implementation remains the guide
    writes since the last checkpoint and leave an unassociated created workspace.
    Conversation/tool content is sensitive. These limits remain documented.
 
+Run confirmations also support long disclosures in a bounded scrollable viewport.
+Pure and temporary-harness PTY checks cover shown-row coverage, skipped gaps,
+resize/new-dialog reset, fixed button targets and an explicitly confirmed fake run.
+This does not prove human comprehension or real-provider safety.
+
 The active goal is not marked complete by this audit. The UI and local execution
 foundation are verified, but the full software-factory implementation still has
 broader security and provider/release boundaries that must not be replaced with

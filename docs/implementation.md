@@ -298,12 +298,17 @@ board filter. Unit/render tests cover repository/query/empty/archive counts, and
 the forty-repository PTY fixture checks counters after clicking a repository.
 
 Live confirmation wraps the full task title, model, workspace path, and thread
-identity instead of clipping them. Its height follows the required content within
-the terminal bounds; Run is enabled only when the entire disclosure and buttons
-fit, in addition to the 64-column/13-row minimum. Too-small terminals show the
-required row count and remain non-authorizing. Button hitboxes track the actual
-wrapped-content row. Unicode/small-screen unit tests and installed-agent/fake PTY
-checks verify full workspace disclosure, paste isolation, and resize blocking.
+identity. It grows to fit when possible and scrolls at the terminal height otherwise.
+An abstract viewport records shown row intervals; Run stays locked until they cover
+the entire disclosure. End cannot bypass unseen intermediate rows. New dialogs,
+changed disclosures, and changed dimensions reset that coverage. Confirmation also
+checks current policy/identity against the shown disclosure before queuing a run.
+The minimum remains 64 columns and 13 rows. Buttons stay pinned below the row range;
+wheel input acts only on the disclosure body. Vim/arrows, Home/End, Page Up/Down,
+and Ctrl-U/D/B/F browse without starting an agent. Pure tests and a dedicated
+fake-harness PTY check verify gaps, reset, paging, mouse cancellation/Run, exact
+identity retention, and the durable confirmed-run path. This records displayed
+rows, not proof that a person read them. No credentials or real model are used.
 
 Streaming transcript layout reuses unchanged immutable message blocks within the
 current task/content width. Changed text, authors, or queued labels rebuild their

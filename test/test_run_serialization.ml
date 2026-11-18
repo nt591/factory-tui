@@ -23,6 +23,7 @@ let confirm controller id =
   Controller.act controller (Controller.Select id);
   Controller.act controller Controller.Start;
   check "explicit confirmation required" (controller.live_confirmation = Some id);
+  ignore (Ui.render controller ~width:120 ~height:36);
   Controller.act controller Controller.Confirm_live
 
 let poll runner controller storage =

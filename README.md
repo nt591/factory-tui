@@ -449,7 +449,10 @@ banner marks live mode. Only workspace-backed Codex tasks can run.
 Create a task with `W`, queue instructions with `i`, and press `s` to inspect the
 confirmation. Enter/`y` runs; Escape/`n` cancels. Pasted text cannot confirm, and
 terminals smaller than 64x13 must resize first. Complete task/model/workspace/thread
-details wrap; long identities can require additional rows before Run is available.
+details wrap in a scrollable dialog. Use `j/k`, arrows, `Ctrl-U/D/B/F`, or the
+mouse wheel to review them; `g/G` or Home/End moves to an edge. Run stays locked
+until every disclosure row has been shown. Jumping past rows does not count as
+reviewing them. Resizing, changing run details, or reopening resets this check.
 Every run waits for its SQLite
 Working checkpoint before spawn. Streaming output updates the same chat and moves
 its card. `x` cancels; shutdown cancels/joins and flushes. `v` reviews real changes.
@@ -663,7 +666,7 @@ into view, and `b` returns to all repositories. Hidden entries are not clickable
 
 Compact headers put the execution mode first so simulation, replay, and live
 write/read policy remain recognizable in small terminals. Resizing never enables
-execution; live confirmation still requires all disclosure details to fit.
+execution; live confirmation still requires every disclosure row to be shown.
 
 ## Module interfaces
 

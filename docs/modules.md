@@ -230,7 +230,11 @@ uses only supplied temporary command paths and never chooses a real provider.
 Pure fixture tests run under `scripts/check.sh` without a server or subprocess;
 installed-agent execution remains a separate explicit opt-in command.
 
-`Live_confirmation` computes required height from sanitized, grapheme-wrapped
-identity/disclosure rows. The UI limits that height to the terminal; insufficient
-space removes authorization controls. Button geometry uses the computed row,
-not a fixed coordinate. It starts no process or workspace operation.
+`Live_confirmation` owns an abstract transient viewport and renders sanitized,
+grapheme-wrapped identity/disclosure rows. It records shown intervals, not just the
+furthest offset: jumping to End cannot skip unseen rows. Changed content or
+width/height resets coverage. `can_confirm` rechecks the current disclosure against
+that layout. Run/Cancel and a visible row range stay below the scrollable body;
+terminals below 64x13 remain non-authorizing. `Controller` dispatches keys and
+`Ui` routes wheel input only to the reported body. The module starts no process
+and performs no workspace operation.

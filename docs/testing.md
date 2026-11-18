@@ -341,3 +341,21 @@ separate. A former 50 ms wall-clock trigger could expire during the durable
 checkpoint and fail before spawning, so it did not reliably exercise runtime
 cancellation. The marker gates the intended test boundary; it changes no process
 or storage implementation, timeout, or production cancellation policy.
+
+
+## Scrollable confirmation fixture
+
+```sh
+uv run --with pyte --with pillow python scripts/smoke-confirmation.py \
+  --preview /tmp/factory-confirmation.png
+```
+
+This runs the actual TUI against a temporary SQLite snapshot and a fixed shell
+harness. Its recorded workspace has only a temporary `.jj` marker; it is not a
+jj integration test. No installed model executable, credential, provider, or real
+checkout is accessed. Checks cover complete identity tails, skipped-row blocking,
+Vim/paging/wheel controls, button wheel isolation, resize/new-dialog reset,
+mouse cancellation and confirmation, exact retained identity/prompt, and one
+persisted Ready run. Previews show the locked and reviewed views. Pass `--binary`
+to use an already-built executable without rebuilding it. Displayed-row coverage
+is a UI safety gate, not evidence of human comprehension or a sandbox audit.

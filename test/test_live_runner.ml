@@ -147,6 +147,7 @@ printf '%s\n' '{"type":"turn.completed"}'
               check "Escape cancels confirmation"
                 (controller.live_confirmation = None && not (Sys.file_exists marker));
               Controller.act controller Controller.Start;
+              ignore (Ui.render controller ~width:120 ~height:36);
               Controller.key controller (`Enter, []);
               check "confirmed task records live origin"
                 (not
@@ -195,6 +196,7 @@ printf '%s\n' '{"type":"turn.completed"}'
                  '{\"type\":\"thread.started\",\"thread_id\":\"wrong-thread\"}'\n\
                  sleep 1\n";
               Controller.act controller Controller.Start;
+              ignore (Ui.render controller ~width:120 ~height:36);
               Controller.act controller Controller.Confirm_live;
               await runner controller worker (fun () ->
                   (Option.get (Controller.selected controller)).state = Needs_you);
@@ -203,6 +205,7 @@ printf '%s\n' '{"type":"turn.completed"}'
                = Some "fixture-thread");
               write "cat >/dev/null\nsleep 10\n";
               Controller.act controller Controller.Start;
+              ignore (Ui.render controller ~width:120 ~height:36);
               Controller.act controller Controller.Confirm_live;
               Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
               Controller.act controller Controller.Stop;
@@ -210,6 +213,7 @@ printf '%s\n' '{"type":"turn.completed"}'
               check "Stop cancels live task"
                 ((Option.get (Controller.selected controller)).state = Needs_you);
               Controller.act controller Controller.Start;
+              ignore (Ui.render controller ~width:120 ~height:36);
               Controller.act controller Controller.Confirm_live;
               Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
               Live_runner.close runner (Controller.live_context controller);
@@ -225,6 +229,7 @@ printf '%s\n' '{"type":"turn.completed"}'
                 (Result.is_error (Live_runner.prepare config { task with messages = [] }));
               ok (Persistence.close worker);
               Controller.act controller Controller.Start;
+              ignore (Ui.render controller ~width:120 ~height:36);
               Controller.act controller Controller.Confirm_live;
               Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
               await runner controller worker (fun () ->

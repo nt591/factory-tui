@@ -624,7 +624,7 @@ printf '%s\\n' '{"type":"turn.completed"}'
         pump(0.2)
         send(b"\r")
         check("small terminal cannot authorize live execution", not marker.exists()
-              and "larger terminal" in text())
+              and "at least 64 columns" in text())
         fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
         screen.resize(lines=rows, columns=cols)
         os.kill(process.pid, signal.SIGWINCH)

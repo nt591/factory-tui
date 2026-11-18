@@ -51,6 +51,7 @@ type t = {
   mutable live_confirmation : string option;
   mutable live_waiting_tasks : string list;
   mutable confirmation_readable : bool;
+  confirmation_viewport : Live_confirmation.t;
   mutable review : Review.t option;
   mutable jj_executable : string;
   mutable workspace_defaults : Workspace_defaults.t;

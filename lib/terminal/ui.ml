@@ -714,7 +714,13 @@ let render t ~width:cols ~height:rows =
       in
       let height = min rows (Live_confirmation.required_height ~policy task ~width) in
       let x = (cols - width) / 2 and y = (rows - height) / 2 in
-      let view = Live_confirmation.render ~policy task ~width ~height in
+      let view =
+        Live_confirmation.render ~policy ~viewport:t.confirmation_viewport task ~width
+          ~height
+      in
+      if view.content_rows > 0 then
+        modal_scroll :=
+          Some { x = x + 1; y = y + 1; w = width - 2; h = view.content_rows };
       t.confirmation_readable <- view.readable;
       paint x y view.image;
       hits := [];
@@ -761,7 +767,11 @@ let mouse t frame ~now = function
         | Some r -> x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h
         | None -> false
       in
-      if t.live_confirmation <> None || t.workspace_form <> None then ()
+      if t.live_confirmation <> None then (
+        if over_modal_content && mods = [] then
+          Live_confirmation.scroll t.confirmation_viewport
+            (if direction = `Up then -3 else 3))
+      else if t.workspace_form <> None then ()
       else if t.review <> None then (
         let review = Option.get t.review in
         if over_modal_content && not (Review.editing review) then

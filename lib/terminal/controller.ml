@@ -51,6 +51,7 @@ type t = {
   mutable live_confirmation : string option;
   mutable live_waiting_tasks : string list;
   mutable confirmation_readable : bool;
+  confirmation_viewport : Live_confirmation.t;
   mutable review : Review.t option;
   mutable jj_executable : string;
   mutable workspace_defaults : Workspace_defaults.t;
@@ -108,7 +109,8 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     live_config = None;
     live_confirmation = None;
     live_waiting_tasks = [];
-    confirmation_readable = true;
+    confirmation_readable = false;
+    confirmation_viewport = Live_confirmation.create ();
     review = None;
     jj_executable = "";
     workspace_defaults = Workspace_defaults.empty;
@@ -425,26 +427,36 @@ let rec act t action =
           t.editor <- Text_edit.create task.model)
   | Cancel_live -> t.live_confirmation <- None
   | Confirm_live when not t.confirmation_readable ->
-      t.status <- "Resize the terminal before confirming a live run."
+      t.status <-
+        "Review all run details in a terminal of at least 64 columns and 13 rows."
   | Confirm_live -> (
       match (t.live_confirmation, t.live_config) with
-      | Some id, Some config -> (
-          t.live_confirmation <- None;
-          match List.find_opt (fun (task : task) -> task.id = id) t.tasks with
-          | None -> t.status <- "Confirmed task no longer exists."
-          | Some task -> (
-              match Live_runner.prepare config task with
-              | Error error -> t.status <- error
-              | Ok _ -> (
-                  match
-                    Model.start ~simulated:false ~policy:(Live_runner.policy config) task
-                      (next_id t "live-run")
-                  with
-                  | Error error -> t.status <- error
-                  | Ok task ->
-                      replace t task;
-                      t.status <-
-                        "Live Codex run queued. Waiting for the durable checkpoint.")))
+      | Some id, Some config ->
+          let task = List.find_opt (fun (task : task) -> task.id = id) t.tasks in
+          if
+            not
+              (Live_confirmation.can_confirm t.confirmation_viewport
+                 ~policy:(Live_runner.policy config) task)
+          then (
+            t.confirmation_readable <- false;
+            t.status <- "Run details changed. Review the confirmation again.")
+          else (
+            t.live_confirmation <- None;
+            match task with
+            | None -> t.status <- "Confirmed task no longer exists."
+            | Some task -> (
+                match Live_runner.prepare config task with
+                | Error error -> t.status <- error
+                | Ok _ -> (
+                    match
+                      Model.start ~simulated:false ~policy:(Live_runner.policy config)
+                        task (next_id t "live-run")
+                    with
+                    | Error error -> t.status <- error
+                    | Ok task ->
+                        replace t task;
+                        t.status <-
+                          "Live Codex run queued. Waiting for the durable checkpoint.")))
       | _ -> ())
   | Open_review -> (
       match selected t with
@@ -563,7 +575,10 @@ let rec act t action =
         | Some task -> (
             match Live_runner.prepare (Option.get t.live_config) task with
             | Error error -> t.status <- error
-            | Ok _ -> t.live_confirmation <- Some task.id)
+            | Ok _ ->
+                Live_confirmation.reset t.confirmation_viewport;
+                t.confirmation_readable <- false;
+                t.live_confirmation <- Some task.id)
       else if t.external_events then
         t.status <- "Replay mode cannot start runs. Use a fixture run ID."
       else
@@ -931,7 +946,7 @@ let key t (key, mods) =
     match key with
     | `Escape | `ASCII 'n' -> act t Cancel_live
     | (`Enter | `ASCII 'y') when mods = [] -> act t Confirm_live
-    | _ -> ())
+    | _ -> Live_confirmation.key t.confirmation_viewport (key, mods))
   else if t.review <> None then (
     reset_keys t;
     match key with
