@@ -169,11 +169,10 @@ let render t ~width:cols ~height:rows =
         ~seek:(Chat_search.seek t.chat_search)
     in
     if available > 0 && t.focus <> Activity then t.scroll <- view.distance;
-    let offset = view.offset in
     let title =
       title ^ if view.following then "" else " / reading history · End follows"
     in
-    let rows = List.filteri (fun i _ -> i >= offset) rows in
+    let rows = Chat_viewport.visible_rows view ~height:available rows in
     let content =
       I.vcat
         (List.map

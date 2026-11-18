@@ -146,3 +146,10 @@ so scrolling does not repeatedly scan an entire large patch. Refresh invalidates
 this data; raw patch/file identity stays separate and unchanged. Pure and real-jj
 checks cover sanitation, cached width, visible slices, and lifecycle. Synthetic
 render-preparation measurements and their limited scope are in `docs/testing.md`.
+
+Chat constructs row images only for the visible window. Search reserves its own
+row before choosing that window, and hidden panes construct no chat row images.
+Full logical message rows remain available for history anchoring and search;
+streaming, seeking, and End-follow behavior stay unchanged. Pure bounded-window
+checks and existing streaming/search/PTY coverage verify this boundary. Scoped
+image-construction measurements are in `docs/testing.md`; wrapping is not cached.

@@ -147,3 +147,8 @@
  (name test_diff_display)
  (modules test_diff_display)
  (libraries factory_tui notty unix))
+
+(test
+ (name test_chat_window)
+ (modules test_chat_window)
+ (libraries factory_tui notty unix))

@@ -13,3 +13,5 @@ val update :
   distance:int ->
   seek:string option ->
   view
+
+val visible_rows : view -> height:int -> 'a list -> 'a list

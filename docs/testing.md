@@ -115,3 +115,23 @@ These are local single-run observations, not timing assertions or a whole-TUI,
 real-provider, terminal-output, or native-GUI performance comparison. Initial
 preparation still runs when the bounded patch result is delivered; no asynchronous
 preparation or large-transcript performance claim follows from this measurement.
+
+## Chat image window
+
+`Chat_viewport.visible_rows` selects at most the visible chat height before Notty
+image construction. `test_chat_window` verifies exact top/middle/end slices,
+hidden panes, boundary clamping, paused-history append behavior, and that an
+unrenderable offscreen row cannot reach the image constructor. Existing viewport,
+search, and PTY streaming tests cover complete UI behavior.
+
+```sh
+opam exec --switch=. -- dune exec test/test_chat_window.exe -- --measure
+```
+
+A local November 18, 2026 synthetic run used 20,000 rows and twenty image-building
+passes. Constructing every row after offset 10 took 59.595 ms total; constructing
+thirty visible rows took 0.042 ms total. This excludes wrapping, message/search
+indexing, viewport anchoring, other panes, and terminal output. It is a single-run
+component measurement, not a whole-TUI latency or native-GUI comparison. Full
+logical chat rows are still generated to preserve anchors and search; no large-chat
+wrapping-cache claim is made.

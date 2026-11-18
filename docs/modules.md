@@ -94,6 +94,7 @@ against these interfaces during the normal Dune build.
 - `Chat_viewport`: abstract reading anchor keyed by task/message and wrapped row.
   Appended output and earlier stream growth do not move a paused reading view.
   Explicit scrolling/search seeking changes the anchor; End resumes following.
+  Its bounded visible-row selection prevents offscreen chat image construction.
 - `Chat_search`: abstract transient query/matching-message selection, anchored
   by stable message ID. It searches content/authors without modifying tasks.
 - `Text_edit`: abstract bounded UTF-8 text and cursor state, with insertion,

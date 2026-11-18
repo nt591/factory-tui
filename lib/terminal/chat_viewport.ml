@@ -59,3 +59,16 @@ let update t ~task_id ~rows ~height ~distance ~seek =
     t.distance <- distance;
     t.offset <- offset);
   { offset; distance; following = distance = 0 }
+
+let visible_rows (view : view) ~height rows =
+  let rec drop remaining = function
+    | [] -> []
+    | rows when remaining <= 0 -> rows
+    | _ :: rest -> drop (remaining - 1) rest
+  in
+  let rec take remaining selected = function
+    | _ when remaining <= 0 -> List.rev selected
+    | [] -> List.rev selected
+    | row :: rest -> take (remaining - 1) (row :: selected) rest
+  in
+  if height <= 0 then [] else take height [] (drop (max 0 view.offset) rows)

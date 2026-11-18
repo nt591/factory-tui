@@ -124,6 +124,10 @@ Acceptance does not merge, push, or delete a workspace.
    use the current menu capacity and tab changes reset the position. Pure
    `Menu_window` selection preserves modal isolation and task/draft state; unit/PTY
    checks cover compact paging and bottom instructions.
+   Chat image construction is bounded to the actual visible row window, including
+   search-row space. Full logical rows remain available for history anchoring and
+   search; this does not claim cached transcript wrapping. Pure window and existing
+   streaming/search/PTY tests verify retained behavior.
    UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,
