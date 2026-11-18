@@ -307,6 +307,9 @@ let render t ~width:cols ~height:rows =
             | None -> "not attached"
             | Some workspace -> workspace.directory);
             ("run: " ^ match task.active with None -> "idle" | Some run -> run.id);
+            (if List.mem task.id t.live_waiting_tasks then
+               "Waiting for previous workspace process cleanup."
+             else "");
             "next: " ^ harness_label task.harness ^ " / " ^ task.model;
             "updates: " ^ string_of_int task.revision;
             "";

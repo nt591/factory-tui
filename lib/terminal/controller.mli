@@ -47,6 +47,7 @@ type action =
 type t = {
   mutable live_config : Live_runner.config option;
   mutable live_confirmation : string option;
+  mutable live_waiting_tasks : string list;
   mutable confirmation_readable : bool;
   mutable review : Review.t option;
   mutable jj_executable : string;

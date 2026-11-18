@@ -347,3 +347,32 @@ Shared fixed-answer/function-call fixtures live in `scripts/fixtures/`. Pure
 fixture tests (`python3 scripts/test-responses.py`) validate event sequences and
 advertised tool shapes without a subprocess, network server, or filesystem work.
 The original answer/resume integration stays a separate opt-in command.
+
+## Stop/retry workspace ownership
+
+The live runner retains a task/workspace slot until its previous handle has
+finished output draining, published its terminal outcome, and been joined.
+A newly confirmed retry can enter Working immediately, but it does not spawn
+while the old run is cancelling or awaiting a SQLite checkpoint. Activity shows
+that it is waiting for previous workspace-process cleanup. Once the slot is free,
+the replacement still requires its own durable Working checkpoint before spawn.
+
+Slots use the canonical directory, so two tasks referring to the same workspace
+through a symlink cannot overlap within one live runner. Independent workspace
+directories are not serialized against each other. This is in-process coordination,
+not a global workspace lock: unrelated applications, a separate Factory process
+with a different database, and deliberately escaped descendants are not contained
+by this mechanism. Workspace settings must not be treated as process containment.
+
+Old-run output and outcomes are discarded by run identity once a retry replaces
+it. Old terminal errors do not replace the replacement's status. Closing the runner
+cancels and joins owned handles, then records interruption for confirmed runs that
+were still waiting and had no handle. Shutdown never starts such queued runs.
+
+`test_run_serialization` verifies a live sleeper blocks an aliased workspace while
+another workspace completes, stop/retry during a deliberately blocked temporary
+SQLite checkpoint, stable replacement identity, waiting-state rendering, and
+shutdown of both running and waiting tasks. All commands use fake executables and
+temporary workspaces. Disabling the workspace-slot guard causes the alias test to
+fail, confirming that the test detects the overlap regression rather than merely
+checking the final task states.

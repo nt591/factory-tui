@@ -97,3 +97,8 @@
  (name test_pane_expansion)
  (modules test_pane_expansion)
  (libraries factory_tui notty yojson))
+
+(test
+ (name test_run_serialization)
+ (modules test_run_serialization)
+ (libraries factory_tui notty sqlite3 unix))

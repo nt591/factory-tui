@@ -23,6 +23,7 @@ accessible help/settings. The staged native-app implementation remains the guide
 | SQLite and restart | Versioned snapshots, separate run rows, ordered events, transaction rollback, exclusive ownership, coalesced bounded writes, shutdown flush, Working recovery. Storage and PTY save/reopen cover real temporary databases. | Implemented |
 | Low-effort configuration | Optional default/XDG TOML, explicit file, CLI override/no-config, capped reads and rejected unknown fields. Argument-free startup discovery and optional editable workspace defaults with no creation on launch are covered by the PTY smoke. | Implemented |
 | Installed sandbox cases | Opt-in loopback fixed-tool sentinel probe on Codex 0.166.0/macOS: read-only deny, task/temp writes allow, ordinary sibling deny, never-escalation refuse. No real credentials or model. | Exact cases verified; not a security audit |
+| Stop/retry ownership | Live runner serializes task/canonical workspace ownership through checkpoint, cancellation, drain and join; independent directories run concurrently. Temporary alias/checkpoint tests detect overlap and waiting-run shutdown. | Implemented within one runner; not global process containment |
 | Supervision | Bounded stdout/stderr/lines/events, monotonic timeout, cancellation/process-group cleanup, checkpoint-before-spawn, bounded queue/separate outcome. Fake-process tests plus confirmed live-mode PTY path. | Implemented within documented process-group limits |
 | Codex/provider/resume | Pure preview, explicit headless execution and live UI; exact thread ownership/mismatch checks. Installed Codex 0.166.0 execution/resume passed an isolated loopback Responses fixture. | Implemented; real gateway/UI provider behavior not verified |
 | Isolated workspaces | Explicit W form, existing jj source, new outside-source task workspace, exact base, no automatic conversion/fetch, disclosure of source snapshot. Temporary jj tests and PTY create/save/reopen. | Implemented |
@@ -57,7 +58,12 @@ accessible help/settings. The staged native-app implementation remains the guide
    emoji rendering and fully abstract controller view state remain
    candidates. They do not justify claiming current rendering or interaction
    quality from unit tests alone; keep inspecting PTY captures.
-5. **Operational limits.** Group cancellation does not contain descendants that
+5. **Intermittent command-fixture timeout.** Full test runs have occasionally
+   hit the successful plain-command fixture's one-second limit. Isolated and
+   subsequent full runs pass, but the root cause is not established. Keep the
+   failure visible and investigate it; a rerun is not evidence of a fix. Runtime
+   limits and timeout assertions have not been relaxed for this result.
+6. **Operational limits.** Group cancellation does not contain descendants that
    deliberately escape their group. Abrupt application termination can lose
    writes since the last checkpoint and leave an unassociated created workspace.
    Conversation/tool content is sensitive. These limits remain documented.

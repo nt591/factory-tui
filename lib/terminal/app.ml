@@ -128,7 +128,8 @@ let interactive ?(fake_harness = false) ?live
             Option.iter
               (fun runner ->
                 Live_runner.poll runner (Controller.live_context t)
-                  ~storage:(Option.get worker))
+                  ~storage:(Option.get worker);
+                t.live_waiting_tasks <- Live_runner.waiting_tasks runner)
               live_runner;
             persist ();
             let width, height = Notty_unix.Term.size term in

@@ -81,3 +81,8 @@ restores the preceding board/task layout; Escape returns with Activity focus.
 Tab/compose/search restore a visible conversation rather than editing a hidden
 pane. Expansion is transient and changes no task, draft, or execution state.
 The PTY smoke verifies complete tool-output lines and return to the task chat.
+
+A confirmed live retry can wait for a previous workspace process to finish
+cleanup. Activity exposes that waiting state without moving away from the task
+chat. Stop and shutdown interrupt waiting requests; no implicit process starts
+as the application closes. Coordination applies within one live runner.

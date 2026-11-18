@@ -81,13 +81,18 @@ type run = {
   task_id : string;
   run_id : string;
   thread_id : string option;
+  directory : string;
   handle : Run_handle.t;
   mutable identity_failed : bool;
 }
 
-type t = { config : config; mutable runs : run list }
+type t = { config : config; mutable runs : run list; mutable waiting : string list }
 
-let create config = { config; runs = [] }
+let create config = { config; runs = []; waiting = [] }
+let waiting_tasks runner = runner.waiting
+
+let workspace_key directory =
+  try Unix.realpath directory with Unix.Unix_error _ -> directory
 
 let active context run =
   List.exists
@@ -113,6 +118,7 @@ let deliver context run =
     (Run_handle.drain run.handle)
 
 let poll runner context ~storage =
+  runner.waiting <- [];
   runner.runs <-
     List.filter
       (fun run ->
@@ -124,6 +130,7 @@ let poll runner context ~storage =
         | Some outcome ->
             deliver context run;
             (match outcome with
+            | _ when not (active context run) -> ()
             | Error error ->
                 send context run (Failed error);
                 send context run (Exited 1);
@@ -168,6 +175,14 @@ let poll runner context ~storage =
                 context.receive
                   { task_id = task.id; run_id = active.id; event = Exited 1 };
                 context.report_error error
+            | Ok (invocation, _)
+              when List.exists
+                     (fun run ->
+                       run.task_id = task.id
+                       || run.directory = workspace_key invocation.directory)
+                     runner.runs ->
+                (* A stopped run keeps its workspace slot until output and cleanup finish. *)
+                runner.waiting <- runner.waiting @ [ task.id ]
             | Ok (invocation, _) ->
                 let prompt =
                   String.concat "\n\n"
@@ -196,6 +211,7 @@ let poll runner context ~storage =
                         task_id = task.id;
                         run_id = active.id;
                         thread_id = task.thread_id;
+                        directory = workspace_key invocation.directory;
                         handle;
                         identity_failed = false;
                       };
@@ -211,4 +227,17 @@ let close runner context =
       deliver context run;
       if active context run then send context run Interrupted)
     runner.runs;
-  runner.runs <- []
+  runner.runs <- [];
+  (* Confirmed replacements can be queued without an owned process handle yet. *)
+  List.iter
+    (fun (task : task) ->
+      match task.active with
+      | Some active
+        when List.exists
+               (fun (record : run_record) ->
+                 record.run_id = active.id && not record.simulated)
+               task.runs ->
+          context.receive { task_id = task.id; run_id = active.id; event = Interrupted }
+      | _ -> ())
+    (context.tasks ());
+  runner.waiting <- []

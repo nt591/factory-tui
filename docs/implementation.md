@@ -151,3 +151,9 @@ First-run live initialization starts with no seed tasks and persists an empty
 board before displaying it. `n` opens workspace creation in live mode, while
 simulation retains demo task creation. Existing snapshots are preserved rather
 than reseeded. Archive/filter empty states provide distinct recovery actions.
+
+Live retry ownership is serialized by task and canonical workspace directory
+until the previous handle's output/outcome and join complete. Confirmed replacements
+remain queued, independent directories can run concurrently, and shutdown interrupts
+waiting runs without spawning them. Temporary checkpoint/alias tests verify this;
+coordination is local to the runner, not a global workspace lock.

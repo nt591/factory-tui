@@ -417,6 +417,13 @@ The UI integration is verified using fake executables, not a real gateway. The
 installed-Codex loopback execution/resume check covers the headless path separately.
 See [docs/harness.md](docs/harness.md) for limits and persistence semantics.
 
+Live Stop/retry keeps the task workspace occupied until the old process has
+finished draining and cleanup. A confirmed replacement waits without spawning;
+Activity explains the wait. Independent workspaces can still run concurrently.
+Symlink aliases share a slot within the same runner. This is not a cross-process
+workspace lock. Shutdown interrupts confirmed waiting runs rather than starting
+them. See `docs/harness.md` for the coordination boundary.
+
 ## Explicit code-editing mode
 
 ```sh

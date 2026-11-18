@@ -41,6 +41,8 @@ against these interfaces during the normal Dune build.
   handle ownership. Preflight restricts execution to workspace-backed Codex tasks;
   a callback context keeps it independent of controller/rendering internals.
   Its explicit policy is captured on each run; configuration defaults to read-only.
+  Canonical workspace slots retain ownership through cancellation/checkpoint/join;
+  waiting task IDs are exposed, not process or mutex internals.
 - `Live_confirmation`: task-specific usage/auth disclosure rendering and hitboxes;
   small terminals cannot authorize a hidden confirmation.
 - `Changes`: abstract background diff ownership for one task/workspace, with
