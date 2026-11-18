@@ -729,6 +729,8 @@ let render t ~width:cols ~height:rows =
             | Workspace_dialog.Create -> Submit_workspace
             | Workspace_dialog.Cancel -> Cancel_workspace
             | Workspace_dialog.Models -> Open_models
+            | Workspace_dialog.Projects -> Open_projects
+            | Workspace_dialog.Greenfield -> Toggle_greenfield
           in
           hit (x + item.x) (y + item.y) item.width 1 action)
         dialog.hits);
@@ -817,6 +819,58 @@ let render t ~width:cols ~height:rows =
           | Close -> Close_models
           | Model id -> Choose_model id))
       view.hits);
+  (match t.project_picker with
+  | None -> ()
+  | Some picker ->
+      let w = min 96 cols and h = min 28 rows in
+      let x = (cols - w) / 2 and y = (rows - h) / 2 in
+      let inner = max 0 (w - 4) and capacity = max 0 ((h - 7) / 2) in
+      Project_picker.capacity picker capacity;
+      let projects = Project_picker.visible picker in
+      let index = Project_picker.index picker in
+      let offset = max 0 (index - capacity + 1) in
+      let displayed =
+        List.filteri (fun i _ -> i >= offset && i < offset + capacity) projects
+      in
+      let entries =
+        if projects = [] then
+          [ "No registered project matches. Add [projects.NAME] to TOML." ]
+        else
+          List.concat
+            (List.mapi
+               (fun i (project : Project.t) ->
+                 [
+                   (if i + offset = index then "> " else "  ")
+                   ^ project.name ^ " / " ^ project.description;
+                   "  " ^ project.source;
+                 ])
+               displayed)
+      in
+      let content =
+        I.vcat
+          (List.map
+             (line inner (attr text))
+             ([
+                "Select a registered project; no filesystem scan or agent starts.";
+                "Filter: " ^ Project_picker.query picker;
+                "";
+              ]
+             @ entries))
+        |> I.hpad 1 1
+      in
+      let footer = if w >= 18 && h >= 2 then "[Close / Esc]" else "" in
+      paint x y
+        (border w h ~title:"Registered projects / task workspace" ~footer ~color:accent
+           ~focused:true content);
+      hits := [];
+      input_controls := [];
+      modal_scroll := Some { x; y; w; h };
+      if w >= 18 && h >= 2 then hit (x + 3) (y + h - 1) 13 1 Close_projects;
+      List.iteri
+        (fun i (project : Project.t) ->
+          if capacity > 0 && w >= 5 then
+            hit (x + 1) (y + 4 + (i * 2)) (w - 2) 2 (Choose_project project.name))
+        displayed);
   {
     image = fit cols rows !canvas;
     hits = !hits;
@@ -833,6 +887,10 @@ let mouse (t : Controller.t) frame ~now = function
       if t.input = Normal then (
         reset_keys t;
         match hit_at frame x y with
+        | Some action when t.project_picker <> None -> (
+            match action with
+            | Choose_project _ | Close_projects -> act t action
+            | _ -> ())
         | Some action when t.model_target <> None -> (
             match action with
             | Refresh_models | Close_models | Choose_model _ -> act t action
@@ -873,6 +931,10 @@ let mouse (t : Controller.t) frame ~now = function
       if t.live_confirmation <> None then (
         if over_modal_content && mods = [] then
           Live_confirmation.scroll t.confirmation_viewport
+            (if direction = `Up then -3 else 3))
+      else if t.project_picker <> None then (
+        if over_modal_content then
+          Project_picker.move (Option.get t.project_picker)
             (if direction = `Up then -3 else 3))
       else if t.model_target <> None then (
         if over_modal_content then

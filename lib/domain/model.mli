@@ -39,6 +39,7 @@ type task = {
   model : string;
   runs : run_record list;
   workspace : workspace_ref option;
+  session_root : string option;
 }
 
 type event =
@@ -70,3 +71,4 @@ val accept : task -> (task, string) result
 val apply : task -> envelope -> task option
 val reduce : task list -> envelope -> task list
 val attach_workspace : task -> workspace_ref -> (task, string) result
+val attach_root : task -> string -> (task, string) result

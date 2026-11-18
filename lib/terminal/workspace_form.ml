@@ -3,6 +3,8 @@ type feedback = Guidance of string | Validation of field * string | Report of st
 
 type t = {
   mutable current : field;
+  mutable greenfield : bool;
+  mutable folder_root : bool;
   mutable values : (field * Text_edit.t) list;
   mutable status : feedback;
   mutable rejected : field option;
@@ -21,6 +23,8 @@ let label = function
 let create ?(jj = "") ~source ~parent ~revision ~model () =
   {
     current = Source;
+    greenfield = false;
+    folder_root = false;
     rejected = None;
     status = Guidance "Fill the fields; Ctrl-S creates a queued task. No agent starts.";
     values =
@@ -35,6 +39,17 @@ let create ?(jj = "") ~source ~parent ~revision ~model () =
   }
 
 let current t = t.current
+let folder_root t = t.folder_root
+
+let toggle_folder_root t =
+  t.folder_root <- not t.folder_root;
+  t.greenfield <- false
+
+let greenfield t = t.greenfield
+
+let toggle_greenfield t =
+  t.greenfield <- not t.greenfield;
+  t.folder_root <- false
 
 let status t =
   let feedback =
@@ -69,6 +84,18 @@ let change t fn =
         t.status <- Guidance "Field edited. Ctrl-S checks all fields before creating."
     | _ -> ());
   t.values <- (t.current, updated) :: List.remove_assoc t.current t.values
+
+let set_project t (project : Project.t) =
+  t.greenfield <- false;
+  t.folder_root <- false;
+  t.values <-
+    (Source, Text_edit.create project.source)
+    :: (Revision, Text_edit.create project.revision)
+    :: (t.values |> List.remove_assoc Source |> List.remove_assoc Revision);
+  t.current <- Task;
+  t.rejected <- None;
+  t.status <-
+    Guidance "Project selected. Enter the task instruction; Ctrl-S creates a workspace."
 
 let set_model t value =
   match Model.set_model (Model.make ~id:"validation" ~title:"" ~repository:"") value with
@@ -126,13 +153,20 @@ let validation_error t =
     let path = value t field in
     path = "" || Filename.is_relative path || String.contains path '\000'
   in
-  match List.find_opt invalid_path [ Jj; Source; Parent ] with
+  match
+    List.find_opt invalid_path
+      (if t.folder_root then [ Source ]
+       else if t.greenfield then [ Jj; Parent ]
+       else [ Jj; Source; Parent ])
+  with
   | Some field ->
       Some
         (field, label field ^ ": Use absolute paths for jj, source, and workspace parent.")
   | None -> (
-      if String.trim (value t Revision) = "" || (value t Revision).[0] = '-' then
-        Some (Revision, "Enter an explicit base revision.")
+      if
+        (not t.folder_root) && (not t.greenfield)
+        && (String.trim (value t Revision) = "" || (value t Revision).[0] = '-')
+      then Some (Revision, "Enter an explicit base revision.")
       else
         match
           Model.set_model

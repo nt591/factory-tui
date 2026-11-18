@@ -42,32 +42,34 @@ let prepare_prompt config (task : task) prompt =
   else if task.state = Working || task.state = Done then
     Error "Task cannot start in this state."
   else
-    match task.workspace with
-    | None ->
-        Error "Live execution requires an isolated workspace task. Create one with W."
-    | Some workspace
-      when not (Sys.file_exists (Filename.concat workspace.directory ".jj")) ->
-        Error "Recorded workspace is no longer a jj checkout."
-    | Some workspace -> (
+    let root =
+      match (task.session_root, task.workspace) with
+      | Some root, None -> Ok root
+      | None, Some workspace
+        when Sys.file_exists (Filename.concat workspace.directory ".jj") ->
+          Ok workspace.directory
+      | None, Some _ -> Error "Recorded workspace is no longer a jj checkout."
+      | _ -> Error "Live execution requires a session root or isolated workspace."
+    in
+    Result.bind root (fun directory ->
         if String.trim prompt = "" then
           Error "Post an instruction before starting another run."
         else if String.length prompt > 1048576 then
           Error "Combined queued prompt exceeds 1 MiB."
         else
           match
-            Codex.invocation ~executable:config.executable ~directory:workspace.directory
-              ~model:task.model ~thread_id:task.thread_id
+            Codex.invocation ~executable:config.executable ~directory ~model:task.model
+              ~thread_id:task.thread_id
           with
           | Error error -> Error error
           | Ok invocation ->
+              let invocation = Codex.with_jj_workspace invocation in
               let invocation =
                 match config.reasoning with
                 | None -> invocation
                 | Some effort -> Codex.with_reasoning invocation effort
               in
-              let invocation =
-                Codex.with_policy (Codex.with_jj_workspace invocation) config.policy
-              in
+              let invocation = Codex.with_policy invocation config.policy in
               Ok
                 ( (match config.gateway with
                   | None -> invocation

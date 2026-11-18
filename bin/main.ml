@@ -221,11 +221,6 @@ let () =
       then
         invalid_arg
           "Live UI cannot be combined with other execution modes or per-run arguments.";
-      let executable =
-        match !executable with
-        | Some path -> path
-        | None -> invalid_arg "Live UI requires --codex-executable."
-      in
       let home = Option.value ~default:(Sys.getcwd ()) (Sys.getenv_opt "HOME") in
       let settings =
         match
@@ -237,8 +232,22 @@ let () =
         | Ok _ -> invalid_arg "Live UI requires SQLite via TOML or --database."
         | Error error -> invalid_arg error
       in
+      let executable =
+        match (!executable, settings.codex.executable) with
+        | Some path, _ | None, Some path -> path
+        | None, None ->
+            invalid_arg "Live UI requires codex.executable in TOML or --codex-executable."
+      in
+      let gateway_file =
+        match !gateway_file with
+        | Some _ as value -> value
+        | None -> settings.codex.gateway_file
+      in
+      let reasoning =
+        match reasoning with Some _ as value -> value | None -> settings.codex.reasoning
+      in
       let live =
-        match Live_runner.configure ~executable ~gateway_file:!gateway_file with
+        match Live_runner.configure ~executable ~gateway_file with
         | Ok config ->
             let config =
               Option.fold ~none:config ~some:(Live_runner.with_reasoning config) reasoning
@@ -248,8 +257,8 @@ let () =
         | Error error -> invalid_arg error
       in
       match
-        App.interactive ~live ~workspace_defaults:settings.workspace
-          ~layout:settings.layout ~events:""
+        App.interactive ~projects:settings.projects ~live
+          ~workspace_defaults:settings.workspace ~layout:settings.layout ~events:""
           ~database:(Option.get settings.database)
           ()
       with
@@ -317,8 +326,9 @@ let () =
             exit 2
         | Ok settings -> (
             match
-              App.interactive ~fake_harness:!fake_harness ~events:!events
-                ~workspace_defaults:settings.workspace ~layout:settings.layout
+              App.interactive ~projects:settings.projects ~fake_harness:!fake_harness
+                ~events:!events ~workspace_defaults:settings.workspace
+                ~layout:settings.layout
                 ~database:(Option.value ~default:"" settings.database)
                 ()
             with

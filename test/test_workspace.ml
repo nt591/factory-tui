@@ -40,6 +40,41 @@ let () =
         output.stdout
       in
       ignore (run [ "git"; "init"; "--colocate" ]);
+      let greenfield_root = Filename.concat directory "greenfield-task" in
+      let greenfield =
+        ok (Workspace.create_greenfield ~jj ~destination:greenfield_root)
+      in
+      check "greenfield creates owned repository and isolated working checkout"
+        (Workspace.source greenfield = Filename.concat greenfield_root "repository"
+        && Workspace.destination greenfield = Filename.concat greenfield_root "workspace"
+        && Sys.file_exists (Filename.concat (Workspace.source greenfield) ".jj")
+        && Sys.file_exists (Filename.concat (Workspace.destination greenfield) ".jj"));
+      check "greenfield identity fits existing persistence/review boundary"
+        (Result.is_ok
+           (Model.attach_workspace
+              (Model.make ~id:"new" ~title:"New project" ~repository:"")
+              (Workspace.reference greenfield)));
+      check "fresh greenfield workspace has no patch"
+        (ok (Workspace.diff ~jj greenfield) = "");
+      let output =
+        open_out (Filename.concat (Workspace.destination greenfield) "new-service.txt")
+      in
+      output_string output "Greenfield service implementation\n";
+      close_out output;
+      check "greenfield code is reviewable without changing backing checkout"
+        (Controller.contains
+           (ok (Workspace.diff ~jj greenfield))
+           "+Greenfield service implementation"
+        && not
+             (Sys.file_exists
+                (Filename.concat (Workspace.source greenfield) "new-service.txt")));
+      check "existing greenfield destination is never initialized again"
+        (Result.is_error (Workspace.create_greenfield ~jj ~destination:greenfield_root));
+      check "failed greenfield init retains partial directory for inspection"
+        (Result.is_error
+           (Workspace.create_greenfield ~jj:"/missing-jj"
+              ~destination:(Filename.concat directory "partial"))
+        && Sys.file_exists (Filename.concat directory "partial"));
       let destination = Filename.concat directory "task-one" in
       let workspace = ok (Workspace.create ~jj ~source ~destination ~revision:"@") in
       check "workspace created"

@@ -53,9 +53,10 @@ def main():
              "README.md": ((ROOT / "README.md").read_bytes(), 0o644),
              "examples/config.toml": ((ROOT / "examples/config.toml").read_bytes(), 0o644),
              "examples/gateway.toml": ((ROOT / "examples/gateway.toml").read_bytes(), 0o644),
+             "examples/live-test.toml": ((ROOT / "examples/live-test.toml").read_bytes(), 0o644),
              "examples/litellm.toml": ((ROOT / "examples/litellm.toml").read_bytes(), 0o644),
              "build.json": ((json.dumps(metadata, indent=2) + "\n").encode(), 0o644)}
-    for name in ("harness.md", "workspaces.md", "distribution.md", "configuration.md", "gateway.md"):
+    for name in ("harness.md", "workspaces.md", "distribution.md", "configuration.md", "gateway.md", "sessions.md"):
         files["docs/" + name] = ((ROOT / "docs" / name).read_bytes(), 0o644)
     # Fixed archive metadata makes packaging the same bytes repeatable.
     with tempfile.NamedTemporaryFile(dir=archive.parent, delete=False) as temporary:

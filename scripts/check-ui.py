@@ -33,6 +33,7 @@ CASES = (
     "panes",
     "workflow",
     "model-picker",
+    "session-root",
 )
 
 

@@ -24,6 +24,11 @@ type action =
   | Next_repository
   | Next_harness
   | Begin_model
+  | Toggle_folder_root
+  | Toggle_greenfield
+  | Open_projects
+  | Close_projects
+  | Choose_project of string
   | Open_models
   | Refresh_models
   | Close_models
@@ -54,6 +59,8 @@ type action =
   | Begin_new
 
 type t = {
+  mutable projects : Project.t list;
+  mutable project_picker : Project_picker.t option;
   model_picker : Model_picker.t;
   mutable model_target : model_target option;
   mutable live_config : Live_runner.config option;
@@ -119,6 +126,8 @@ type t = {
 
 let create ?(external_events = false) ?(fake_harness = false) () =
   {
+    projects = [];
+    project_picker = None;
     model_picker = Model_picker.create ();
     model_target = None;
     live_config = None;
@@ -281,7 +290,10 @@ let receive t event =
     | Turn_started, Some _ ->
         t.status <- "Run started. x stops; replies queue for the next turn."
     | Exited _, Some task when task.state = Ready ->
-        t.status <- "Run complete. v reviews changes; a accepts without merging."
+        t.status <-
+          (if task.session_root <> None then
+             "Run complete. Review files in the session root; a accepts without merging."
+           else "Run complete. v reviews changes; a accepts without merging.")
     | Exited _, Some task when task.state = Needs_you ->
         t.status <- "Run needs attention. Inspect the chat; i queues a reply."
     | Interrupted, Some _ -> t.status <- "Run stopped. i queues a reply; s retries."
@@ -477,6 +489,39 @@ let rec act t action =
           t.model_text <- task.model;
           t.input <- Edit_model;
           t.editor <- Text_edit.create task.model)
+  | Toggle_folder_root -> (
+      match t.workspace_form with
+      | Some form when t.creation_request = None && t.creation_job = None ->
+          Workspace_form.toggle_folder_root form
+      | _ -> ())
+  | Toggle_greenfield -> (
+      match t.workspace_form with
+      | Some form when t.creation_request = None && t.creation_job = None ->
+          Workspace_form.toggle_greenfield form
+      | _ -> ())
+  | Open_projects -> (
+      match t.workspace_form with
+      | Some form
+        when t.model_target = None && t.creation_job = None && t.creation_request = None
+        ->
+          t.project_picker <- Some (Project_picker.create ~form t.projects)
+      | _ -> ())
+  | Close_projects -> t.project_picker <- None
+  | Choose_project name -> (
+      match (t.project_picker, t.workspace_form) with
+      | Some picker, Some form
+        when Project_picker.form picker == form
+             && t.creation_job = None && t.creation_request = None -> (
+          match
+            List.find_opt
+              (fun (project : Project.t) -> project.name = name)
+              (Project_picker.visible picker)
+          with
+          | Some project ->
+              Workspace_form.set_project form project;
+              t.project_picker <- None
+          | None -> ())
+      | _ -> ())
   | Open_models when t.live_confirmation <> None || t.review <> None -> ()
   | Open_models -> (
       match t.workspace_form with
@@ -651,6 +696,8 @@ let rec act t action =
                   Some
                     {
                       Task_creation.id;
+                      greenfield = Workspace_form.greenfield form;
+                      folder_root = Workspace_form.folder_root form;
                       jj = value Workspace_form.Jj;
                       source = value Workspace_form.Source;
                       parent = value Workspace_form.Parent;
@@ -791,7 +838,16 @@ let insert_text t value =
     else ignore (accept_input t editor)
 
 let paste_key t (key, mods) =
-  if t.model_target <> None then
+  if t.project_picker <> None then
+    let picker = Option.get t.project_picker in
+    match key with
+    | `ASCII char -> Project_picker.insert picker (String.make 1 char)
+    | `Uchar char ->
+        let buffer = Buffer.create 4 in
+        Uutf.Buffer.add_utf_8 buffer char;
+        Project_picker.insert picker (Buffer.contents buffer)
+    | _ -> ()
+  else if t.model_target <> None then
     match key with
     | `ASCII char -> Model_picker.insert t.model_picker (String.make 1 char)
     | `Uchar char ->
@@ -1064,6 +1120,15 @@ let key t (key, mods) =
   if key = `ASCII 'c' && List.mem `Ctrl mods then (
     reset_keys t;
     t.quit <- true)
+  else if t.project_picker <> None then
+    let picker = Option.get t.project_picker in
+    match key with
+    | `Escape -> act t Close_projects
+    | `Enter when mods = [] ->
+        Option.iter
+          (fun (project : Project.t) -> act t (Choose_project project.name))
+          (Project_picker.selected picker)
+    | _ -> Project_picker.key picker (key, mods)
   else if t.model_target <> None then (
     reset_keys t;
     match key with
@@ -1091,6 +1156,9 @@ let key t (key, mods) =
     else
       match key with
       | `Escape -> act t Cancel_workspace
+      | `ASCII 'e' when List.mem `Ctrl mods -> act t Toggle_folder_root
+      | `ASCII 'n' when List.mem `Ctrl mods -> act t Toggle_greenfield
+      | `ASCII 'p' when List.mem `Ctrl mods -> act t Open_projects
       | `ASCII 'g' when List.mem `Ctrl mods -> act t Open_models
       | `ASCII 's' when List.mem `Ctrl mods -> act t Submit_workspace
       | _ -> Workspace_form.key (Option.get t.workspace_form) (key, mods))

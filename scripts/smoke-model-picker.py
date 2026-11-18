@@ -96,21 +96,13 @@ def main():
         config.write_text(
             'base_url_environment="LITELLM_BASE_URL"\nkey_environment="LITELLM_API_KEY"\n'
         )
+        startup = directory / "startup.toml"
+        startup.write_text((root / "test/configs/model-picker.toml").read_text())
         with http.server.ThreadingHTTPServer(("127.0.0.1", 0), Gateway) as server:
             thread = threading.Thread(target=server.serve_forever, daemon=True)
             thread.start()
             env["LITELLM_BASE_URL"] = f"http://127.0.0.1:{server.server_port}/v1"
-            command = [
-                str(binary),
-                "--live-ui",
-                "--no-config",
-                "--database",
-                str(database),
-                "--gateway",
-                str(config),
-                "--codex-executable",
-                str(executable),
-            ]
+            command = [str(binary), "--live-ui", "--config", str(startup)]
             try:
                 with Terminal(command, env) as tui:
                     tui.ready()

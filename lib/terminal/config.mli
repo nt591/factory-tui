@@ -1,5 +1,13 @@
+type codex = {
+  executable : string option;
+  gateway_file : string option;
+  reasoning : Reasoning_effort.t option;
+}
+
 type t = {
   database : string option;
+  projects : Project.t list;
+  codex : codex;
   workspace : Workspace_defaults.t;
   layout : Pane_layout.defaults;
 }

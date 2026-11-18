@@ -1,4 +1,11 @@
-type action = Field of Workspace_form.field | Create | Cancel | Models
+type action =
+  | Field of Workspace_form.field
+  | Create
+  | Cancel
+  | Models
+  | Projects
+  | Greenfield
+
 type hit = { x : int; y : int; width : int; action : action }
 type t = { image : Notty.image; hits : hit list }
 

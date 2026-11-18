@@ -55,11 +55,17 @@ let () =
           check "modal blocks background actions"
             (match hit.action with
             | Controller.Workspace_field _ | Controller.Submit_workspace
-            | Controller.Cancel_workspace | Controller.Open_models ->
+            | Controller.Cancel_workspace | Controller.Open_models
+            | Controller.Open_projects ->
                 true
             | _ -> false))
         frame.hits)
     [ (1, 1); (20, 8); (60, 20); (120, 36); (180, 50) ];
+  Controller.act controller Toggle_greenfield;
+  let greenfield_form = Option.get controller.workspace_form in
+  check "greenfield mode can be enabled without source"
+    (Workspace_form.greenfield greenfield_form);
+  Controller.act controller Toggle_greenfield;
   let frame = Ui.render controller ~width:120 ~height:36 in
   let hit =
     List.find
@@ -201,6 +207,8 @@ let () =
           let request : Task_creation.request =
             {
               id = task.id;
+              greenfield = false;
+              folder_root = false;
               jj = "/opt/homebrew/bin/jj";
               source;
               parent = temporary;

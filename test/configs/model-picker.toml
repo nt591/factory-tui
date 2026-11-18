@@ -1,0 +1,7 @@
+[storage]
+database = "board.sqlite"
+
+[codex]
+executable = "fake-codex"
+gateway = "gateway.toml"
+reasoning_effort = "low"

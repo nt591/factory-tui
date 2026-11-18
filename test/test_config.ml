@@ -13,6 +13,29 @@ let () =
   check "empty config preserves memory mode" ((ok (parse "")).database = None);
   check "empty config keeps automatic pane sizes"
     ((ok (parse "")).layout = Pane_layout.automatic);
+  let codex =
+    (ok
+       (parse
+          "[codex]\n\
+           executable='bin/codex'\n\
+           gateway='gateway.toml'\n\
+           reasoning_effort='low'"))
+      .codex
+  in
+  check "Codex paths resolve against config base"
+    (codex.executable = Some "/config/bin/codex"
+    && codex.gateway_file = Some "/config/gateway.toml");
+  check "configured reasoning is typed" (codex.reasoning = Some Reasoning_effort.Low);
+  check "missing Codex defaults remain absent" ((ok (parse "")).codex.executable = None);
+  List.iter
+    (fun source -> check "invalid Codex config refused" (Result.is_error (parse source)))
+    [
+      "[codex]\nreasoning_effort='invalid'";
+      "[codex]\nexecutable=''";
+      "[codex]\ngateway=42";
+      "[codex]\nenabled=true";
+      "[codex]\napi_key='not-allowed'";
+    ];
   let defaults =
     (ok (parse "[layout]\nboard_width_percent=55\nboard_height_percent=40")).layout
   in

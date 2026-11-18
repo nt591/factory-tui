@@ -87,9 +87,19 @@ let disclosure ~reasoning ~policy task =
         Line (task.Model.id ^ " / " ^ task.title);
         Line ("Model: " ^ task.model);
         Line
-          ("Workspace: "
-          ^ Option.fold ~none:"missing" ~some:(fun w -> w.Model.directory) task.workspace
-          );
+          ((if task.session_root <> None then "Session root: " else "Workspace: ")
+          ^
+          match task.session_root with
+          | Some root -> root
+          | None ->
+              Option.fold ~none:"missing"
+                ~some:(fun w -> w.Model.directory)
+                task.workspace);
+        Line
+          (if task.session_root <> None then
+             "Existing session folder: no isolated checkout. Root is not a sandbox \
+              boundary."
+           else "Isolated repository workspace.");
         Line "";
         Line
           (Printf.sprintf "Queued instructions: %d / %d bytes" (List.length queued)

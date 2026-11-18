@@ -684,3 +684,12 @@ workspace creation, cancelled/confirmed run, answer and Ready movement, explicit
 real jj diff refresh, acceptance with retained draft and accepted-chat restart.
 It runs a fake process and preserves the source and exact SQLite history; this
 is workflow evidence, not real-model compatibility. It is the 18th fixture UI case.
+
+The session-root milestone has a 20-case fixture UI audit. Creation now supports
+an existing folder root, optional named project choice and a new repository.
+Folder runs retain their exact root and can work across service subdirectories;
+confirmation explicitly states that rooting does not create isolation. The model
+picker returns to the creation form without starting work. Existing chat/card/
+Help/Settings behavior remains verified. Consolidated multi-repository review and
+further setup polish are follow-up work rather than completion requirements for
+this user-approved prototype milestone.

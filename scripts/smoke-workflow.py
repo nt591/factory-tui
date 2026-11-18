@@ -74,11 +74,8 @@ def main():
         original_commit = source_commit()
         database = directory / "board.sqlite"
         config = directory / "config.toml"
-        config.write_text(
-            "[storage]\ndatabase='board.sqlite'\n"
-            f"[workspace]\njj={json.dumps(jj)}\nsource={json.dumps(str(source))}\n"
-            f"parent={json.dumps(str(parent))}\nrevision='@'\nmodel='fixture-model'\n"
-        )
+        config.write_text((root / "test/configs/live-fixture.toml").read_text())
+        (directory / "jj").symlink_to(jj)
         marker = directory / "invocations.jsonl"
         release = directory / "release-followup"
         executable = directory / "fake-runner"
@@ -120,12 +117,8 @@ for event in [
             str(binary),
             "--live-ui",
             "--workspace-write",
-            "--reasoning-effort",
-            "low",
             "--config",
             str(config),
-            "--codex-executable",
-            str(executable),
         ]
         with Terminal(command, env, columns=180, rows=50) as tui:
             tui.ready()
@@ -135,7 +128,14 @@ for event in [
             )
             tui.send(b"n")
             tui.wait("workspace form", lambda: "Source repository" in tui.text())
-            tui.send(b"\t" * 4 + b"Implement the fixture task\x13")
+            tui.send(b"\x10")
+            tui.wait(
+                "registered projects",
+                lambda: "Registered projects / task workspace" in tui.text(),
+            )
+            tui.send(b"API\r")
+            tui.wait("project selected", lambda: "Project selected" in tui.text())
+            tui.send(b"Implement the fixture task\x13")
             tui.wait(
                 "workspace task created", lambda: "Workspace task created" in tui.text()
             )
@@ -304,9 +304,44 @@ for event in [
             tui.send(b"q")
             tui.wait_exit()
             tui.check("workflow exits successfully", tui.process.returncode == 0)
+        # A second task starts from an empty repository without selecting a project.
+        with Terminal(command, env, columns=180, rows=50) as tui:
+            tui.ready()
+            tui.send(b"n")
+            tui.wait("new task form", lambda: "Source repository" in tui.text())
+            tui.send(b"\x0e")
+            tui.wait(
+                "greenfield mode", lambda: "GREENFIELD / new repository" in tui.text()
+            )
+            tui.send(b"\t" * 4 + b"Build a new fixture service\x13")
+            tui.wait(
+                "greenfield task created",
+                lambda: "Workspace task created" in tui.text(),
+            )
+            tui.check(
+                "greenfield task creation starts no process",
+                len(marker.read_text().splitlines()) == 2,
+            )
+            tui.send(b"q")
+            tui.wait_exit()
+        greenfield_saved = snapshot(database)
+        new_task = greenfield_saved["tasks"][-1]
+        new_workspace = Path(new_task["workspace"]["directory"])
+        tui_source = Path(new_task["workspace"]["source"])
+        assert new_workspace.parent == tui_source.parent
+        assert new_workspace.name == "workspace" and tui_source.name == "repository"
+        assert (new_workspace / ".jj").exists() and not (
+            new_workspace / "source.txt"
+        ).exists()
+        assert new_task["state"] == "queued" and new_task["runs"] == []
+        assert greenfield_saved["tasks"][0]["state"] == "done"
+        # Return selection to the accepted task for the restart checks below.
+        with sqlite3.connect(database) as db:
+            greenfield_saved["selected"] = greenfield_saved["tasks"][0]["id"]
+            db.execute("UPDATE snapshot SET payload=?", (json.dumps(greenfield_saved),))
         saved = snapshot(database)
         task = saved["tasks"][0]
-        assert len(saved["tasks"]) == 1 and task["state"] == "done"
+        assert len(saved["tasks"]) == 2 and task["state"] == "done"
         assert task["thread"] == "workflow-thread" and len(task["runs"]) == 2
         assert task["runs"][0]["simulated"] is False
         assert task["runs"][0]["policy"] == "workspace-write"
@@ -328,7 +363,7 @@ for event in [
         assert len({message["id"] for message in task["messages"]}) == len(
             task["messages"]
         )
-        assert saved["drafts"] == [[task["id"], "Retained unsent draft"]]
+        assert dict(saved["drafts"])[task["id"]] == "Retained unsent draft"
         with Terminal(command, env, columns=180, rows=50) as tui:
             tui.ready()
             tui.send(b"e")

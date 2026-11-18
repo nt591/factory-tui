@@ -6,8 +6,8 @@ No companion application or checkout is required.
 The interface borrows bottom's dashboard structure: bordered panes, visible
 focus, compact status widgets, mouse selection, search, and pane expansion.
 Session rules are adapted from Factory's Rust session and event reducers, not
-linked through FFI. The TUI remains a simulated interaction prototype; explicit headless Codex
-execution is available separately and requires deliberate invocation.
+linked through FFI. Startup defaults to simulation. Explicit Codex live execution supports confirmed
+runs in session roots or isolated workspaces; headless execution is also available.
 
 ## LiteLLM discovery and live testing
 
@@ -37,6 +37,14 @@ gateway compatibility. See `docs/configuration.md` for the setup workflow.
 Use `scripts/bench-e2e.py` for a fixture-only PTY baseline of input-to-screen,
 streamed updates, SQLite reopen/shutdown, CPU and sampled memory. It runs no agents.
 Reproducible commands and measurement limits are in `docs/performance.md`.
+
+## Session working areas
+
+A live session can be rooted in an existing folder, an isolated project checkout,
+or a new repository. `n` opens creation; Ctrl-E selects folder-root mode, Ctrl-N
+selects a new repository, and Projects / Ctrl-P optionally fills an existing
+project. Registration is a shortcut, not a requirement. See `docs/sessions.md`
+for multi-folder work, persistence and the current per-repository review limits.
 
 ## Run
 

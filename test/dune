@@ -437,3 +437,13 @@
  (name test_reasoning_effort)
  (modules test_reasoning_effort)
  (libraries factory_tui notty unix))
+
+(test
+ (name test_project_picker)
+ (modules test_project_picker)
+ (libraries factory_tui notty))
+
+(test
+ (name test_session_root)
+ (modules test_session_root)
+ (libraries factory_tui notty unix))

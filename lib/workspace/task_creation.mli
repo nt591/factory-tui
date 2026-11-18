@@ -1,5 +1,7 @@
 type request = {
   id : string;
+  greenfield : bool;
+  folder_root : bool;
   jj : string;
   source : string;
   parent : string;

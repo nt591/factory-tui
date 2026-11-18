@@ -10,6 +10,28 @@ let describe (settings : Config.t) =
       ("checks_path_existence", `Bool false);
       ("checks_gateway_compatibility", `Bool false);
       ("storage", `Assoc [ ("database", optional_string settings.database) ]);
+      ( "projects",
+        `List
+          (List.map
+             (fun (project : Project.t) ->
+               `Assoc
+                 [
+                   ("name", `String project.name);
+                   ("source", `String project.source);
+                   ("description", `String project.description);
+                   ("revision", `String project.revision);
+                 ])
+             settings.projects) );
+      ( "codex",
+        `Assoc
+          [
+            ("executable", optional_string settings.codex.executable);
+            ("gateway", optional_string settings.codex.gateway_file);
+            ( "reasoning_effort",
+              optional_string (Option.map Reasoning_effort.label settings.codex.reasoning)
+            );
+            ("enables_live_mode", `Bool false);
+          ] );
       ( "workspace",
         `Assoc
           [

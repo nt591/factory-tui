@@ -1,5 +1,7 @@
 type request = {
   id : string;
+  greenfield : bool;
+  folder_root : bool;
   jj : string;
   source : string;
   parent : string;
@@ -18,6 +20,17 @@ exception Creation_error of string
 
 let unwrap = function Ok value -> value | Error error -> raise (Creation_error error)
 
+let title instruction =
+  let buffer = Buffer.create 120 and count = ref 0 in
+  Uutf.String.fold_utf_8
+    (fun () _ character ->
+      if !count < 120 then (
+        incr count;
+        Uutf.Buffer.add_utf_8 buffer
+          (match character with `Uchar u -> u | `Malformed _ -> Uutf.u_rep)))
+    () instruction;
+  Buffer.contents buffer
+
 let create request =
   try
     if
@@ -27,7 +40,7 @@ let create request =
               (function 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '-' -> true | _ -> false)
               request.id)
     then raise (Creation_error "Invalid workspace task ID.");
-    if Filename.is_relative request.parent then
+    if (not request.folder_root) && Filename.is_relative request.parent then
       raise (Creation_error "Workspace parent must be absolute.");
     let task =
       Model.make ~id:request.id ~title:"Workspace task" ~repository:request.source
@@ -38,24 +51,33 @@ let create request =
         (Model.send { task with messages = [] } ~id:(request.id ^ "/prompt")
            request.instruction)
     in
-    let parent = Unix.realpath request.parent in
-    let destination = Filename.concat parent ("factory-" ^ request.id) in
-    let workspace =
-      unwrap
-        (Workspace.create ~jj:request.jj ~source:request.source ~destination
-           ~revision:request.revision)
-    in
-    let buffer = Buffer.create 120 and count = ref 0 in
-    Uutf.String.fold_utf_8
-      (fun () _ character ->
-        if !count < 120 then (
-          incr count;
-          Uutf.Buffer.add_utf_8 buffer
-            (match character with `Uchar u -> u | `Malformed _ -> Uutf.u_rep)))
-      () request.instruction;
-    Model.attach_workspace
-      { task with title = Buffer.contents buffer }
-      (Workspace.reference workspace)
+    if request.folder_root then (
+      if
+        request.greenfield
+        || Filename.is_relative request.source
+        || String.exists (fun c -> Char.code c < 32 || Char.code c = 127) request.source
+      then
+        raise
+          (Creation_error "Choose a single creation mode and an absolute session folder.");
+      let root = Unix.realpath request.source in
+      if not (Sys.is_directory root) then
+        raise (Creation_error "Session root must be an existing folder.");
+      let task = unwrap (Model.attach_root task root) in
+      Ok { task with title = title request.instruction })
+    else
+      let parent = Unix.realpath request.parent in
+      let destination = Filename.concat parent ("factory-" ^ request.id) in
+      let workspace =
+        unwrap
+          (if request.greenfield then
+             Workspace.create_greenfield ~jj:request.jj ~destination
+           else
+             Workspace.create ~jj:request.jj ~source:request.source ~destination
+               ~revision:request.revision)
+      in
+      Model.attach_workspace
+        { task with title = title request.instruction }
+        (Workspace.reference workspace)
   with
   | Creation_error error -> Error error
   | Unix.Unix_error _ | Sys_error _ ->

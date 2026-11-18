@@ -58,6 +58,14 @@ with tempfile.TemporaryDirectory(prefix="factory-package-") as temporary:
     check("packaged snapshot renders", result.returncode == 0 and "FACTORY / terminal" in result.stdout)
     check("snapshot creates no default config", not (temporary / ".config").exists())
     check("package includes startup validation instructions", (package / "docs/configuration.md").is_file())
+    check("package includes session-root instructions", (package / "docs/sessions.md").is_file())
+    result = invoke([str(binary), "--check-config", str(package / "examples/live-test.toml")], env=env)
+    live_preview = json.loads(result.stdout) if result.returncode == 0 else {}
+    check("packaged live template previews without enabling or opening resources",
+          result.returncode == 0 and live_preview["codex"]["enables_live_mode"] is False
+          and live_preview["codex"]["reasoning_effort"] == "low"
+          and not (package / "examples/live-test.sqlite").exists())
+
     check("package includes environment gateway configuration and instructions",
           (package / "examples/litellm.toml").read_text() == (root / "examples/litellm.toml").read_text()
           and (package / "docs/gateway.md").is_file())

@@ -885,3 +885,17 @@ invalidation when effort changes. The continuous fake workflow requests low via
 the CLI and checks both invocations rather than using a wrapper. Invalid/non-live
 CLI combinations fail before resource access. No additional real-model call is
 required for this integration increment; model support remains independently scoped.
+
+The continuous workflow and model-picker PTYs copy checked-in test/configs TOML
+into isolated temporary directories. They supply fake executables and loopback
+settings there, then launch with --live-ui --config rather than repeating Codex
+flags. This verifies configured executable, gateway and reasoning through the real
+CLI. Test configuration contains no secrets or private deployment identifiers.
+
+The UI catalogue includes session-root coverage (20 cases total). It verifies a
+fake run working across two service folders and creating a new service, without
+jj metadata at the root, then inspects persistent root/history and request-free
+restart. The workflow fixture now selects a configured project and also creates
+an unregistered greenfield task. Tests remain isolated; no real gateways/models
+or repositories are used. Pure root tests include write-run codec validity,
+mutually exclusive root/workspace identities and simulated-write refusal.

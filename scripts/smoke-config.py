@@ -37,6 +37,7 @@ with tempfile.TemporaryDirectory(prefix="factory-check-config-") as temporary:
         f"[workspace]\njj='{executable}'\nsource='missing-source'\nparent='~/tasks'\n"
         "revision='main@origin'\nmodel='fixture-model'\n"
         "[layout]\nboard_width_percent=55\nboard_height_percent=40\n"
+        "[codex]\nexecutable='must-not-run'\ngateway='missing-gateway.toml'\nreasoning_effort='low'\n"
     )
     before = database.read_bytes()
 
@@ -86,6 +87,16 @@ with tempfile.TemporaryDirectory(prefix="factory-check-config-") as temporary:
                 "checks_gateway_compatibility",
             )
         ),
+    )
+    check(
+        "Codex defaults preview without executing or opening gateway",
+        preview["codex"]
+        == {
+            "executable": str(executable),
+            "gateway": str(directory / "missing-gateway.toml"),
+            "reasoning_effort": "low",
+            "enables_live_mode": False,
+        },
     )
     result = run(["--database", "override.sqlite"])
     check(

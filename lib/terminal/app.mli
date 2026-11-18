@@ -1,6 +1,7 @@
 val snapshot : size:string -> Controller.t -> unit
 
 val interactive :
+  ?projects:Project.t list ->
   ?fake_harness:bool ->
   ?live:Live_runner.config ->
   ?workspace_defaults:Workspace_defaults.t ->

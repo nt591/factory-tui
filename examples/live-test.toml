@@ -1,0 +1,16 @@
+# Copy this file, then edit paths for your machine. Nothing runs on config load.
+[storage]
+database = "live-test.sqlite"
+
+[codex]
+executable = "/opt/homebrew/bin/codex"
+gateway = "litellm.toml"
+reasoning_effort = "low"
+
+[workspace]
+jj = "/opt/homebrew/bin/jj"
+# Source and parent must exist. Create workspaces only through the form.
+source = "~/projects/example"
+parent = "~/factory-workspaces"
+revision = "@"
+model = "your-model-id"

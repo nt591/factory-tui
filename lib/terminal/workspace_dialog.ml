@@ -1,6 +1,13 @@
 open Notty
 
-type action = Field of Workspace_form.field | Create | Cancel | Models
+type action =
+  | Field of Workspace_form.field
+  | Create
+  | Cancel
+  | Models
+  | Projects
+  | Greenfield
+
 type hit = { x : int; y : int; width : int; action : action }
 type t = { image : Notty.image; hits : hit list }
 
@@ -29,7 +36,13 @@ let render_body form ~busy ~status ~width:cols ~height:rows =
             |> hpad 2 2 |> hsnap cols)
         in
         [
-          (row attr (" " ^ Workspace_form.label field), None);
+          ( row attr
+              (" "
+              ^
+              if field = Workspace_form.Source && Workspace_form.folder_root form then
+                "Session root folder"
+              else Workspace_form.label field),
+            None );
           (value, Some (Field field));
           (row normal "", None);
         ])
@@ -63,7 +76,8 @@ let render_body form ~busy ~status ~width:cols ~height:rows =
   let fields = I.(vcat images |> vsnap ~align:`Top capacity) in
   let buttons =
     if busy then " Creating workspace… please wait. No agent starts."
-    else " [Create queued / Ctrl-S]   [Cancel / Esc]  [Models / Ctrl-G]"
+    else
+      " [Create queued / Ctrl-S]   [Cancel / Esc]  [Models / Ctrl-G] [Projects / Ctrl-P]"
   in
   if (not busy) && rows >= 7 && cols > 2 then (
     hits := { x = 1; y = rows - 2; width = min 25 (cols - 1); action = Create } :: !hits;
@@ -71,19 +85,30 @@ let render_body form ~busy ~status ~width:cols ~height:rows =
       hits :=
         { x = 28; y = rows - 2; width = min 16 (cols - 28); action = Cancel } :: !hits;
     if cols >= 61 then
-      hits := { x = 44; y = rows - 2; width = 17; action = Models } :: !hits);
+      hits := { x = 44; y = rows - 2; width = 17; action = Models } :: !hits;
+    if cols >= 81 then
+      hits := { x = 62; y = rows - 2; width = 19; action = Projects } :: !hits);
   let image =
     I.vcat
       [
         row accent " NEW WORKSPACE TASK";
-        row warning " jj can snapshot source files; never fetches, merges, or pushes.";
-        row normal " Explicit create only / existing parents / no automatic agent run.";
+        row warning
+          (if Workspace_form.folder_root form then
+             " Existing folder: no copy or checkout. Write policy affects this folder."
+           else " jj can snapshot source files; never fetches, merges, or pushes.");
+        row normal
+          (if Workspace_form.folder_root form then
+             " FOLDER ROOT / Source is working folder; no checkout is created. Ctrl-E \
+              switches."
+           else if Workspace_form.greenfield form then
+             " GREENFIELD / new repository; source and revision are ignored. Ctrl-N \
+              switches."
+           else " EXISTING PROJECT / Ctrl-N switches to a new repository.");
         fields;
         row normal "";
         row warning status;
         row accent buttons;
-        row normal
-          " Tab / Shift-Tab: fields · arrows: edit · Enter: next · Ctrl-S: create";
+        row normal " Ctrl-E: folder root · Ctrl-N: greenfield · Ctrl-S: create";
       ]
   in
   {

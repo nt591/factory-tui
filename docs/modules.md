@@ -43,6 +43,9 @@ against these interfaces during the normal Dune build.
   Authorization uses stdin; response bodies and client stderr stay out of errors.
 - `Reasoning_effort`: validated launch-only low/medium/high choices for Codex
   invocation and confirmation. It does not infer model support or change snapshots.
+- `Project`: validated optional named repository defaults; no filesystem access.
+- `Project_picker`: transient literal-filter selection tied to the exact creation
+  form; choosing does not initialize or open a project.
 - `Model`: immutable task/run/event data and lifecycle transitions. Records and
   variants are public because reducers, codecs, and rendering inspect them.
 - `Restart_guidance`: pure pre-recovery snapshot summary of interrupted tasks and

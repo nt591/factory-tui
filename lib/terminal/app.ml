@@ -9,7 +9,7 @@ let snapshot ~size t =
     invalid_arg "Snapshot dimensions must be between 1 and 1000.";
   Notty_unix.output_image (Ui.render t ~width ~height).image
 
-let interactive ?(fake_harness = false) ?live
+let interactive ?(projects = []) ?(fake_harness = false) ?live
     ?(workspace_defaults = Workspace_defaults.empty) ?(layout = Pane_layout.automatic)
     ~events ~database () =
   if live <> None && (fake_harness || events <> "" || database = "") then
@@ -20,6 +20,7 @@ let interactive ?(fake_harness = false) ?live
     Error "Interactive mode needs a terminal. Use --snapshot for a headless preview."
   else
     let t = Controller.create ~external_events:(events <> "") ~fake_harness () in
+    t.projects <- projects;
     Controller.set_workspace_defaults t workspace_defaults;
     Pane_layout.set_defaults t.pane_layout layout;
     t.database_path <- (if database = "" then None else Some database);

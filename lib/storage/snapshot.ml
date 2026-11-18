@@ -71,6 +71,7 @@ let task (task : task) =
                 ("name", string workspace.name);
               ])
           task.workspace );
+      ("session_root", option string task.session_root);
       ("tools", list pair task.tools);
       ( "messages",
         list
@@ -226,6 +227,21 @@ let decode_task json =
                 | Ok _ -> Some workspace
                 | Error _ -> invalid ()))
         | _ -> invalid ());
+      session_root =
+        (match json with
+        | `Assoc fields -> (
+            match List.assoc_opt "session_root" fields with
+            | None | Some `Null -> None
+            | Some value ->
+                let root = text value in
+                if
+                  Result.is_error
+                    (Model.attach_root
+                       (Model.make ~id:"root-validation" ~title:"" ~repository:"")
+                       root)
+                then invalid ();
+                Some root)
+        | _ -> invalid ());
       tools = array decode_pair (field "tools" json);
       messages =
         array
@@ -251,12 +267,15 @@ let decode_task json =
     }
   in
   Option.iter
+    (fun root -> if task.workspace <> None || root <> task.repository then invalid ())
+    task.session_root;
+  Option.iter
     (fun workspace -> if workspace.source <> task.repository then invalid ())
     task.workspace;
   unique (List.map (fun (m : message) -> m.id) task.messages);
   if
     List.exists (fun (r : run_record) -> r.policy = Workspace_write) task.runs
-    && task.workspace = None
+    && task.workspace = None && task.session_root = None
   then invalid ();
   unique (List.map (fun (r : run_record) -> r.run_id) task.runs);
   unique (List.map fst task.tools);

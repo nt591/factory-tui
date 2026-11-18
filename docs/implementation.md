@@ -6,7 +6,7 @@ and workspace boundaries. No other local checkout is a runtime dependency.
 ## Product contract
 
 A board of self-updating agent sessions. Each task opens a persistent work channel
-and has an isolated workspace. Select a headless harness and gateway model for
+and has an explicit working root or isolated workspace. Select a headless harness and gateway model for
 each run. Keep past run selections immutable.
 
 Columns: Queued, Working, Needs you, Ready. Only explicit acceptance marks Done.
@@ -990,3 +990,24 @@ limitation, and effort changes invalidate reviewed details. This is not per-task
 reasoning configuration or provider capability inference. Pure validation/invocation/
 confirmation tests and the fake two-turn workflow verify requested low effort
 without an executable wrapper. No new paid calls or snapshot schema changes.
+
+Codex executable, gateway config path and requested reasoning can be saved in a
+non-secret [codex] TOML section. Relative paths resolve against the config file;
+CLI overrides win and --no-config removes defaults. Configuration does not enable
+live mode, workspace writes or automatic requests/runs. --live-ui remains explicit,
+but requires no repeated executable/gateway/reasoning flags when defaults exist.
+The checked-in live-fixture/model-picker templates drive their continuous PTYs,
+and examples/live-test.toml supplies generic user-editable setup. Pure parsing/
+preview tests cover values, defaults, invalid fields and no implicit mode enable.
+
+Session creation supports three explicit modes: existing isolated project checkout,
+greenfield repository plus working checkout, and an existing folder root with no
+repository requirement. Optional [projects.NAME] config and a filtered Projects
+picker avoid repeated path entry without imposing registration as a prerequisite.
+Folder roots are persisted independently of repository workspace references; both
+cannot coexist on one task. Live execution uses the exact root with the requested
+read/write policy, retains checkpoint/queue/resume ownership and discloses that
+rooting is not isolation. Greenfield creation reserves a new task container and
+retains partial failures. Single-repository diff review remains separate; root
+sessions explicitly report that multi-repository review is not implemented.
+See docs/sessions.md for user workflow and scoped follow-up work.

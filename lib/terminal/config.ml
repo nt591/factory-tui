@@ -1,7 +1,15 @@
 open Scope
 
+type codex = {
+  executable : string option;
+  gateway_file : string option;
+  reasoning : Reasoning_effort.t option;
+}
+
 type t = {
   database : string option;
+  projects : Project.t list;
+  codex : codex;
   workspace : Workspace_defaults.t;
   layout : Pane_layout.defaults;
 }
@@ -9,6 +17,8 @@ type t = {
 let empty =
   {
     database = None;
+    projects = [];
+    codex = { executable = None; gateway_file = None; reasoning = None };
     workspace = Workspace_defaults.empty;
     layout = Pane_layout.automatic;
   }
@@ -42,11 +52,12 @@ let parse ~base ~home source =
           (fun key _ ->
             if not (List.mem (Table.Key.to_string key) allowed) then
               raise
-                (Invalid "Unknown config field in storage, workspace, or layout settings."))
+                (Invalid
+                   "Unknown config field in storage, workspace, layout or codex settings."))
           table
       in
       let get name table = Table.find_opt (Table.Key.of_string name) table in
-      check_keys [ "storage"; "workspace"; "layout" ] table;
+      check_keys [ "storage"; "workspace"; "layout"; "codex"; "projects" ] table;
       let database =
         match get "storage" table with
         | None -> None
@@ -57,6 +68,66 @@ let parse ~base ~home source =
             | Some (TString value) -> Some (path ~base ~home value)
             | Some _ -> raise (Invalid "storage.database must be a string."))
         | Some _ -> raise (Invalid "storage must be a TOML table.")
+      in
+      let projects =
+        match get "projects" table with
+        | None -> []
+        | Some (TTable projects) ->
+            if Table.cardinal projects > 100 then
+              raise (Invalid "Project catalogue is limited to 100 entries.");
+            Table.fold
+              (fun name value entries ->
+                match value with
+                | TTable project ->
+                    check_keys [ "source"; "description"; "revision" ] project;
+                    let text field default =
+                      match get field project with
+                      | None -> default
+                      | Some (TString value) -> value
+                      | _ -> raise (Invalid "Project fields must be strings.")
+                    in
+                    let source = path ~base ~home (text "source" "") in
+                    let project =
+                      match
+                        Project.make ~name:(Table.Key.to_string name) ~source
+                          ~description:(text "description" "")
+                          ~revision:(text "revision" "@")
+                      with
+                      | Ok project -> project
+                      | Error error -> raise (Invalid error)
+                    in
+                    project :: entries
+                | _ -> raise (Invalid "Each project must be a TOML table."))
+              projects []
+            |> List.sort (fun (a : Project.t) b -> String.compare a.name b.name)
+        | Some _ -> raise (Invalid "projects must be a TOML table.")
+      in
+      let codex =
+        match get "codex" table with
+        | None -> empty.codex
+        | Some (TTable defaults) ->
+            check_keys [ "executable"; "gateway"; "reasoning_effort" ] defaults;
+            let optional name =
+              match get name defaults with
+              | None -> None
+              | Some (TString value) -> Some value
+              | _ -> raise (Invalid "Codex defaults must be strings.")
+            in
+            let configured_path name = Option.map (path ~base ~home) (optional name) in
+            let reasoning =
+              Option.map
+                (fun value ->
+                  match Reasoning_effort.parse value with
+                  | Ok effort -> effort
+                  | Error error -> raise (Invalid error))
+                (optional "reasoning_effort")
+            in
+            {
+              executable = configured_path "executable";
+              gateway_file = configured_path "gateway";
+              reasoning;
+            }
+        | Some _ -> raise (Invalid "codex must be a TOML table.")
       in
       let workspace =
         match get "workspace" table with
@@ -127,7 +198,7 @@ let parse ~base ~home source =
             | Error error -> raise (Invalid error))
         | Some _ -> raise (Invalid "layout must be a TOML table.")
       in
-      Ok { database; workspace; layout }
+      Ok { database; projects; codex; workspace; layout }
     with
     | Invalid message -> Error message
     | Toml.Parser.Error _ -> Error "Invalid TOML config. Source content was not printed."

@@ -53,6 +53,16 @@ let () =
   check "preview is stable JSON without changing settings"
     (Yojson.Basic.from_string (Yojson.Basic.to_string json) = json
     && Config_preview.describe settings = json);
+  let defaults =
+    Config_preview.describe
+      (parse "[codex]\nexecutable='codex'\ngateway='gateway.toml'\nreasoning_effort='low'")
+    |> member "codex"
+  in
+  check "Codex preview exposes resolved non-secret defaults"
+    (member "executable" defaults = `String "/fixture/codex"
+    && member "gateway" defaults = `String "/fixture/gateway.toml"
+    && member "reasoning_effort" defaults = `String "low"
+    && member "enables_live_mode" defaults = `Bool false);
   let empty = Config_preview.describe (parse "") in
   check "memory-only config uses explicit null defaults"
     (member "database" (member "storage" empty) = `Null

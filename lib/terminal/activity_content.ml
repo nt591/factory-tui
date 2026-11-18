@@ -61,7 +61,15 @@ let lines ?tools ~now ~expanded ~raw ~waiting = function
   | Some (task : task) ->
       [ task.title; "repo: " ^ task.repository ]
       @ (match task.workspace with
-        | None -> [ "workspace: not attached" ]
+        | None -> (
+            match task.session_root with
+            | None -> [ "workspace: not attached" ]
+            | Some root ->
+                [
+                  "session root: " ^ root;
+                  "Existing folder / no isolated checkout; multi-repo review is not \
+                   available.";
+                ])
         | Some workspace ->
             [ "workspace: " ^ workspace.directory; "base: " ^ workspace.base ])
       @ [

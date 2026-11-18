@@ -62,3 +62,42 @@ permission to start agents or spend tokens.
 The pure config-preview tests and `python3 scripts/smoke-config.py` verify setup
 using temporary files, including a deliberately invalid database that must remain
 unchanged and an executable sentinel that must never run.
+
+## Saved Codex launch defaults
+
+Keep repeated launch settings in a non-secret `[codex]` section:
+
+```toml
+[codex]
+executable = "/absolute/path/to/codex"
+gateway = "litellm.toml"
+reasoning_effort = "low"
+```
+
+Executable and gateway-file paths resolve relative to the config file, with the
+same HOME expansion as workspace paths. Reasoning accepts low, medium or high.
+All three values are optional. CLI executable/gateway/reasoning options override
+these defaults for the current live launch. `--no-config` ignores them.
+
+Configuration never enables live mode or starts a request/run. Use:
+
+```sh
+factory-tui --live-ui --config /path/to/config.toml
+```
+
+If the config is stored at the default config location, only `--live-ui` is needed.
+SQLite remains required; writes still require separate `--workspace-write` and
+per-run confirmation. A no-flag launch does not enable live execution. Invalid
+Codex settings fail parsing even in a non-live launch rather than being ignored.
+`--check-config` previews the defaults without opening the executable or gateway
+file and explicitly reports `enables_live_mode: false`.
+
+`examples/live-test.toml` is a user-editable generic template. Copy it to your own
+config directory, place the environment-only gateway config beside it, and edit
+source/workspace/model paths. Never store an API key in either file. The configs
+under `test/configs/` are fixture-only templates copied into temporary directories
+by the UI tests; they are not ready-to-run real-provider configurations.
+
+Optional `[projects.NAME]` tables provide project shortcuts; they are not required
+for creating folder-rooted or greenfield sessions. See `docs/sessions.md` for
+project fields, creation modes, working-root semantics and review limitations.

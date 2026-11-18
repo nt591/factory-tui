@@ -101,6 +101,41 @@ let create ~jj ~source ~destination ~revision =
   | Unix.Unix_error _ | Sys_error _ ->
       Error "Cannot inspect workspace paths. Parents must already exist."
 
+let create_greenfield ~jj ~destination =
+  try
+    path jj;
+    path destination;
+    let parent = Unix.realpath (Filename.dirname destination) in
+    let leaf = Filename.basename destination in
+    if leaf = "." || leaf = ".." || leaf = "/" then
+      raise (Workspace_error "Invalid greenfield destination.");
+    let destination = Filename.concat parent leaf in
+    (* Reserve the task container first. Existing paths must never be initialized. *)
+    Unix.mkdir destination 0o700;
+    let source = Filename.concat destination "repository" in
+    Unix.mkdir source 0o700;
+    let output =
+      unwrap
+        (Command.run ~executable:jj
+           ~arguments:
+             [ "--no-pager"; "--color"; "never"; "git"; "init"; "--colocate"; source ]
+           ~directory:destination ~timeout:15. ~max_output:2097152)
+    in
+    if output.status <> Unix.WEXITED 0 then
+      raise
+        (Workspace_error
+           "Greenfield initialization failed. Retain the partial task directory for \
+            inspection.");
+    create ~jj ~source
+      ~destination:(Filename.concat destination "workspace")
+      ~revision:"@"
+  with
+  | Workspace_error error -> Error error
+  | Unix.Unix_error _ | Sys_error _ ->
+      Error
+        "Cannot create greenfield task. Parent must exist and task destination must be \
+         new."
+
 let diff ~jj workspace =
   try
     Ok

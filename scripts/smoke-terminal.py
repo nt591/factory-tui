@@ -440,7 +440,7 @@ try:
         wait_ready()
         send(b"W")
         check("workspace dialog opens", "NEW WORKSPACE TASK" in text())
-        check("creation disclosure visible", "snapshot source files" in text() and "no automatic agent run" in text())
+        check("creation disclosure visible", "snapshot source files" in text() and "No agent starts." in text())
         check("workspace form shows setup guidance rather than prior-run status", "Fill the fields; Ctrl-S creates a queued task." in text())
         send(b"\x13")
         check("invalid workspace submission selects the executable field", "jj executable: Use absolute paths" in text())

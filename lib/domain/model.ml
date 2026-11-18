@@ -52,6 +52,7 @@ type task = {
   model : string;
   runs : run_record list;
   workspace : workspace_ref option;
+  session_root : string option;
 }
 
 type event =
@@ -82,6 +83,7 @@ let make ~id ~title ~repository =
     model = "coding-large";
     runs = [];
     workspace = None;
+    session_root = None;
   }
 
 let system task text =
@@ -109,7 +111,8 @@ let workspace_path path =
 let attach_workspace task workspace =
   if task.state <> Queued || task.runs <> [] then
     Error "Workspace must be attached before the first run."
-  else if task.workspace <> None then Error "Task already has a workspace."
+  else if task.workspace <> None || task.session_root <> None then
+    Error "Task already has a workspace."
   else if
     workspace.source = workspace.directory
     || (not (workspace_path workspace.source))
@@ -134,6 +137,22 @@ let attach_workspace task workspace =
         revision = task.revision + 1;
       }
 
+let attach_root task root =
+  if
+    task.state <> Queued || task.runs <> [] || task.workspace <> None
+    || task.session_root <> None
+  then Error "Session root must be attached before the first run."
+  else if (not (workspace_path root)) || String.length root > 4096 then
+    Error "Invalid session root."
+  else
+    Ok
+      {
+        task with
+        session_root = Some root;
+        repository = root;
+        revision = task.revision + 1;
+      }
+
 let set_model task value =
   let value = String.trim value in
   if
@@ -154,10 +173,13 @@ let start ?(simulated = true) ?(policy = Read_only) task run_id =
     Error "Run ID is already recorded."
   else if
     policy = Workspace_write
-    && (simulated || task.workspace = None || task.harness <> Codex)
+    && (simulated
+       || (task.workspace = None && task.session_root = None)
+       || task.harness <> Codex)
   then
     Error
-      "Workspace-write requires a non-simulated Codex run in an isolated task workspace."
+      "Workspace-write requires a non-simulated Codex run with a workspace or session \
+       root."
   else if task.state = Working || task.state = Done then
     Error "Task cannot start in this state."
   else if

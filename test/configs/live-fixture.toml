@@ -1,0 +1,23 @@
+[storage]
+database = "board.sqlite"
+
+[codex]
+executable = "fake-runner"
+reasoning_effort = "low"
+
+[workspace]
+jj = "jj"
+source = "source"
+parent = "tasks"
+revision = "@"
+model = "fixture-model"
+
+[projects.api]
+source = "source"
+description = "Fixture API service"
+revision = "@"
+
+[projects.worker]
+source = "unused-worker"
+description = "Fixture worker service"
+revision = "@"

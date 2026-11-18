@@ -15,6 +15,10 @@ type t = {
 
 let create (task : Model.task) ~jj =
   match task.workspace with
+  | None when task.session_root <> None ->
+      Error
+        "Folder-rooted session: review changes in each repository. Multi-repository \
+         review is not implemented."
   | None -> Error "Task has no workspace. Create one with W to review real changes."
   | Some workspace ->
       Ok

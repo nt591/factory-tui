@@ -24,6 +24,11 @@ type action =
   | Next_repository
   | Next_harness
   | Begin_model
+  | Toggle_folder_root
+  | Toggle_greenfield
+  | Open_projects
+  | Close_projects
+  | Choose_project of string
   | Open_models
   | Refresh_models
   | Close_models
@@ -54,6 +59,8 @@ type action =
   | Begin_new
 
 type t = {
+  mutable projects : Project.t list;
+  mutable project_picker : Project_picker.t option;
   model_picker : Model_picker.t;
   mutable model_target : model_target option;
   mutable live_config : Live_runner.config option;

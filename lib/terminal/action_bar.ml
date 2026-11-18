@@ -14,7 +14,9 @@ let items ~task ~live ~replay ~fake ~storage ~expanded =
         @ (if
              task.state <> Working && task.state <> Done && (not replay)
              && List.exists (fun (message : message) -> message.queued) task.messages
-             && ((not live) || (task.workspace <> None && task.harness = Codex))
+             && ((not live)
+                || (task.workspace <> None || task.session_root <> None)
+                   && task.harness = Codex)
            then [ ((if live then "s confirm" else "s start"), Start) ]
            else [])
         @

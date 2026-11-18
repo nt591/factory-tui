@@ -460,3 +460,49 @@ local repositories are removed. Live evidence stays outside the public checkout.
 Earlier published commits still contain the removed reports and sibling-checkout
 references. A deletion commit does not erase those historical copies. No history
 rewrite or force push is performed without separate explicit authorization.
+
+## Session-root milestone completion audit
+
+The user requested a clean, working milestone and closure of this goal before
+future feature work. The current prototype meets that milestone as follows:
+
+- Board/card movement comes from typed events. Card selection, mouse/keyboard
+  expansion, persistent chat, Help/Settings and active/archive/filter identity
+  behavior pass the terminal and focused UI cases.
+- Insert-mode/paste/search, queued replies and retained drafts pass the composer,
+  feedback, history and two-turn workflow cases. Run confirmation is explicit;
+  replies during work stay outside the active submitted-ID set.
+- TOML stores SQLite, Codex executable/gateway/reasoning and optional project
+  defaults. Config loading does not enable live mode or access credentials.
+  Checked-in test/configs templates drive actual workflow/model-picker launches.
+- Session creation accepts an existing folder root without jj, an isolated existing
+  project workspace or a greenfield repository plus working checkout. Named
+  projects are optional convenience, not a registration prerequisite. Pure and
+  PTY tests cover each mode, source preservation and restart identity.
+- A folder-root fake run edits two service directories and creates another under
+  the exact root. SQLite retains the root and completed history. Confirmation
+  discloses the existing folder and requested policy; no isolation is implied.
+- The exact final binary passed all 20 fixture UI cases with 67 previews, including
+  project selection, greenfield creation, model-picker form flow and session-root
+  execution. Evidence: `/tmp/factory-session-milestone-ui-final-20261118/report.json`.
+  Session-root and creation-form previews were inspected. Format/build/unit gates
+  passed, including 18 root, 19 catalogue, 34 workspace and 71 config checks.
+- Separate discovery CLI (31), setup CLI (37), invocation (26) and fake execution
+  (19) checks passed. Temporary package/install verification is recorded below.
+  The final binary also completed the fixture E2E perf smoke:
+  `/tmp/factory-session-milestone-perf-20261118.json`. This is not a timing budget.
+- Every library implementation has an explicit adjacent interface. Current tracked
+  content has no private model names, live response captures, personal local
+  checkout references or internal service-domain matches in the public-tree scan.
+  User author email is allowed. No real credentials or paid calls were used for
+  this milestone verification, and no external repositories were modified.
+
+This closes the requested prototype milestone, not a production-release or
+security-certification claim. Consolidated multi-repository changes, automatic
+checkout/discovery operations, safe coordination for overlapping roots, native
+per-task reasoning history and first-run configuration UX are follow-up work.
+Existing public-history copies of removed private evidence still require separate
+explicitly authorized history cleanup; no force push occurs in this milestone.
+Final temporary package/install smoke passed all 19 checks, including packaged
+session instructions and live config preview without automatic mode enable or
+resource creation. UI/perf report hashes match the exact current executable.

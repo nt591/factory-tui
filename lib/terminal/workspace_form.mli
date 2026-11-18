@@ -23,3 +23,8 @@ val paste_key : t -> Notty.Unescape.key -> unit
 val validate : t -> (unit, string) result
 val validate_submission : t -> (unit, string) result
 val set_model : t -> string -> (unit, string) result
+val set_project : t -> Project.t -> unit
+val greenfield : t -> bool
+val toggle_greenfield : t -> unit
+val folder_root : t -> bool
+val toggle_folder_root : t -> unit
