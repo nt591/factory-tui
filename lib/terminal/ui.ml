@@ -430,7 +430,8 @@ let render t ~width:cols ~height:rows =
        [
          ("Session board", Session_board);
          ("Archive", Archive_view);
-         ("+ New task", Begin_new);
+         ("+ Demo task", Begin_new);
+         ("+ Workspace task", Begin_workspace);
          ("? Help / settings", Help);
          ("", Help);
          ("REPOSITORIES", Help);
@@ -498,7 +499,8 @@ let render t ~width:cols ~height:rows =
       ("a accept", Accept);
       ("m model", Begin_model);
       ("H harness", Next_harness);
-      ("n new", Begin_new);
+      ("W workspace", Begin_workspace);
+      ("n demo", Begin_new);
       ("d archive", Toggle_archive);
       ("f pause", Toggle_pause);
       ("q quit", Quit);
@@ -536,7 +538,8 @@ let render t ~width:cols ~height:rows =
         "";
         "i composes a reply. Enter queues; Ctrl-L/Alt-Enter adds a line.";
         "Arrows edit; Home/End move within a line; Escape keeps the draft.";
-        "n creates a task. m edits its model. H cycles Codex / Claude.";
+        "n creates a demo task. W opens workspace task creation (SQLite).";
+        "m edits next-run model. H cycles Codex / Claude.";
         "s starts a simulated run; x interrupts; a accepts Ready work.";
         "b returns to all tasks. R cycles repositories. d opens Archive.";
         "t expands/collapses tools. f pauses/resumes demo events.";
@@ -613,6 +616,28 @@ let render t ~width:cols ~height:rows =
     hits := [];
     hit (x + 1) (y + 1) (min 18 (w - 2)) 1 (Menu_tab Help_tab);
     if w > 20 then hit (x + 19) (y + 1) (min 18 (w - 20)) 1 (Menu_tab Settings_tab));
+  (match t.workspace_form with
+  | None -> ()
+  | Some form ->
+      let width = min 92 cols and height = min 26 rows in
+      let x = (cols - width) / 2 and y = (rows - height) / 2 in
+      let dialog =
+        Workspace_dialog.render form
+          ~busy:(t.creation_job <> None || t.creation_request <> None)
+          ~status:t.status ~width ~height
+      in
+      paint x y dialog.image;
+      hits := [];
+      List.iter
+        (fun (item : Workspace_dialog.hit) ->
+          let action =
+            match item.action with
+            | Workspace_dialog.Field field -> Workspace_field field
+            | Workspace_dialog.Create -> Submit_workspace
+            | Workspace_dialog.Cancel -> Cancel_workspace
+          in
+          hit (x + item.x) (y + item.y) item.width 1 action)
+        dialog.hits);
   { image = fit cols rows !canvas; hits = !hits }
 
 let mouse t frame ~now = function
@@ -639,7 +664,7 @@ let mouse t frame ~now = function
       if t.help then
         t.menu_scroll <-
           max 0 (min 10000 (t.menu_scroll + if direction = `Up then -3 else 3))
-      else if t.input = Normal then (
+      else if t.input = Normal && t.workspace_form = None then (
         reset_keys t;
         (match hit_at frame x y with
         | Some (Focus focus) -> t.focus <- focus

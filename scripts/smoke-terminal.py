@@ -59,6 +59,18 @@ def pump(seconds=0.25):
             stream.feed(data)
 
 
+def wait_ready():
+    end = time.monotonic() + 10
+    while time.monotonic() < end:
+        pump(0.05)
+        raw = not (termios.tcgetattr(slave)[3] & termios.ICANON)
+        if raw and "FACTORY / terminal" in text():
+            return
+        if process.poll() is not None:
+            raise AssertionError(f"TUI failed at startup ({process.returncode}): {text()}")
+    raise AssertionError(f"TUI startup timeout: {text()}")
+
+
 def send(data):
     os.write(master, data)
     pump()
@@ -100,7 +112,7 @@ def preview(path):
 
 
 try:
-    pump(0.4)
+    wait_ready()
     check("board renders all columns", all(s in text() for s in ["Queued", "Working", "Needs you", "Ready"]))
     check("simulation is visible", "SIMULATION" in text())
     rss = subprocess.check_output(["ps", "-o", "rss=", "-p", str(process.pid)], text=True).strip()
@@ -197,7 +209,7 @@ try:
     screen.reset()
     process = subprocess.Popen([str(binary), "--no-config", "--events", str(root / "examples/events.jsonl")],
                                stdin=slave, stdout=slave, stderr=slave, env=env)
-    pump(0.4)
+    wait_ready()
     check("JSONL fixture moves task to Ready", "T-102 / Ready / conversation" in text())
     check("replay mode is visible", "FIXTURE REPLAY" in text())
     process.terminate()
@@ -213,7 +225,7 @@ try:
         screen.reset()
         process = subprocess.Popen([str(binary), "--config", str(config)],
                                    stdin=slave, stdout=slave, stderr=slave, env=env)
-        pump(0.4)
+        wait_ready()
         send(b"hgg")
         send(b"s")
         send(b"iReply after launch\r")
@@ -230,7 +242,7 @@ try:
         screen.reset()
         process = subprocess.Popen([str(binary), "--config", str(config)],
                                    stdin=slave, stdout=slave, stderr=slave, env=env)
-        pump(0.4)
+        wait_ready()
         send(b"e")
         check("UI restart recovers working task", "T-101 / Needs you / conversation" in text())
         send(b"i")
@@ -247,7 +259,7 @@ try:
         screen.reset()
         process = subprocess.Popen([str(binary)], stdin=slave, stdout=slave, stderr=slave,
                                    env={**env, "XDG_CONFIG_HOME": directory})
-        pump(0.4)
+        wait_ready()
         send(b"e")
         check("argument-free startup discovers TOML", "T-101 / Needs you / conversation" in text())
         send(b"q")
@@ -259,7 +271,7 @@ try:
         screen.reset()
         process = subprocess.Popen([str(binary), "--fake-harness", "--no-config", "--database", str(database)],
                                    stdin=slave, stdout=slave, stderr=slave, env=env)
-        pump(0.4)
+        wait_ready()
         check("fake harness mode is explicit", "FAKE HARNESS / NO MODEL CALLS" in text())
         with sqlite3.connect(database) as db:
             saved = json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
@@ -285,6 +297,58 @@ try:
             task = next(t for t in saved["tasks"] if t["id"] == "T-101")
             check("shutdown records fixture interruption", task["state"] == "needs_you" and task["active"] is None)
             check("process events are stored", db.execute("SELECT count(*) FROM events").fetchone()[0] > 0)
+
+    with tempfile.TemporaryDirectory(prefix="factory-workspace-ui-") as temporary:
+        directory = Path(temporary).resolve()
+        source = directory / "source"
+        source.mkdir()
+        subprocess.run(["/opt/homebrew/bin/jj", "git", "init", "--colocate", str(source)],
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        database = directory / "board.sqlite"
+        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
+        screen.resize(lines=rows, columns=cols)
+        screen.reset()
+        process = subprocess.Popen([str(binary), "--no-config", "--database", str(database)],
+                                   stdin=slave, stdout=slave, stderr=slave, env=env)
+        wait_ready()
+        send(b"W")
+        check("workspace dialog opens", "NEW WORKSPACE TASK" in text())
+        check("creation disclosure visible", "snapshot source files" in text() and "no automatic agent run" in text())
+        send(b"\x1b[Z")
+        send(b"/opt/homebrew/bin/jj\t")
+        send(str(source).encode() + b"\t")
+        send(str(directory).encode() + b"\t\t\t")
+        send(b"Create an isolated task through the TUI")
+        pump(0.5)
+        check("workspace form remains explicit", "Task instruction" in text()
+              and "Create an isolated task through the TUI" in text())
+        if args.preview:
+            preview(args.preview.with_stem(args.preview.stem + "-workspace"))
+        send(b"\x13")
+        pump(1.0)
+        check("workspace creation selects queued chat", "Create an isolated task through the TUI" in text()
+              and "No agent starts" in text())
+        send(b"q")
+        process.wait(timeout=5)
+        check("workspace UI exits cleanly", process.returncode == 0)
+        with sqlite3.connect(database) as db:
+            saved = json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
+        task = next(t for t in saved["tasks"] if t.get("workspace"))
+        check("created workspace identity persisted", task["workspace"]["source"] == str(source)
+              and Path(task["workspace"]["directory"]).is_dir())
+        check("created workspace task starts no run", task["state"] == "queued" and task["active"] is None
+              and task["runs"] == [])
+        check("complete task instruction retained", task["messages"][0]["text"] == "Create an isolated task through the TUI")
+        check("original source not changed", not (source / "example.txt").exists())
+        screen.reset()
+        process = subprocess.Popen([str(binary), "--no-config", "--database", str(database)],
+                                   stdin=slave, stdout=slave, stderr=slave, env=env)
+        wait_ready()
+        send(b"e")
+        check("created task chat restores after restart", "Create an isolated task through the TUI" in text())
+        send(b"q")
+        process.wait(timeout=3)
+        check("reopened workspace UI exits cleanly", process.returncode == 0)
 
 finally:
     if process.poll() is None:

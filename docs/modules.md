@@ -37,6 +37,10 @@ against these interfaces during the normal Dune build.
   run-record encoder used by the SQL store. JSON parsing helpers remain private.
 - `Events`: replay envelope encode/decode and an abstract file/FIFO source. Callers
   close the source through an idempotent operation, not its raw descriptor.
+- `Workspace_form`: abstract field/editor state; local validation and input only.
+- `Workspace_dialog`: form rendering/hitboxes, independent of controller and jobs.
+- `Task_creation`: abstract background job for workspace creation and task assembly;
+  it uses domain APIs and never starts an agent or owns UI/persistence.
 - `Workspace`: abstract validated workspace identity, exact-base creation, and
   bounded real diffs. No automatic Git conversion, fetching, integration, or deletion.
 - `Command`: bounded plain stdout capture and stderr draining for jj operations;

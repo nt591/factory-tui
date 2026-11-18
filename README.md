@@ -23,7 +23,8 @@ card moves to Ready after about eight seconds without manual column movement.
 Selection follows the task's ID as it moves. Without a database flag or a stored
 config, tasks and drafts live in memory and quitting discards them. A configured
 SQLite database saves conversations and drafts. No agents, credentials, or
-workspaces are opened by either mode.
+workspaces are opened on launch by either mode; `W` is an explicit workspace
+creation action.
 
 For a fresh checkout:
 
@@ -129,7 +130,8 @@ plugins, modify shell startup files, or require global OCaml tool installations.
   Multiline paste preserves newlines without submitting or activating shortcuts.
   Escape keeps a task-specific draft. Cursor movement uses Unicode codepoints,
   not complete grapheme clusters; combining sequences need care when editing.
-- `n` creates a task. `m` edits the next-run model; `H` cycles Codex / Claude.
+- `n` creates a demo task; `W` opens explicit workspace task creation (SQLite).
+  `m` edits the next-run model; `H` cycles Codex / Claude.
   Both harnesses are simulated. Selection starts no process.
 - `s` starts a simulated run, `x` interrupts it. Activity retains each run's
   original harness/model, timestamps, and outcome.
@@ -340,8 +342,8 @@ requested. The CLI returns only a small summary; open the database in the TUI to
 inspect the chat. TUI Start still uses simulation, not this execution path.
 
 Only fake-executable execution has been verified. Installed-Codex/gateway
-compatibility, interactive approvals, and isolated workspace creation remain
-pending. See [docs/harness.md](docs/harness.md) for the full safety boundary.
+compatibility, interactive approvals, live UI execution, and changes review remain
+pending. Isolated workspace task creation is available separately via `W`. See [docs/harness.md](docs/harness.md) for the full safety boundary.
 `python3 scripts/smoke-execution.py` runs fake CLI execution checks only.
 
 ## Gateway configuration validation
@@ -380,7 +382,15 @@ real bounded diffs. It never fetches, merges, pushes, deletes, or converts a
 Git-only repository automatically. Ordinary jj creation may snapshot source
 uncommitted files, so UI integration must disclose that behavior.
 
-Workspace task association and the creation/review UI are not implemented yet.
+Workspace task identity persists with the conversation. With configured SQLite,
+press `W` to create a workspace-backed task: Tab/Shift-Tab selects fields, Enter
+moves to the next, Ctrl-S creates, and Escape cancels before submission. The form
+shows the source-snapshot disclosure. Creation runs in the background and selects
+the new Queued chat; it starts no agent. Source, parent, exact base, and model are
+remembered from previous workspace-backed tasks. jj's path remains explicit.
+
+Real changes review is the next UI increment. Creation requires durable storage;
+a save failure leaves the new directory for inspection instead of deleting it.
 See [docs/workspaces.md](docs/workspaces.md) for the API limits and next steps.
 
 ## Module interfaces

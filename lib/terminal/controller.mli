@@ -27,9 +27,16 @@ type action =
   | Quit
   | Begin_search
   | Begin_compose
+  | Begin_workspace
+  | Submit_workspace
+  | Cancel_workspace
+  | Workspace_field of Workspace_form.field
   | Begin_new
 
 type t = {
+  mutable workspace_form : Workspace_form.t option;
+  mutable creation_job : Task_creation.job option;
+  mutable creation_request : Task_creation.request option;
   mutable tasks : task list;
   mutable selected : string;
   mutable focus : focus;
@@ -85,3 +92,5 @@ val key : t -> Notty.Unescape.key -> unit
 val insert_text : t -> string -> unit
 val paste_key : t -> Notty.Unescape.key -> unit
 val demo_context : t -> Demo.Runner.context
+val poll_creation : t -> storage:Persistence.t option -> unit
+val finish_creation : t -> storage:Persistence.t option -> unit

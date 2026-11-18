@@ -40,8 +40,9 @@ from `scripts/smoke-terminal.py --preview /tmp/factory-tui.png`.
 
 ## Remaining work
 
-Live process supervision, gateway setup, isolated workspaces and a real changes
-review surface follow the implementation sequence. Simulation currently uses
+Live UI execution and a real changes review surface follow the implementation
+sequence. The `W` creation form now creates isolated Queued tasks with persistent
+workspace identity and explicit source-snapshot disclosure. Simulation currently uses
 fixture data only. Do not present a simulated tool result as real verification.
 The composer supports multiline drafts (Ctrl-L or Alt-Enter), Unicode codepoint cursor movement,
 insertion/deletion, and newline-preserving paste. Further refinements may include

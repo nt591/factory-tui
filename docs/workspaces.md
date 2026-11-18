@@ -19,8 +19,7 @@ source, destination, exact base commit, and name through accessors. Workspace id
 round-trips through SQLite. Older snapshots without workspace metadata still load.
 Attachment cannot replace a workspace or redirect existing run history. Restoring
 metadata validates its structure; it does not prove the directory still exists.
-The creation form is the next increment.
-There is no UI workspace-creation action in this commit.
+The explicit `W` creation action is available when the TUI uses SQLite storage.
 
 ## Review
 
@@ -47,3 +46,33 @@ stdout/stderr handling, output limits, and bounded timeout cleanup.
 No tests create a workspace in a real repository or start an agent. The test's
 jj executable is the installed `/opt/homebrew/bin/jj`; application APIs require
 an explicit path rather than silently selecting that installation.
+
+## New workspace task UI
+
+Configure storage with TOML or `--database`, then press `W` (or click Workspace
+Task in the wide sidebar). The modal collects an absolute jj executable, existing
+source checkout and workspace parent, explicit revision, next-run model, and task
+instruction. Tab / Shift-Tab select fields; arrows/Home/End edit; Enter moves to
+the next field. Ctrl-S or the Create button is the only submission action. Paste
+cannot submit or invoke a background command. Escape cancels before submission.
+
+Creation runs on a background thread. The modal remains open and input is blocked
+while the bounded operation completes. Shutdown joins the operation; it does not
+abandon a worker mid-creation. The new destination is `factory-<task-id>` under the
+selected parent. The task enters Queued with its workspace identity and queued
+instruction; no agent starts. The app selects its chat and asynchronously saves
+task metadata using the existing persistence worker. If persistence fails after
+creation, the directory remains and the storage error is displayed; do not delete
+or repeat a creation blindly. Normal shutdown flushes pending saves. Abrupt exit
+can leave a created directory without persisted task metadata.
+
+Storage is required rather than silently creating real workspaces in a throwaway
+demo board. Replay mode cannot create workspaces. Normal `n` still creates a demo
+task only. New forms remember source, parent, exact base, and model from the most
+recent workspace-backed task, including after restart. The jj executable remains
+explicit and the task instruction starts blank.
+
+Form/controller tests and the PTY smoke create workspaces only in temporary jj
+repositories. They cover modal keyboard/mouse isolation, paste safety, field
+navigation, background creation, Queued/no-run state, persistence and reopening,
+and retaining an existing destination after a failed duplicate creation.

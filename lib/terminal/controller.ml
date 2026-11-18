@@ -27,9 +27,16 @@ type action =
   | Quit
   | Begin_search
   | Begin_compose
+  | Begin_workspace
+  | Submit_workspace
+  | Cancel_workspace
+  | Workspace_field of Workspace_form.field
   | Begin_new
 
 type t = {
+  mutable workspace_form : Workspace_form.t option;
+  mutable creation_job : Task_creation.job option;
+  mutable creation_request : Task_creation.request option;
   mutable tasks : task list;
   mutable selected : string;
   mutable focus : focus;
@@ -66,6 +73,9 @@ type t = {
 
 let create ?(external_events = false) ?(fake_harness = false) () =
   {
+    workspace_form = None;
+    creation_job = None;
+    creation_request = None;
     tasks =
       (if fake_harness then
          (Snapshot.recover
@@ -261,6 +271,58 @@ let act t action =
           t.model_text <- task.model;
           t.input <- Edit_model;
           t.editor <- Text_edit.create task.model)
+  | Begin_workspace ->
+      if t.database_path = None then
+        t.status <-
+          "Workspace tasks require persistent storage. Configure TOML or --database \
+           first."
+      else if t.external_events then
+        t.status <- "Workspace creation is unavailable in replay mode."
+      else
+        let previous =
+          List.find_opt (fun (task : task) -> task.workspace <> None) (List.rev t.tasks)
+        in
+        let source, parent, revision, model =
+          match previous with
+          | None -> ("", "", "@", "coding-large")
+          | Some task ->
+              let w = Option.get task.workspace in
+              (w.source, Filename.dirname w.directory, w.base, task.model)
+        in
+        t.workspace_form <- Some (Workspace_form.create ~source ~parent ~revision ~model);
+        t.help <- false;
+        t.input <- Normal;
+        t.status <-
+          "Explicit creation only. jj can snapshot source files; no agent starts."
+  | Workspace_field field ->
+      Option.iter (fun form -> Workspace_form.focus form field) t.workspace_form
+  | Cancel_workspace ->
+      if t.creation_job = None && t.creation_request = None then t.workspace_form <- None
+      else
+        t.status <-
+          "Creation is in progress. Wait for its bounded completion before closing."
+  | Submit_workspace -> (
+      if t.creation_request <> None || t.creation_job <> None then ()
+      else
+        match t.workspace_form with
+        | None -> ()
+        | Some form -> (
+            match Workspace_form.validate form with
+            | Error error -> t.status <- error
+            | Ok () ->
+                let value = Workspace_form.value form in
+                let id = next_id t "T" in
+                t.creation_request <-
+                  Some
+                    {
+                      Task_creation.id;
+                      jj = value Workspace_form.Jj;
+                      source = value Workspace_form.Source;
+                      parent = value Workspace_form.Parent;
+                      revision = value Workspace_form.Revision;
+                      model = value Workspace_form.Model;
+                      instruction = value Workspace_form.Task;
+                    }))
   | Begin_new ->
       t.input <- New_task;
       t.new_title <- "";
@@ -354,7 +416,10 @@ let insert_text t value =
         Text_edit.insert editor (clean ~newlines:(t.input = Compose) value))
 
 let paste_key t (key, _) =
-  if t.input <> Normal then
+  if t.workspace_form <> None then (
+    if t.creation_job = None && t.creation_request = None then
+      Workspace_form.paste_key (Option.get t.workspace_form) (key, []))
+  else if t.input <> Normal then
     match key with
     | `Enter -> if t.input = Compose then insert_text t "\n" else insert_text t " "
     | `ASCII char -> insert_text t (String.make 1 char)
@@ -562,6 +627,7 @@ let normal_key t (key, mods) =
     | `ASCII 't' -> command (fun () -> act t Toggle_tools)
     | `ASCII 'm' -> command (fun () -> act t Begin_model)
     | `ASCII 'H' -> command (fun () -> act t Next_harness)
+    | `ASCII 'W' -> command (fun () -> act t Begin_workspace)
     | `ASCII 'n' -> command (fun () -> act t Begin_new)
     | `ASCII 's' | `Function 5 -> command (fun () -> act t Start)
     | `ASCII 'x' | `Function 6 -> command (fun () -> act t Stop)
@@ -592,6 +658,14 @@ let key t (key, mods) =
   if key = `ASCII 'c' && List.mem `Ctrl mods then (
     reset_keys t;
     t.quit <- true)
+  else if t.workspace_form <> None then (
+    reset_keys t;
+    if t.creation_job <> None || t.creation_request <> None then ()
+    else
+      match key with
+      | `Escape -> act t Cancel_workspace
+      | `ASCII 's' when List.mem `Ctrl mods -> act t Submit_workspace
+      | _ -> Workspace_form.key (Option.get t.workspace_form) (key, mods))
   else if t.help then (
     reset_keys t;
     match key with
@@ -646,3 +720,41 @@ let demo_context t : Demo.Runner.context =
     enabled = (fun () -> t.fake_harness);
     quitting = (fun () -> t.quit);
   }
+
+let poll_creation t ~storage =
+  (match t.creation_request with
+  | None -> ()
+  | Some request -> (
+      t.creation_request <- None;
+      match storage with
+      | None -> t.status <- "Persistent storage is required for workspace creation."
+      | Some worker -> (
+          match Persistence.error worker with
+          | Some error -> t.status <- "Storage error: " ^ error
+          | None -> t.creation_job <- Some (Task_creation.start request))));
+  match t.creation_job with
+  | None -> ()
+  | Some job -> (
+      match Task_creation.result job with
+      | None -> ()
+      | Some result -> (
+          Task_creation.close job;
+          t.creation_job <- None;
+          match result with
+          | Error error -> t.status <- error
+          | Ok task ->
+              t.tasks <- t.tasks @ [ task ];
+              select t task.id;
+              t.archive <- false;
+              t.repository <- None;
+              t.query <- "";
+              t.workspace_form <- None;
+              t.focus <- Conversation;
+              t.status <-
+                "Workspace task created / Queued. No agent starts. Saving conversation \
+                 metadata."))
+
+let finish_creation t ~storage =
+  t.creation_request <- None;
+  Option.iter Task_creation.close t.creation_job;
+  poll_creation t ~storage
