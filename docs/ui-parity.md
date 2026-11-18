@@ -251,3 +251,11 @@ not scroll the patch; the patch target is absent while the path is being edited.
 `Review_view` exports its content geometry, and the UI maps it into the terminal
 frame. Boundary/resize/input tests and PTY checks cover both ignored and accepted
 wheel input without changing saved state or execution gates.
+
+Chat and Activity retain separate scroll offsets when switching mouse focus.
+Scrolling tool output does not apply the chat's history distance to that pane,
+and returning to chat restores its prior history position. Streaming updates
+while Activity has focus still preserve the chat anchor. Explicit task selection
+resets both positions; keyboard pane cycling still starts at a fresh position.
+`Pane_scroll.ml/.mli` stores only transient offsets. Unit and PTY tests verify
+independence, history retention during stream growth, and unchanged snapshots.

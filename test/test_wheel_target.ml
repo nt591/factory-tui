@@ -36,7 +36,7 @@ let () =
   Ui.mouse controller frame ~now:3.
     (`Press (`Scroll `Down), (activity.x + 2, activity.y + 2), []);
   check "wheel over visible Activity selects its focus"
-    (controller.focus = Controller.Activity && controller.scroll = 6);
+    (controller.focus = Controller.Activity && controller.scroll = 3);
   let current = state () in
   Ui.mouse controller frame ~now:4.
     (`Press (`Scroll `Up), (chat.x + 2, chat.y + chat.h + 1), []);

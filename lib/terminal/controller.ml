@@ -87,6 +87,7 @@ type t = {
   mutable board_scroll : int;
   mutable board_list : bool;
   column_scroll : Column_scroll.t;
+  pane_scroll : Pane_scroll.t;
   mutable status : string;
   mutable quit : bool;
   mutable serial : int;
@@ -148,6 +149,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     board_scroll = 0;
     board_list = false;
     column_scroll = Column_scroll.create ();
+    pane_scroll = Pane_scroll.create ();
     status = "Simulation only. No agent, credentials, or workspace access.";
     quit = false;
     serial = 200;
@@ -217,6 +219,7 @@ let select t id =
     (fun (task : task) -> Column_scroll.follow t.column_scroll task.state)
     (selected t);
   Chat_viewport.reset t.chat_viewport;
+  Pane_scroll.clear t.pane_scroll;
   t.scroll <- 0;
   t.board_scroll <- 0
 
@@ -266,6 +269,16 @@ let tick t now =
     List.iter (fun (_, event) -> receive t event) due)
 
 let focus_pane t focus =
+  if t.focus <> focus then (
+    (match t.focus with
+    | Conversation -> Pane_scroll.remember t.pane_scroll Chat t.scroll
+    | Activity -> Pane_scroll.remember t.pane_scroll Activity t.scroll
+    | Board -> ());
+    t.scroll <-
+      (match focus with
+      | Conversation -> Pane_scroll.position t.pane_scroll Chat
+      | Activity -> Pane_scroll.position t.pane_scroll Activity
+      | Board -> 0));
   if focus <> Activity then (
     if focus = Board && t.activity_expanded then t.zoom <- false;
     t.activity_expanded <- false);
@@ -758,14 +771,17 @@ let page t delta =
   else scroll t delta
 
 let cycle_focus t backwards =
-  t.focus <-
-    (match (t.focus, backwards) with
+  let focus =
+    match (t.focus, backwards) with
     | Board, false | Activity, true -> Conversation
     | Conversation, false | Board, true -> Activity
-    | Activity, false | Conversation, true -> Board);
-  if t.zoom && t.focus = Board then
-    t.focus <- (if backwards then Activity else Conversation);
-  focus_pane t t.focus;
+    | Activity, false | Conversation, true -> Board
+  in
+  let focus =
+    if t.zoom && focus = Board then if backwards then Activity else Conversation
+    else focus
+  in
+  focus_pane t focus;
   Chat_viewport.reset t.chat_viewport;
   t.scroll <- 0
 

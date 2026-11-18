@@ -129,6 +129,9 @@ against these interfaces during the normal Dune build.
 - `Action_bar`: contextual labels/actions from task state and session-mode flags.
   It does not run preflight, read paths, change tasks, or grant execution permission.
   Keyboard dispatch and live confirmation retain their own validation.
+- `Pane_scroll`: abstract transient chat/Activity offset memory. Mouse focus
+  switches restore the target offset; selecting a task clears both. History
+  anchoring remains in Chat_viewport and no position is persisted.
 - `Pane_layout`: pure board/detail split selection from body size and focus.
   It has no controller, persistence, terminal, or process dependency.
 - `Text_layout`: grapheme-preserving terminal-cell and word wrapping for sanitized

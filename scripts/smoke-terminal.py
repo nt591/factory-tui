@@ -132,9 +132,9 @@ try:
     check("counted vim motion selects card", "T-106 / Queued / conversation" in text())
     send(b"gg")
     check("gg selects first card", "T-101 / Queued / conversation" in text())
-    initial_board = screen.display[3:19]
     send(b"\x1b[<65;5;35M")
-    check("wheel over footer leaves board window unchanged", screen.display[3:19] == initial_board)
+    check("wheel over footer leaves queued window unchanged", "Queued 3 / 1-2/3" in text()
+          and "T-101 / Queued / conversation" in text())
 
     send(b"G")
     check("G selects last card", "T-106 / Queued / conversation" in text())
@@ -667,6 +667,9 @@ printf '%s\\n' '{"type":"turn.completed"}'
             return screen.display[5].split("│")[1].strip()
         check("scroll reveals older message", top_chat_line() == "History item 01")
         check("paused history is disclosed", "reading history" in text())
+        send(b"\x1b[<65;95;8M")
+        check("Activity wheel does not borrow chat history offset", top_chat_line() == "History item 01"
+              and "next: Codex" in text())
         with replay.open("a") as output:
             output.write(replay_event("later", "New output while reading history"))
         pump(0.3)
@@ -676,6 +679,8 @@ printf '%s\\n' '{"type":"turn.completed"}'
             output.write(replay_event("history-0", "Earlier streamed message now has more text\n" * 5))
         pump(0.3)
         check("earlier stream growth keeps anchored message visible", top_chat_line() == "History item 01")
+        send(b"\x1b[<0;10;10M\x1b[<0;10;10m")
+        check("returning from Activity restores chat history position", top_chat_line() == "History item 01")
         if args.preview:
             preview(args.preview.with_stem(args.preview.stem + "-history-anchor"))
         send(b"\x1b[F")

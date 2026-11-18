@@ -305,11 +305,14 @@ let () =
   check "activity half-page uses viewport" (vim.scroll = 5);
   ctrl 'f';
   check "activity full-page uses viewport" (vim.scroll = 15);
+  let chat_scroll = Pane_scroll.position vim.pane_scroll Chat in
   Controller.act vim (Controller.Focus Controller.Conversation);
+  check "conversation focus does not inherit activity page offset"
+    (vim.scroll = chat_scroll && Pane_scroll.position vim.pane_scroll Activity = 15);
   key 'k';
-  check "conversation k scrolls back" (vim.scroll = 16);
+  check "conversation k scrolls back" (vim.scroll = chat_scroll + 1);
   key 'j';
-  check "conversation j scrolls forward" (vim.scroll = 15);
+  check "conversation j scrolls forward" (vim.scroll = chat_scroll);
   key 'G';
   check "conversation G resumes following" (vim.scroll = 0);
   key 'g';

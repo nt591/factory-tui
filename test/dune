@@ -202,3 +202,8 @@
  (name test_wheel_target)
  (modules test_wheel_target)
  (libraries factory_tui notty))
+
+(test
+ (name test_pane_scroll)
+ (modules test_pane_scroll)
+ (libraries factory_tui notty yojson))

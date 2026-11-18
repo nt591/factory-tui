@@ -254,3 +254,10 @@ borders, position row, and background do not move menu content or the board.
 Review titles, executable fields, and buttons do not scroll the patch; executable
 editing removes its wheel target. Pure frame/input and PTY tests cover the content
 boundary while preserving existing modal ownership and confirmation blocking.
+
+Chat history distance and Activity row offset are remembered separately through
+mouse/direct focus switches. A tool-pane wheel cannot borrow the chat-history
+offset, and returning to chat restores its history position, including updates
+received while Activity had focus. Explicit task selection resets both positions;
+keyboard pane cycling retains its fresh-position behavior. Pure frame/input and
+streaming PTY tests verify this; position memory is abstract and never serialized.
