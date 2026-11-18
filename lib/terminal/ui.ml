@@ -30,48 +30,8 @@ let fit w h image =
 
 let block cols rows a = I.char a ' ' (max 0 cols) (max 0 rows)
 let glyph a s = I.string a s
-
-let wrap cols text =
-  let cols = max 1 cols in
-  let current = Buffer.create cols and cells = ref 0 and rows = ref [] in
-  let flush () =
-    rows := Buffer.contents current :: !rows;
-    Buffer.clear current;
-    cells := 0
-  in
-  Uutf.String.fold_utf_8
-    (fun () _ -> function
-      | `Malformed _ -> ()
-      | `Uchar u ->
-          if Uchar.to_int u = 10 then flush ()
-          else
-            let b = Buffer.create 4 in
-            Uutf.Buffer.add_utf_8 b u;
-            let s = Buffer.contents b in
-            let size = I.width (I.string A.empty s) in
-            if !cells + size > cols && !cells > 0 then flush ();
-            Buffer.add_string current s;
-            cells := !cells + size)
-    () (clean text);
-  flush ();
-  List.rev !rows
-
-let wrap_title cols title =
-  let words = String.split_on_char ' ' (clean ~newlines:false title) in
-  let width text = I.width (I.string A.empty text) in
-  let rec loop current rows = function
-    | [] -> List.rev (if current = "" then rows else current :: rows)
-    | word :: rest -> (
-        let combined = if current = "" then word else current ^ " " ^ word in
-        if width combined <= cols then loop combined rows rest
-        else if current <> "" then loop "" (current :: rows) (word :: rest)
-        else
-          let parts = wrap cols word in
-          match List.rev parts with
-          | last :: previous -> loop last (previous @ rows) rest
-          | [] -> loop "" rows rest)
-  in
-  loop "" [] words
+let wrap cols text = Text_layout.wrap cols (clean text)
+let wrap_title cols text = Text_layout.wrap_words cols (clean ~newlines:false text)
 
 let border cols rows ~title ~color ~focused content =
   if cols < 2 || rows < 2 then fit cols rows content

@@ -234,6 +234,9 @@ try:
     send(b"Compact visible reply")
     check("compact composing exposes chat and editor", "Reply / next turn" in text()
           and "Compact visible reply" in text() and "conversation" in text())
+    send(b"\x0c" + b"a" * 55 + "👍🏽TAIL".encode())
+    check("compact wrapping keeps the emoji modifier on the same row",
+          any("👍🏽" in row and "TAIL" in row for row in screen.display[4:-4]))
     if args.preview:
         preview(args.preview.with_stem(args.preview.stem + "-compact-compose"))
     send(b"\x1b")

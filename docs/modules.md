@@ -101,6 +101,9 @@ against these interfaces during the normal Dune build.
   Keyboard dispatch and live confirmation retain their own validation.
 - `Pane_layout`: pure board/detail split selection from body size and focus.
   It has no controller, persistence, terminal, or process dependency.
+- `Text_layout`: grapheme-preserving terminal-cell and word wrapping for sanitized
+  text. It has no controller or resource state; Ui sanitizes text before wrapping.
+  A cluster wider than the pane stays whole and is cropped by rendering.
 - `Ui`: frame/hitbox data, render, mouse dispatch, and tested text wrapping. Theme,
   borders, image composition, and pane rendering helpers stay private. Activity
   expansion preserves the previous task layout and exposes full-width output.

@@ -73,3 +73,18 @@ text, acceptance guidance, and stale/background-event isolation. The stop/retry 
 rejects any unexpected error callback while the replacement runs, then requires
 completion guidance instead of stale waiting text. Archive first-run tests cover
 selection repair, direct zoom, filtering, and retained read-only chat.
+
+## Grapheme wrapping and terminal width
+
+`test_text_layout` compares complete grapheme sequences and retained UTF-8 bytes
+before/after wrapping, using Notty's measured cell width. It covers combining
+accents, skin-tone modifiers, flags, joined emoji, keycaps, explicit blank lines,
+control sanitization, malformed input, and oversized-cluster cropping. These
+checks do not establish the width used by a terminal emulator or font.
+
+The compact PTY probe places a skin-tone emoji near a row boundary and checks
+that the emoji and modifier remain on the same logical display row. During this
+check, Notty and pyte disagreed on that emoji's width at the last available cells;
+the test leaves enough room for both widths. This is a documented display-width
+limit, not a reason to split a grapheme. Exact right-edge emoji rendering requires
+terminal-specific coverage and is not claimed by this test.

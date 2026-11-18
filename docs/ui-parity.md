@@ -122,3 +122,12 @@ settings so they fit compact screens. Shortcuts remain available and pass the
 same controller/preflight checks; the bar is guidance, not authorization. Pure
 `Action_bar.ml/.mli` construction performs no filesystem or process operations.
 Unit and PTY checks cover visible controls and unchanged execution gates.
+
+Wrapping keeps extended grapheme clusters together across row boundaries: accents,
+flags, skin-tone modifiers, joined emoji, and keycaps are not split into separate
+rows. `Text_layout.ml/.mli` owns terminal-cell and word wrapping; the UI sanitizes
+text first. A grapheme wider than the pane is kept intact in the logical row and
+cropped by the final image rather than divided. This does not solve differences
+in terminal/font emoji width. Unit tests compare grapheme sequences and retained
+bytes, and the compact PTY composer checks a boundary-adjacent skin-tone emoji.
+Stored text and drafts are not rewritten by rendering.

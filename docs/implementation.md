@@ -112,6 +112,10 @@ Acceptance does not merge, push, or delete a workspace.
    editing, and workspace actions. Ready review/acceptance are prioritized for
    compact screens; live Start is labeled confirmation. Keyboard validation stays
    separate, and rendering starts no command. Unit/PTY tests check lifecycle bars.
+   Grapheme-preserving text wrapping uses the same Uuseg boundary type as the
+   editor. `Text_layout` is separate from controller/rendering state; sanitized
+   chat, composer, activity, and card-title wrapping cannot split emoji sequences.
+   Oversized clusters stay whole for pane cropping. Unit/PTY checks cover boundaries.
    UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,
