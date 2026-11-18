@@ -108,6 +108,10 @@ Acceptance does not merge, push, or delete a workspace.
    IDs, and recorded review bases. Pure `Activity_content` produces logical rows;
    the renderer applies pane-width wrapping before scrolling. Unit/PTY checks
    cover complete workspace identity and retained read-only inspection.
+   A contextual action bar offers only state/mode-relevant process, acceptance,
+   editing, and workspace actions. Ready review/acceptance are prioritized for
+   compact screens; live Start is labeled confirmation. Keyboard validation stays
+   separate, and rendering starts no command. Unit/PTY tests check lifecycle bars.
    UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,

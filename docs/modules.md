@@ -96,6 +96,9 @@ against these interfaces during the normal Dune build.
 - `Text_edit`: abstract bounded UTF-8 text and cursor state, with insertion,
   deletion, line navigation, and extended-grapheme movement. Segmentation uses
   Uuseg; cached boundaries are private and malformed UTF-8 is normalized. It performs no UI actions.
+- `Action_bar`: contextual labels/actions from task state and session-mode flags.
+  It does not run preflight, read paths, change tasks, or grant execution permission.
+  Keyboard dispatch and live confirmation retain their own validation.
 - `Pane_layout`: pure board/detail split selection from body size and focus.
   It has no controller, persistence, terminal, or process dependency.
 - `Ui`: frame/hitbox data, render, mouse dispatch, and tested text wrapping. Theme,

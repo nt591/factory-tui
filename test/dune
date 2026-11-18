@@ -127,3 +127,8 @@
  (name test_activity_content)
  (modules test_activity_content)
  (libraries factory_tui notty))
+
+(test
+ (name test_action_bar)
+ (modules test_action_bar)
+ (libraries factory_tui notty))

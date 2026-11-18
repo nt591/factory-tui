@@ -112,3 +112,13 @@ rendering and the controller. Tests verify complete content before/after wrappin
 raw/readable tools, captured policies, and unchanged persisted state. The PTY
 workspace workflow reconstructs and checks the full recorded paths and base from
 the expanded pane.
+
+The action bar reflects the selected task: Working offers Stop, Ready offers
+Accept, and accepted tasks omit run/edit controls. Start requires queued input;
+live mode labels it `s confirm`, requires workspace-backed Codex, and omits
+unsupported harness cycling. Replay omits process controls; workspace creation
+requires configured storage. Inspection/review/acceptance precede secondary
+settings so they fit compact screens. Shortcuts remain available and pass the
+same controller/preflight checks; the bar is guidance, not authorization. Pure
+`Action_bar.ml/.mli` construction performs no filesystem or process operations.
+Unit and PTY checks cover visible controls and unchanged execution gates.

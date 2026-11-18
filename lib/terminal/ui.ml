@@ -559,22 +559,8 @@ let render t ~width:cols ~height:rows =
     paint 0 (rows - 3)
       (line cols (attr (if t.input = Normal then muted else accent)) input_text);
   let buttons =
-    [
-      ("? menu", Help);
-      ("e expand", Zoom);
-      ("i reply", Begin_compose);
-      ("s start", Start);
-      ("x stop", Stop);
-      ("a accept", Accept);
-      ("m model", Begin_model);
-      ("H harness", Next_harness);
-      ("v changes", Open_review);
-      ("W workspace", Begin_workspace);
-      ((if t.live_config = None then "n demo" else "n task"), Begin_new);
-      ("d archive", Toggle_archive);
-      ("f pause", Toggle_pause);
-      ("q quit", Quit);
-    ]
+    Action_bar.items ~task ~live:(t.live_config <> None) ~replay:t.external_events
+      ~fake:t.fake_harness ~storage:(t.database_path <> None) ~expanded:t.zoom
   in
   let x = ref 0 in
   if rows >= 2 then

@@ -561,6 +561,11 @@ rather than clipping them. Workspace tasks show their exact review base. Focus
 Activity and press `e` to inspect full-width metadata, tools, and run history;
 scroll as needed. Inspection does not change the task or its workspace.
 
+The action bar follows task state: Working shows Stop, Ready shows Accept, and
+accepted tasks show inspection rather than run/edit controls. Live Start says
+`s confirm`; it still opens the per-run confirmation. Keyboard shortcuts retain
+validation even when their actions are absent from the bar.
+
 ## Module interfaces
 
 All core modules have explicit `.mli` interfaces. Database, persistence worker,
