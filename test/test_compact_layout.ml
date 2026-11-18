@@ -8,7 +8,7 @@ let check name condition =
 
 let () =
   let choose width height focused =
-    Pane_layout.choose ~width ~height ~detail_focused:focused
+    Pane_layout.choose ~width ~height ~detail_focused:focused ()
   in
   check "short board focus selects overview" (choose 60 14 false = Pane_layout.Board);
   check "short detail focus selects detail" (choose 60 14 true = Pane_layout.Detail);

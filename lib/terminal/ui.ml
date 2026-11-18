@@ -547,14 +547,15 @@ let render t ~width:cols ~height:rows =
             window.repositories.offset );
     paint 0 body_y
       (border sidebar_width body_h ~title:"Factory" ~color:accent ~focused:false content));
+  Pane_layout.hide t.pane_layout;
   (if body_h > 0 then
      if t.zoom && t.activity_expanded then
        activity { x = 0; y = body_y; w = cols; h = body_h }
      else if t.zoom then details { x = 0; y = body_y; w = cols; h = body_h }
      else
        match
-         Pane_layout.choose ~width:main_width ~height:body_h
-           ~detail_focused:(t.focus <> Board)
+         Pane_layout.choose ~preferences:t.pane_layout ~width:main_width ~height:body_h
+           ~detail_focused:(t.focus <> Board) ()
        with
        | Pane_layout.Board ->
            board { x = sidebar_width; y = body_y; w = main_width; h = body_h }

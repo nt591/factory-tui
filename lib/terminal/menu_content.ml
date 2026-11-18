@@ -11,6 +11,8 @@ let help ~mode =
     "hjkl/arrows navigate. Counts repeat movement (for example, 3j).";
     "gg / G: first / last card, or top / bottom of the focused pane.";
     "Ctrl-W then hjkl moves pane focus. Ctrl-W w cycles panes.";
+    "Ctrl-W +/- grows/shrinks the focused board/chat region. = resets.";
+    "Split preferences last for this launch; zoom keeps them unchanged.";
     "Ctrl-U/D: half-page. Ctrl-B/F: full-page. Tab/Shift-Tab: cycle.";
     "Mouse wheel and Page Up/Down scroll. Home/End: first/last.";
     "i composes a reply. Enter queues; Ctrl-L/Alt-Enter adds a line.";

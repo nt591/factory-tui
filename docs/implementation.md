@@ -448,3 +448,17 @@ previews use a grapheme-safe ellipsis without changing the full editor or search
 query. `Search_banner.ml/.mli` formats the text independently of matching and
 input dispatch. Unit/compact-render and long-query PTY checks verify counts,
 query retention, and no task/run creation from match navigation.
+
+
+The primary board/detail split supports `Ctrl-W +/-` to grow/shrink the focused
+region, with numeric counts before Ctrl-W; `Ctrl-W =` restores automatic sizes.
+Conversation and Activity resize the shared detail region. `Pane_layout` owns
+abstract launch-local width/height preferences, scaled as proportions and clamped
+against the current terminal. Compact/zoom layouts have no active adjustable
+split and do not erase preferences. Taller stacked bodies reserve editor space;
+small bodies retain the focus-sensitive fallback. No tasks, drafts, runs or
+SQLite configuration are changed by layout commands. Modal/edit/paste input cannot
+resize the underlying board. Storage errors remain visible. Pure tests verify
+limits, orientation independence, restoration, counts and frame/hit bounds. The
+dedicated replay PTY check verifies actual borders, history during new updates,
+draft retention, resized composer clicks, compact/zoom restoration and reset.

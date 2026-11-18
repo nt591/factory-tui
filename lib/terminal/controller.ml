@@ -90,6 +90,7 @@ type t = {
   mutable board_list : bool;
   column_scroll : Column_scroll.t;
   pane_scroll : Pane_scroll.t;
+  pane_layout : Pane_layout.t;
   mutable status : string;
   mutable quit : bool;
   mutable serial : int;
@@ -154,6 +155,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     board_list = false;
     column_scroll = Column_scroll.create ();
     pane_scroll = Pane_scroll.create ();
+    pane_layout = Pane_layout.create ();
     status = "Simulation only. No agent, credentials, or workspace access.";
     quit = false;
     serial = 200;
@@ -839,6 +841,18 @@ let repeat count fn =
     fn ()
   done
 
+let resize_panes t delta =
+  let result = Pane_layout.resize t.pane_layout ~detail:(t.focus <> Board) ~delta in
+  if not (contains t.status "Storage error:") then
+    t.status <-
+      (match result with
+      | Pane_layout.Changed -> "Pane split adjusted. Ctrl-W = restores automatic sizes."
+      | Pane_layout.At_limit -> "Pane size limit keeps both regions usable."
+      | Pane_layout.No_split ->
+          if t.zoom then "No board/chat split is visible. Return from zoom with e."
+          else
+            "No board/chat split is visible. Enlarge the terminal to show both regions.")
+
 let normal_key t (key, mods) =
   let count = max 1 t.count in
   let prefix = t.prefix in
@@ -850,7 +864,10 @@ let normal_key t (key, mods) =
     command (fun () ->
         match key with
         | `ASCII 'w' ->
-            if prefix = Window then cycle_focus t false else t.prefix <- Window
+            if prefix = Window then cycle_focus t false
+            else (
+              t.prefix <- Window;
+              t.count <- (if count = 1 then 0 else count))
         | `ASCII 'h' when prefix = Window -> window_focus t `Left
         | `ASCII 'j' when prefix = Window -> window_focus t `Down
         | `ASCII 'k' when prefix = Window -> window_focus t `Up
@@ -870,6 +887,12 @@ let normal_key t (key, mods) =
         | `ASCII 'k' | `Arrow `Up -> window_focus t `Up
         | `ASCII 'l' | `Arrow `Right -> window_focus t `Right
         | `ASCII 'w' -> cycle_focus t false
+        | `ASCII '+' -> resize_panes t count
+        | `ASCII '-' -> resize_panes t (-count)
+        | `ASCII '=' ->
+            Pane_layout.reset t.pane_layout;
+            if not (contains t.status "Storage error:") then
+              t.status <- "Automatic pane sizes restored."
         | _ -> ())
   else if prefix = Go && key = `ASCII 'g' then command (fun () -> edge t false)
   else (

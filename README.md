@@ -170,6 +170,12 @@ plugins, modify shell startup files, or require global OCaml tool installations.
     On the board, these move selection by the visible card capacity.
   - Ctrl-W then `h/j/k/l` focuses Board / Conversation / Activity by direction;
     Ctrl-W `w` cycles panes. Expanded mode keeps focus inside task detail.
+  - Ctrl-W `+` / `-` grows / shrinks the focused board or detail region by one
+    row (stacked) or column (side by side). Conversation and Activity share the
+    detail region. A count before Ctrl-W repeats the adjustment, such as `5Ctrl-W+`.
+    Ctrl-W `=` restores automatic sizes. The independent width/height preferences
+    scale on terminal resize and last only for this launch; zoom keeps them intact.
+    Minimum sizes prevent one region from hiding the other.
   - `i` enters the reply composer; Escape returns to normal mode and keeps the draft.
     Navigation keys are literal text while composing or searching.
   - Pending counts and `g` / Ctrl-W prefixes appear in the status line.

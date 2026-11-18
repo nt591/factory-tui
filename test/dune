@@ -277,3 +277,8 @@
  (name test_search_banner)
  (modules test_search_banner)
  (libraries factory_tui notty))
+
+(test
+ (name test_pane_layout)
+ (modules test_pane_layout)
+ (libraries factory_tui notty))

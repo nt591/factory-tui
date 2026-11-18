@@ -422,6 +422,8 @@ let () =
   check "archive sidebar selection is idempotent" layout.archive;
   check "archive retains open chat" (layout.selected = "T-104");
   Controller.act layout Controller.Help;
+  ignore (rendered 120 36);
+  Controller.key layout (`ASCII 'G', []);
   let _, help_text = rendered 120 36 in
   check "help explains persistence accurately"
     (Controller.contains help_text "Configured SQLite storage");

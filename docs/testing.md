@@ -359,3 +359,18 @@ mouse cancellation and confirmation, exact retained identity/prompt, and one
 persisted Ready run. Previews show the locked and reviewed views. Pass `--binary`
 to use an already-built executable without rebuilding it. Displayed-row coverage
 is a UI safety gate, not evidence of human comprehension or a sandbox audit.
+
+
+## Adjustable pane replay fixture
+
+```sh
+uv run --with pyte --with pillow python scripts/smoke-panes.py \
+  --preview /tmp/factory-panes.png
+```
+
+The real terminal consumes temporary replay events; no agent, credential or
+workspace operation is used. The check exercises counted Vim resize commands,
+stacked/wide geometry, paused history during appended events, draft retention,
+resized composer clicks, modal/paste isolation, compact/zoom preservation and
+reset. It captures stacked and wide frames. `--binary` uses an existing build.
+Pure `test_pane_layout` covers constraints and snapshot isolation separately.

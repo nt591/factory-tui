@@ -444,3 +444,14 @@ previews use a grapheme-safe ellipsis without changing the full editor or search
 query. `Search_banner.ml/.mli` formats the text independently of matching and
 input dispatch. Unit/compact-render and long-query PTY checks verify counts,
 query retention, and no task/run creation from match navigation.
+
+
+Primary pane resizing uses `Ctrl-W +/-` (grow/shrink focused board or shared task
+detail region) and `Ctrl-W =` (automatic sizes). Counts before Ctrl-W adjust several
+rows/columns. Width and height preferences are independent launch-local ratios,
+not task or database settings. Small terminals clamp preferences without changing
+them; zoom has no primary split to adjust. Usable stacked terminals reserve editor
+room. Pure tests and `scripts/smoke-panes.py` verify actual stacked/wide borders,
+mouse composer targets, drafts, paused history during incoming output, compact
+and zoom restoration, counts, reset, and modal/paste isolation. Resizing does not
+change focus, task selection or the explicit run-confirmation boundary.

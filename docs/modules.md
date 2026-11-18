@@ -166,7 +166,10 @@ against these interfaces during the normal Dune build.
   viewport anchor together. Unfocused
   Activity renders its remembered visible window with bounded row images. History
   anchoring remains in Chat_viewport and no position is persisted.
-- `Pane_layout`: pure board/detail split selection from body size and focus.
+- `Pane_layout`: controller-independent board/detail split computation, with
+  abstract launch-local width/height preferences and a current adjustable split.
+  Proportions survive terminal reflow; bounds preserve both regions. Zoom and
+  compact fallbacks hide the adjustable split without erasing preferences.
   It has no controller, persistence, terminal, or process dependency.
 - `Composer_guidance`: pure execution-mode-aware reply controls. Live Codex-only
   and imported-harness recovery instructions stay separate from input dispatch;
