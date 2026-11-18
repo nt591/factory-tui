@@ -71,6 +71,16 @@ def wait_ready():
     raise AssertionError(f"TUI startup timeout: {text()}")
 
 
+def wait_exit(timeout=5):
+    # The app can write terminal cleanup while shutting down; keep the PTY draining.
+    deadline = time.monotonic() + timeout
+    while process.poll() is None and time.monotonic() < deadline:
+        pump(0.05)
+    if process.poll() is None:
+        raise subprocess.TimeoutExpired(process.args, timeout)
+    pump(0.05)
+
+
 def send(data):
     os.write(master, data)
     pump()
@@ -197,7 +207,7 @@ try:
     pump()
     check("narrow terminal resize survives", process.poll() is None and "FACTORY" in text())
     send(b"q")
-    process.wait(timeout=3)
+    wait_exit(3)
     check("normal exit succeeds", process.returncode == 0)
     restored = termios.tcgetattr(slave)
     # The kernel can set PENDIN when terminal attributes are restored.
@@ -213,7 +223,7 @@ try:
     check("JSONL fixture moves task to Ready", "T-102 / Ready / conversation" in text())
     check("replay mode is visible", "FIXTURE REPLAY" in text())
     process.terminate()
-    process.wait(timeout=3)
+    wait_exit(3)
     check("SIGTERM exits cleanly", process.returncode == 0)
     restored = termios.tcgetattr(slave)
     restored[3] &= ~getattr(termios, "PENDIN", 0)
@@ -231,7 +241,7 @@ try:
         send(b"iReply after launch\r")
         send(b"iSaved draft\x1b")
         send(b"q")
-        process.wait(timeout=3)
+        wait_exit(3)
         check("persisted UI exits cleanly", process.returncode == 0)
         check("TOML resolves database relative to config", database.exists())
         with sqlite3.connect(database) as db:
@@ -249,7 +259,7 @@ try:
         check("UI restart restores draft", "Saved draft" in text())
         send(b"\x1b")
         send(b"q")
-        process.wait(timeout=3)
+        wait_exit(3)
         check("reopened UI exits cleanly", process.returncode == 0)
         with sqlite3.connect(database) as db:
             check("ordered fixture events persisted", db.execute("SELECT count(*) FROM events").fetchone()[0] > 0)
@@ -263,7 +273,7 @@ try:
         send(b"e")
         check("argument-free startup discovers TOML", "T-101 / Needs you / conversation" in text())
         send(b"q")
-        process.wait(timeout=3)
+        wait_exit(3)
         check("default-config UI exits cleanly", process.returncode == 0)
 
     with tempfile.TemporaryDirectory(prefix="factory-process-ui-") as directory:
@@ -290,7 +300,7 @@ try:
         send(b"iFinal fixture turn\r")
         send(b"s")
         process.terminate()
-        process.wait(timeout=3)
+        wait_exit(3)
         check("fake UI SIGTERM cancels and exits", process.returncode == 0)
         with sqlite3.connect(database) as db:
             saved = json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
@@ -329,7 +339,7 @@ try:
         check("workspace creation selects queued chat", "Create an isolated task through the TUI" in text()
               and "No agent starts" in text())
         send(b"q")
-        process.wait(timeout=5)
+        wait_exit(5)
         check("workspace UI exits cleanly", process.returncode == 0)
         with sqlite3.connect(database) as db:
             saved = json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
@@ -364,7 +374,7 @@ try:
               and "CHANGES / " not in text())
 
         send(b"q")
-        process.wait(timeout=3)
+        wait_exit(3)
         check("reopened workspace UI exits cleanly", process.returncode == 0)
         executable = directory / "fake-codex"
         executable.write_text("""#!/bin/sh
@@ -414,7 +424,7 @@ printf '%s\\n' '{"type":"turn.completed"}'
         check("confirmed process streams into chat", "Live-mode local fixture answer" in text() and marker.exists())
         check("confirmed process moves selected task Ready", " / Ready / conversation" in text())
         send(b"q")
-        process.wait(timeout=5)
+        wait_exit(5)
         check("live fixture UI exits cleanly", process.returncode == 0)
         with sqlite3.connect(database) as db:
             saved = json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
@@ -442,7 +452,7 @@ printf '%s\\n' '{"type":"turn.completed"}'
         send(b"s\r")
         pump(0.1)
         process.terminate()
-        process.wait(timeout=5)
+        wait_exit(5)
         check("live UI SIGTERM cancels and joins", process.returncode == 0)
         with sqlite3.connect(database) as db:
             saved = json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
@@ -454,6 +464,10 @@ printf '%s\\n' '{"type":"turn.completed"}'
 finally:
     if process.poll() is None:
         process.terminate()
-        process.wait(timeout=3)
+        try:
+            wait_exit(3)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait(timeout=3)
     os.close(master)
     os.close(slave)

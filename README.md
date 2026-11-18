@@ -30,7 +30,7 @@ For a fresh checkout:
 
 ```sh
 opam switch create . ocaml-base-compiler.5.3.0 --no-switch -y
-opam install --switch=. . --deps-only -y
+opam install --switch=. --locked . --deps-only -y
 opam exec --switch=. -- dune build
 ```
 
@@ -45,6 +45,31 @@ ac_cv_func_pipe2=no ac_cv_func_dup3=no ac_cv_func_accept4=no \
 ```
 
 Use standard OCaml first. OxCaml is not required by this prototype.
+
+## Standalone command and local package
+
+```sh
+./scripts/install.sh --prefix "$HOME/.local"
+~/.local/bin/factory-tui --version
+```
+
+Installation is explicit, refuses an existing binary, and changes no config or
+shell startup files. The installed executable does not require opam or the checkout
+to run. Add your chosen prefix's `bin` directory to PATH yourself, then startup is
+just `factory-tui` with the same TOML configuration. Live mode remains opt-in.
+
+To create a local platform archive without installing:
+
+```sh
+python3 scripts/package.py --output /tmp/factory-tui-local.tar.gz
+```
+
+It runs format/build/tests and includes the executable, usage docs, non-secret
+examples, and build metadata. `factory_tui.opam.locked` records dependency versions;
+a new machine still needs the documented compiler/SDK setup to build from source.
+This is a local macOS arm64 package, not a signed/notarized cross-platform release.
+See [docs/distribution.md](docs/distribution.md). Packaging and temporary install
+checks run via `python3 scripts/smoke-package.py`.
 
 ## Alternate compiler builds
 

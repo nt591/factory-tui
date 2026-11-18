@@ -19,6 +19,12 @@ let () =
   and gateway_file = ref None in
   Arg.parse
     [
+      ( "--version",
+        Arg.Unit
+          (fun () ->
+            print_endline "factory-tui 0.1.0";
+            exit 0),
+        " Print version without reading config or starting anything" );
       ( "--live-ui",
         Arg.Set live_ui,
         " Enable explicit confirmed Codex runs on workspace tasks; SQLite required" );
@@ -30,17 +36,19 @@ let () =
         " Show invocation JSON; no process, database, or credentials" );
       ( "--codex-executable",
         Arg.String (fun value -> executable := Some value),
-        "PATH Absolute Codex executable for dry-run" );
+        "PATH Absolute Codex executable for explicit execution or preview" );
       ( "--workspace",
         Arg.String (fun value -> directory := Some value),
-        "PATH Existing absolute workspace for dry-run" );
-      ("--model", Arg.String (fun value -> model := Some value), "ID Model for dry-run");
+        "PATH Existing absolute workspace for headless execution or preview" );
+      ( "--model",
+        Arg.String (fun value -> model := Some value),
+        "ID Model for headless execution or preview" );
       ( "--resume",
         Arg.String (fun value -> thread_id := Some value),
-        "ID Explicit thread for dry-run" );
+        "ID Explicit thread for headless resume or preview" );
       ( "--gateway",
         Arg.String (fun value -> gateway_file := Some value),
-        "PATH Non-secret gateway config for dry-run" );
+        "PATH Non-secret gateway config for explicit execution or preview" );
       ( "--check-gateway",
         Arg.String (fun path -> check_gateway := Some path),
         "PATH Validate non-secret gateway config without network or credentials" );
@@ -63,7 +71,8 @@ let () =
         " Ignore default TOML config and use memory unless --database is given" );
     ]
     (fun _ -> raise (Arg.Bad "Unexpected positional argument."))
-    "factory-tui [--snapshot] [--events PATH] [--database PATH]";
+    "factory-tui [--config PATH | --no-config] [--database PATH]\n\
+     See --help for snapshot, fixture, preview, and explicit live execution modes.";
   try
     if !run_codex then (
       if

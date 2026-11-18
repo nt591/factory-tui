@@ -77,10 +77,11 @@ Acceptance does not merge, push, or delete a workspace.
    accepts, integrates, or deletes. `--live-ui` explicitly enables confirmed
    workspace-backed Codex execution with a durable Working checkpoint. Acceptance remains separate from merge and push.
    Real calls and workspace changes require explicit live mode and user action.
-8. **Distribution and lifecycle — partial.** Vim navigation, repository sidebar,
+8. **Local distribution and lifecycle — implemented; release portability pending.** Vim navigation, repository sidebar,
    bordered cards, multiline editing/paste, Help/Settings tabs, and terminal smoke tests
-   exist. UI guidance and visual verification are in `docs/ui-parity.md`. Add reproducible packaging, dependency pins, installation notes,
-   and lifecycle checks. Measure build time, executable size, and idle resources.
+   exist. UI guidance and visual verification are in `docs/ui-parity.md`. Standalone install and repeatable local archive packaging include build metadata,
+   dependency lock, operational docs, and temporary-install checks. Signing,
+   notarization, and fresh-machine lock reconstruction are not verified. Measure build time, executable size, and idle resources.
    Do not claim a GUI performance advantage without a comparable measurement.
 
 A step can require several tested commits. Keep storage, process supervision,

@@ -32,3 +32,6 @@ cleanup scopes when nested callbacks obscure the control flow. Preserve lexical
 cleanup order and Fun.protect exception behavior.
 Keep .ml/.mli pairs together. The library uses include_subdirs unqualified, so
 module basenames must remain unique. Update documented paths with file moves.
+
+Keep factory_tui.opam.locked current when application dependencies change.
+Package/install tests must use temporary destinations, not the user's PATH.
