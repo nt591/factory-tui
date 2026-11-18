@@ -584,6 +584,9 @@ spawn; wall-clock anomalies show unavailable time rather than invented values. W
 Activity and press `e` to inspect full-width metadata, tools, and run history;
 scroll as needed. Inspection does not change the task or its workspace.
 
+Selecting a card also refreshes the footer with its task ID and next-step guidance,
+without clearing storage errors or starting a run.
+
 The action bar follows task state: Working shows Stop, Ready shows Accept, and
 accepted tasks show inspection rather than run/edit controls. Live Start says
 `s confirm`; it still opens the per-run confirmation. Keyboard shortcuts retain

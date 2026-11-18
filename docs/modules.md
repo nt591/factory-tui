@@ -96,6 +96,9 @@ against these interfaces during the normal Dune build.
 - `Board_window`: pure visible-item selection, selection/manual-scroll offsets,
   and card/list range cues. The renderer uses one window definition for content
   and overflow labels; the helper changes no task or viewport state.
+- `Task_guidance`: pure selected-task footer copy from lifecycle, queued input,
+  workspace/harness and mode. It does no filesystem preflight or execution.
+  Controller refreshes it on selection without masking storage errors.
 - `Board_guidance`: pure empty-state copy and action selection for live, demo,
   archive, and filtered boards. It starts no jobs and owns no persistence.
 - `Run_time`: pure run-age/recorded-duration text from supplied timestamps. It

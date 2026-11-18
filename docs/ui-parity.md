@@ -273,3 +273,11 @@ following. The renderer reads remembered chat distance when chat is unfocused;
 it does not apply the board's zero offset as End-follow. Explicit keyboard/task/
 zoom resets clear both remembered distance and the viewport anchor. Unit and
 separate PTY replay checks verify this with subsequent output and mouse return.
+
+Selecting a task refreshes the footer with task-specific next-step guidance instead
+of retaining a different task's old acceptance/completion notice. The message names
+the task and follows mode, queued input, workspace/harness, and lifecycle state.
+Missing workspace or unsupported live harness points to explicit setup/selection;
+no preflight command starts on inspection. Storage errors stay visible across task
+selection. `Task_guidance.ml/.mli` generates copy independently of the controller;
+pure state tests and PTY keyboard selection checks verify the footer identity.

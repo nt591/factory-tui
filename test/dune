@@ -207,3 +207,8 @@
  (name test_pane_scroll)
  (modules test_pane_scroll)
  (libraries factory_tui notty yojson))
+
+(test
+ (name test_task_guidance)
+ (modules test_task_guidance)
+ (libraries factory_tui))

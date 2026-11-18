@@ -225,7 +225,14 @@ let select t id =
   reset_chat_view t;
   Pane_scroll.clear t.pane_scroll;
   t.scroll <- 0;
-  t.board_scroll <- 0
+  t.board_scroll <- 0;
+  Option.iter
+    (fun task ->
+      if not (String.starts_with ~prefix:"Storage error:" t.status) then
+        t.status <-
+          Task_guidance.selection ~live:(t.live_config <> None) ~replay:t.external_events
+            task)
+    (selected t)
 
 let repair_selection t =
   if not (List.exists (fun (task : task) -> task.id = t.selected) (visible t)) then

@@ -274,3 +274,10 @@ keyboard/task/zoom resets clear the viewport anchor and remembered distance
 together. Pure frame checks and `scripts/smoke-board-history.py` verify column
 scrolling, subsequent output, return to chat, and explicit End-follow without
 changing saved tasks or starting an agent.
+
+Explicit card/keyboard selection updates footer guidance for that task rather than
+leaving another task's acceptance/completion notice visible. `Task_guidance` is
+pure and names task ID, queued instructions, confirmation/setup prerequisites,
+read-only acceptance, or replay boundaries. Selection does not mask storage errors
+or invoke preflight. Pure and PTY tests verify correct identity and no new runs;
+filtering still keeps the selected chat until a task is explicitly selected.
