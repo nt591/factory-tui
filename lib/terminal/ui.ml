@@ -363,8 +363,14 @@ let render t ~width:cols ~height:rows =
         |> List.map (fun row -> I.hpad 1 1 (line inner (attr muted) row)))
     in
     paint r.x r.y
-      (border r.w r.h ~title:"Task / activity" ~color:accent ~focused:(t.focus = Activity)
-         content);
+      (border r.w r.h
+         ~title:
+           ((match task with None -> "Task" | Some task -> task.id)
+           ^ " / activity"
+           ^
+           if t.activity_expanded then " / expanded · e or Esc returns"
+           else " / e expands")
+         ~color:accent ~focused:(t.focus = Activity) content);
     hit r.x r.y r.w r.h (Focus Activity)
   in
   let details r =
@@ -560,7 +566,9 @@ let render t ~width:cols ~height:rows =
      paint 0 body_y
        (border sidebar_width body_h ~title:"Factory" ~color:accent ~focused:false content));
   if body_h > 0 then
-    if t.zoom then details { x = 0; y = body_y; w = cols; h = body_h }
+    if t.zoom && t.activity_expanded then
+      activity { x = 0; y = body_y; w = cols; h = body_h }
+    else if t.zoom then details { x = 0; y = body_y; w = cols; h = body_h }
     else if main_width >= 155 then (
       let left = max 88 (main_width * 58 / 100) in
       board { x = sidebar_width; y = body_y; w = left; h = body_h };
@@ -633,7 +641,8 @@ let render t ~width:cols ~height:rows =
       [
         "FACTORY / terminal";
         "";
-        "Click a card to inspect its chat. Enter/e expands; Escape returns.";
+        "Click a card to inspect chat. Enter/e expands; Escape returns.";
+        "Focus Activity and e expands tool output to full terminal width.";
         "hjkl/arrows navigate. Counts repeat movement (for example, 3j).";
         "gg / G: first / last card, or top / bottom of the focused pane.";
         "Ctrl-W then hjkl moves pane focus. Ctrl-W w cycles panes.";

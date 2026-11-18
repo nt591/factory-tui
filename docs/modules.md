@@ -90,7 +90,8 @@ against these interfaces during the normal Dune build.
   deletion, line navigation, and extended-grapheme movement. Segmentation uses
   Uuseg; cached boundaries are private and malformed UTF-8 is normalized. It performs no UI actions.
 - `Ui`: frame/hitbox data, render, mouse dispatch, and tested text wrapping. Theme,
-  borders, image composition, and pane rendering helpers stay private.
+  borders, image composition, and pane rendering helpers stay private. Activity
+  expansion preserves the previous task layout and exposes full-width output.
 - `Demo.Runner`: abstract ownership of fixture runs with poll/close. Its fixed
   script, running handles, and checkpoint details remain private. It receives a
   callback context rather than depending on Controller or terminal rendering.

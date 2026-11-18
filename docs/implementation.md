@@ -93,7 +93,7 @@ Acceptance does not merge, push, or delete a workspace.
    Vim navigation, repository sidebar,
    bordered cards, grapheme-aware multiline editing/paste, anchored reading views,
    transcript search,
-   readable/raw tool activity, Help/Settings tabs,
+   readable/raw tool activity with focused full-width expansion, Help/Settings tabs,
    and terminal smoke tests
    exist. UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,

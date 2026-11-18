@@ -58,6 +58,8 @@ type t = {
   mutable selected : string;
   mutable focus : focus;
   mutable zoom : bool;
+  mutable activity_expanded : bool;
+  mutable activity_origin_zoom : bool;
   mutable archive : bool;
   mutable paused : bool;
   mutable help : bool;
@@ -111,6 +113,8 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     selected = "T-102";
     focus = Board;
     zoom = false;
+    activity_expanded = false;
+    activity_origin_zoom = false;
     archive = false;
     paused = false;
     help = false;
@@ -225,18 +229,36 @@ let tick t now =
     t.schedules <- later;
     List.iter (fun (_, event) -> receive t event) due)
 
+let focus_pane t focus =
+  if focus <> Activity then (
+    if focus = Board && t.activity_expanded then t.zoom <- false;
+    t.activity_expanded <- false);
+  t.focus <- focus
+
+let close_expansion t =
+  let focus = if t.activity_expanded then Activity else Board in
+  t.zoom <- (if t.activity_expanded then t.activity_origin_zoom else false);
+  t.activity_expanded <- false;
+  focus_pane t focus
+
 let rec act t action =
   reset_keys t;
   match action with
   | Select id ->
       select t id;
-      t.focus <- Board
-  | Focus focus -> t.focus <- focus
+      focus_pane t Board
+  | Focus focus -> focus_pane t focus
   | Zoom ->
-      t.zoom <- not t.zoom;
-      t.focus <- Conversation;
-      Chat_viewport.reset t.chat_viewport;
-      t.scroll <- 0
+      if t.activity_expanded then close_expansion t
+      else if t.focus = Activity then (
+        t.activity_origin_zoom <- t.zoom;
+        t.zoom <- true;
+        t.activity_expanded <- true)
+      else (
+        t.zoom <- not t.zoom;
+        focus_pane t Conversation;
+        Chat_viewport.reset t.chat_viewport;
+        t.scroll <- 0)
   | Quit -> t.quit <- true
   | Help ->
       t.help <- not t.help;
@@ -255,17 +277,17 @@ let rec act t action =
   | Repository repository ->
       t.repository <- repository;
       t.board_scroll <- 0;
-      t.focus <- Board
+      focus_pane t Board
   | Archive_view ->
       t.archive <- true;
       t.board_scroll <- 0;
-      t.focus <- Board
+      focus_pane t Board
   | Session_board ->
       t.query <- "";
       t.archive <- false;
       t.repository <- None;
       t.board_scroll <- 0;
-      t.focus <- Board
+      focus_pane t Board
   | Next_repository ->
       let options =
         None :: List.map (fun repository -> Some repository) (repositories t)
@@ -277,20 +299,20 @@ let rec act t action =
       in
       t.repository <- next options;
       t.board_scroll <- 0;
-      t.focus <- Board
+      focus_pane t Board
   | Begin_chat_search -> (
       match selected t with
       | None -> ()
       | Some _ ->
           t.input <- Chat_search;
-          t.focus <- Conversation;
+          focus_pane t Conversation;
           t.editor <- Text_edit.create (Chat_search.query t.chat_search))
   | Next_chat_match | Previous_chat_match ->
       Option.iter
         (fun (task : task) -> Chat_search.sync t.chat_search task.messages)
         (selected t);
       Chat_search.move t.chat_search ~backwards:(action = Previous_chat_match);
-      t.focus <- Conversation
+      focus_pane t Conversation
   | Clear_chat_search -> Chat_search.clear t.chat_search
   | Begin_search ->
       t.input <- Search;
@@ -302,7 +324,7 @@ let rec act t action =
       | Some _ ->
           t.input <- Compose;
           t.editor <- Text_edit.create (draft t);
-          t.focus <- Conversation)
+          focus_pane t Conversation)
   | Next_harness -> (
       match selected t with
       | None -> ()
@@ -679,6 +701,7 @@ let cycle_focus t backwards =
     | Activity, false | Conversation, true -> Board);
   if t.zoom && t.focus = Board then
     t.focus <- (if backwards then Activity else Conversation);
+  focus_pane t t.focus;
   Chat_viewport.reset t.chat_viewport;
   t.scroll <- 0
 
@@ -693,7 +716,7 @@ let window_focus t direction =
     | `Up -> if t.zoom then Conversation else Board
     | `Down -> if t.focus = Board then Conversation else Activity
   in
-  t.focus <- focus;
+  focus_pane t focus;
   Chat_viewport.reset t.chat_viewport;
   t.scroll <- 0
 
@@ -748,11 +771,10 @@ let normal_key t (key, mods) =
     | `ASCII 'e' | `Enter -> command (fun () -> act t Zoom)
     | `Escape ->
         command (fun () ->
-            if Chat_search.query t.chat_search <> "" && (t.focus = Conversation || t.zoom)
-            then Chat_search.clear t.chat_search
+            if Chat_search.query t.chat_search <> "" && t.focus = Conversation then
+              Chat_search.clear t.chat_search
             else if t.zoom then (
-              t.zoom <- false;
-              t.focus <- Board;
+              close_expansion t;
               Chat_viewport.reset t.chat_viewport;
               t.scroll <- 0)
             else (
@@ -760,11 +782,9 @@ let normal_key t (key, mods) =
               repair_selection t))
     | `ASCII '/' ->
         command (fun () ->
-            act t
-              (if t.focus = Conversation || t.zoom then Begin_chat_search
-               else Begin_search))
+            act t (if t.focus = Conversation then Begin_chat_search else Begin_search))
     | `ASCII 'S' -> command (fun () -> act t Begin_chat_search)
-    | `ASCII 'N' when Chat_search.query t.chat_search <> "" ->
+    | `ASCII 'N' when Chat_search.query t.chat_search <> "" && t.focus = Conversation ->
         command (fun () -> act t Previous_chat_match)
     | `ASCII 'i' -> command (fun () -> act t Begin_compose)
     | `ASCII 'R' -> command (fun () -> act t Next_repository)
@@ -775,8 +795,7 @@ let normal_key t (key, mods) =
     | `ASCII 'H' -> command (fun () -> act t Next_harness)
     | `ASCII 'v' -> command (fun () -> act t Open_review)
     | `ASCII 'W' -> command (fun () -> act t Begin_workspace)
-    | `ASCII 'n'
-      when Chat_search.query t.chat_search <> "" && (t.focus = Conversation || t.zoom) ->
+    | `ASCII 'n' when Chat_search.query t.chat_search <> "" && t.focus = Conversation ->
         command (fun () -> act t Next_chat_match)
     | `ASCII 'n' -> command (fun () -> act t Begin_new)
     | `ASCII 's' | `Function 5 -> command (fun () -> act t Start)
@@ -914,7 +933,7 @@ let poll_creation t ~storage =
               t.repository <- None;
               t.query <- "";
               t.workspace_form <- None;
-              t.focus <- Conversation;
+              focus_pane t Conversation;
               t.status <-
                 "Workspace task created / Queued. No agent starts. Saving conversation \
                  metadata."))

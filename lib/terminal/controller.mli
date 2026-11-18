@@ -58,6 +58,8 @@ type t = {
   mutable selected : string;
   mutable focus : focus;
   mutable zoom : bool;
+  mutable activity_expanded : bool;
+  mutable activity_origin_zoom : bool;
   mutable archive : bool;
   mutable paused : bool;
   mutable help : bool;

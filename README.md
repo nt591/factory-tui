@@ -127,7 +127,10 @@ plugins, modify shell startup files, or require global OCaml tool installations.
 ## Interface
 
 - Click a card to focus it and inspect its conversation and activity.
-- Double-click, Enter, or `e` expands the selected task. Escape returns.
+- Double-click or Enter/`e` on a card expands its task chat. Focus Activity with
+  Tab or Ctrl-W, then `e` gives tool output the full terminal width; `e`/Escape
+  returns to the preceding task layout. Task selection, drafts, and run state
+  remain unchanged. Tab or `i` returns from Activity-only display to visible chat.
 - Four columns contain bordered cards: Queued, Working, Needs you, Ready.
   `d` opens accepted tasks. Acceptance leaves the selected chat open and read-only.
 - Wide layouts show a repository sidebar. `R` cycles repositories at any size;

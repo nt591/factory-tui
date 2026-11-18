@@ -74,3 +74,10 @@ demo `n` remains a simulated task. Existing saved tasks are preserved. Empty
 archives explain acceptance; filtered boards expose an explicit clear-filters
 button that keeps the selected chat available. Unit/frame tests and the PTY smoke
 verify first creation, confirmation cancellation, and restart without reseeding.
+
+Activity supports full-width expansion: focus the pane and press e. Tool summaries,
+raw payloads, run history, and scroll controls remain available. Returning with e
+restores the preceding board/task layout; Escape returns with Activity focus.
+Tab/compose/search restore a visible conversation rather than editing a hidden
+pane. Expansion is transient and changes no task, draft, or execution state.
+The PTY smoke verifies complete tool-output lines and return to the task chat.

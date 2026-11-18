@@ -314,9 +314,20 @@ try:
         check("command output displayed as text", "Fixed local fixture output" in text())
         if args.preview:
             preview(args.preview.with_stem(args.preview.stem + "-tool-activity"))
+        send(b"\x17l")
+        send(b"e")
+        check("focused Activity expands to full width", " / activity / expanded" in text()
+              and "Reply / next turn" not in text())
+        check("expanded Activity exposes complete output line", "Fixed local fixture output. No workspace changes." in text())
+        if args.preview:
+            preview(args.preview.with_stem(args.preview.stem + "-activity-expanded"))
         send(b"T")
         check("raw tool diagnostics available", '"command_execution"' in text())
-        send(b"Tt")
+        send(b"T")
+        send(b"e")
+        check("Activity expansion returns to previous task layout", "Reply / next turn" in text()
+              and " / activity / expanded" not in text())
+        send(b"t")
 
         send(b"iAnother fixture turn\r")
         send(b"s")
