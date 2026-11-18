@@ -618,3 +618,11 @@ corrupts a captured ID before its first poll, verifies that no fixture marker is
 created, checks channel failure and retained queue, and roundtrips its resulting
 snapshot. This tests the in-process guard, not support for loading corrupt snapshots;
 the codec independently rejects invalid captured references.
+
+
+`test_system_messages` checks repeated same-revision notices, collisions with user
+and imported history, stable earlier records, queued prompt retention and 200 unique
+notice IDs. It roundtrips the strict codec, renders restored chat and saves/reopens
+a temporary SQLite database with exact IDs/text. No agents, credentials or real
+workspace operations are used. Existing corrupt snapshots remain rejected rather
+than automatically repaired.

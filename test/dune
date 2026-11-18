@@ -347,3 +347,8 @@
  (name test_run_prompt)
  (modules test_run_prompt)
  (libraries factory_tui notty))
+
+(test
+ (name test_system_messages)
+ (modules test_system_messages)
+ (libraries factory_tui notty unix))

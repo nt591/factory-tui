@@ -376,3 +376,9 @@ text. The submitted helper is still a permissive selection query, not an executi
 validator. Live_runner uses captured_text and reports invalid captures through the
 normal failed-run reducer. Model.send enforces unique bounded reply identity at
 the append boundary, before persistence validates the snapshot.
+
+
+Model.system preserves the usual task/revision notice ID when free, then uses an
+unused numeric suffix on collision. Its local membership index includes all
+message authors, so a Factory notice cannot replace user or imported history.
+Allocation appends only; it does not acknowledge prompts or advance lifecycle.

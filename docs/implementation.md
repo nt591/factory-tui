@@ -686,3 +686,13 @@ integration test verify refusal, no executable marker, failure-channel disclosur
 retained queued messages and recoverable encoding. Existing acknowledged capture,
 future-queue isolation and exact prompt tests remain in force. No persistence schema
 or supported valid-run behavior is changed.
+
+
+Model.system allocates a distinct message ID when multiple notices share a task
+revision or an existing user/imported message occupies the standard notice ID.
+The first free suffix is selected against current message identities; normal
+non-colliding IDs remain unchanged. Notices append without modifying earlier
+records, queued instructions, task revision or lifecycle. Pure identity/codec/chat
+checks and a temporary SQLite save/reopen check verify repeated diagnostics remain
+readable and persist with exact unique IDs. This does not repair existing corrupt
+snapshots or alter their validation rules.

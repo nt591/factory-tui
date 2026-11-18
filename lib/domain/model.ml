@@ -85,18 +85,17 @@ let make ~id ~title ~repository =
   }
 
 let system task text =
+  let base = Printf.sprintf "%s/system/%d" task.id task.revision in
+  let ids = Hashtbl.create (List.length task.messages) in
+  List.iter (fun (message : message) -> Hashtbl.replace ids message.id ()) task.messages;
+  let rec available suffix =
+    let candidate = if suffix = 0 then base else base ^ "/" ^ string_of_int suffix in
+    if Hashtbl.mem ids candidate then available (suffix + 1) else candidate
+  in
+  let id = available 0 in
   {
     task with
-    messages =
-      task.messages
-      @ [
-          {
-            id = Printf.sprintf "%s/system/%d" task.id task.revision;
-            author = "Factory";
-            text;
-            queued = false;
-          };
-        ];
+    messages = task.messages @ [ { id; author = "Factory"; text; queued = false } ];
   }
 
 let workspace_path path =

@@ -187,3 +187,9 @@ check: missing references fail before spawn, retain queued instructions, report 
 channel failure and leave a valid snapshot. Reply identity validation precedes
 append/persistence. This is not permission to load or repair corrupt stored data;
 codec constraints remain independent.
+
+
+Factory notice identity has repeated/collision tests, strict codec/chat checks and
+a temporary SQLite reopen check. Same-revision diagnostics remain distinct without
+rewriting user/imported history or queued prompts. Existing corrupt databases are
+not repaired as part of this change.
