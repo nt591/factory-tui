@@ -156,8 +156,8 @@ image-construction measurements are in `docs/testing.md`.
 
 `Chat_layout` caches wrapped transcript rows and message/row anchors for the current
 selected task and content width. Unchanged immutable message lists reuse the layout;
-streaming replacements, acknowledgements, task changes, and width changes rebuild
-it. Height-only resize and next-run setting changes reuse the rows. Only one
+streaming replacements and acknowledgements rebuild affected message blocks;
+task and width changes rebuild all blocks. Height-only resize and next-run setting changes reuse the rows. Only one
 transcript/width is retained, and the cache is never serialized. Search styling,
 viewport selection, and visible image construction remain separate. Pure and UI
 checks cover invalidation, retained labels/text, stable anchors, and persistence
@@ -303,3 +303,11 @@ view. The Run button follows the computed disclosure row; malformed UTF-8 and
 controls are sanitized. Unit and PTY fixtures check complete identity visibility
 and blocked confirmation when content cannot fit. Very long titles can require a
 larger terminal; scrollable confirmation is not implemented.
+
+Streaming changes reuse the wrapped rows and anchor objects of unchanged message
+records. This avoids rewrapping older history for each updated response. Current
+message order drives the aggregate rows; removed message blocks do not accumulate,
+and replacement records conservatively rebuild even if their values compare equal.
+The single task/width cache remains abstract and transient. Tests cover row/anchor
+identity reuse, changed text/author/delivery, removal/reappearance, and reordering;
+full terminal and installed-agent loopback checks cover streaming integration.

@@ -110,8 +110,10 @@ against these interfaces during the normal Dune build.
 - `Tool_activity`: pure summaries of actual harness command, MCP, and file-change
   fields, with raw payload access. It does not execute tools or infer success.
 - `Chat_layout`: abstract single-entry transcript cache keyed by task, pane width,
-  and immutable message-list identity. It prepares wrapped rows and stable anchors;
-  no task, persistence, process, theme, or controller behavior lives in this module.
+  and immutable message-list identity. Within that task/width, unchanged message
+  records reuse wrapped row/anchor blocks across streaming updates. New records
+  rebuild; removed records leave the current index. No task, persistence, process,
+  theme, or controller behavior lives in this module.
 - `Chat_viewport`: abstract reading anchor keyed by task/message and wrapped row.
   Appended output and earlier stream growth do not move a paused reading view.
   Explicit scrolling/search seeking changes the anchor; End resumes following.

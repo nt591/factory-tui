@@ -33,6 +33,35 @@ let measure () =
           ignore (run ())
         done)
   in
+  let stream_messages round =
+    List.mapi
+      (fun index (message : Model.message) ->
+        if index = 1999 then { message with text = message.text ^ string_of_int round }
+        else message)
+      messages
+  in
+  let updates = List.init 20 stream_messages in
+  let rebuilt_stream =
+    time (fun () ->
+        List.iter
+          (fun messages ->
+            Chat_layout.clear cache;
+            ignore (Chat_layout.update cache ~task_id:"task" ~width:76 messages))
+          updates)
+  in
+  Chat_layout.clear cache;
+  ignore (run ());
+  let reused_stream =
+    time (fun () ->
+        List.iter
+          (fun messages ->
+            ignore (Chat_layout.update cache ~task_id:"task" ~width:76 messages))
+          updates)
+  in
+  Printf.printf
+    "Twenty single-message updates, full rebuild: %.3f ms; reused unchanged blocks: %.3f \
+     ms.\n"
+    (rebuilt_stream *. 1000.) (reused_stream *. 1000.);
   Printf.printf
     "Synthetic transcript: 2000 messages, %d rows, 20 layout passes.\n\
      Rebuilt wrapped rows and anchors: %.3f ms\n\
@@ -71,6 +100,47 @@ let () =
         messages
     in
     let streamed = update ~width:20 changed in
+    let row document id =
+      List.find
+        (fun (r : Chat_layout.row) -> r.id = id && r.index = 1)
+        (Chat_layout.rows document)
+    in
+    check "unchanged message rows survive streamed replacement by identity"
+      (row streamed "second" == row resized "second");
+    check "changed message rows are rebuilt" (row streamed "first" != row resized "first");
+    check "unchanged message anchors are reused"
+      (List.find
+         (fun (id, index) -> id = "second" && index = 1)
+         (Chat_layout.anchors streamed)
+      == List.find
+           (fun (id, index) -> id = "second" && index = 1)
+           (Chat_layout.anchors resized));
+    let reordered = update ~width:20 (List.rev changed) in
+    check "message reorder follows current transcript, not cached order"
+      ((List.hd (Chat_layout.rows reordered)).id = "second"
+      && row reordered "second" == row streamed "second");
+    let removed = update ~width:20 [ List.hd changed ] in
+    check "removed message leaves rows and anchors"
+      (List.for_all
+         (fun (r : Chat_layout.row) -> r.id = "first")
+         (Chat_layout.rows removed)
+      && List.for_all (fun (id, _) -> id = "first") (Chat_layout.anchors removed));
+    let restored = update ~width:20 changed in
+    check "removed message block is discarded rather than retained"
+      (row restored "second" != row streamed "second");
+    let renamed_author =
+      List.map
+        (fun (m : Model.message) ->
+          if m.id = "second" then { m with author = "Factory" } else m)
+        changed
+    in
+    let author_layout = update ~width:20 renamed_author in
+    check "same ID with changed author rebuilds header"
+      (List.exists
+         (fun (r : Chat_layout.row) ->
+           r.id = "second" && r.index = 0 && r.text = "Factory / queued")
+         (Chat_layout.rows author_layout));
+
     check "streamed message rebuilds same task layout" (streamed != resized);
     check "acknowledgement rebuilds header"
       ((List.hd (Chat_layout.rows streamed)).text = "You / sent");
@@ -102,6 +172,37 @@ let () =
     let copied = List.map (fun (m : Model.message) -> { m with text = m.text }) changed in
     let doc = update changed in
     check "structurally equal replacement list rebuilds safely" (update copied != doc);
+    let rolling_cache = Chat_layout.create () in
+    let rolling =
+      ref (List.init 30 (fun index -> message (string_of_int index) "Old é👍🏽 body"))
+    in
+    for update_index = 0 to 59 do
+      let target = string_of_int (update_index mod 30) in
+      rolling :=
+        List.map
+          (fun (message : Model.message) ->
+            if message.id = target then
+              {
+                message with
+                text =
+                  Printf.sprintf "Stream %d\n%s" update_index
+                    (String.make (update_index + 1) 'x');
+                queued = update_index mod 2 = 0;
+                author = (if update_index mod 3 = 0 then "Codex" else "You");
+              }
+            else message)
+          !rolling;
+      if update_index mod 7 = 0 then rolling := List.rev !rolling;
+      let task_id = if update_index < 45 then "first-task" else "next-task" in
+      let width = if update_index < 30 then 20 else 35 in
+      let incremental = Chat_layout.update rolling_cache ~task_id ~width !rolling in
+      let full = Chat_layout.update (Chat_layout.create ()) ~task_id ~width !rolling in
+      check
+        "incremental stream layout equals a fresh layout after text/label/order/width \
+         changes"
+        (Chat_layout.rows incremental = Chat_layout.rows full
+        && Chat_layout.anchors incremental = Chat_layout.anchors full)
+    done;
     let controller = Controller.create ~external_events:true () in
     let task = Model.make ~id:"rendered" ~title:"Cached prompt" ~repository:"fixture" in
     controller.tasks <- [ task ];

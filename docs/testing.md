@@ -140,8 +140,8 @@ wrapping-cache claim is made.
 
 `Chat_layout` caches the current task's wrapped rows and anchor list. The key is
 task ID, content width, and physical identity of the immutable message list. New
-stream text or queued-message acknowledgements create a new list and rebuild;
-task/width changes rebuild even with the same list. Height-only resize and changes
+stream text or queued-message acknowledgements create a new list and rebuild
+affected message blocks; task/width changes rebuild all blocks even with the same list. Height-only resize and changes
 to next-run settings reuse the document. Structurally equal replacement lists
 rebuild conservatively. The single-entry cache is transient and is not a snapshot
 field. Unit/UI tests check these cases and sanitized body text; existing terminal
@@ -156,8 +156,9 @@ rows) took 229.677 ms total for twenty forced layout/anchor rebuilds. Twenty cac
 hits took 0.000954 ms total. This timer-resolution-sensitive number is not a
 whole-TUI latency claim: it excludes search matching, viewport scans, image
 construction, and terminal output. The cache retains extra wrapped text and
-anchors, and a changed message list still rebuilds the full transcript. Incremental
-per-message wrapping and whole-application performance are not verified here.
+anchors. This historical measurement forced full transcript rebuilds; later
+message-block reuse is measured separately below. Neither measurement establishes
+whole-application performance.
 
 ## Unchanged search matches
 
@@ -233,3 +234,42 @@ to change. The arrival wait observes the updated event count before checking the
 anchor. It verifies board focus, subsequent output, mouse return to chat, and
 explicit End-follow. Unit tests additionally verify remembered distances and
 unchanged snapshots; keyboard resets keep their explicit fresh-position behavior.
+
+## Streaming message-block reuse
+
+Within the current task/width, `Chat_layout` reuses a block only when its message
+ID and immutable record identity match. Updates still assemble aggregate row and
+anchor lists, but unchanged message text is not sanitized or wrapped again.
+The next block index contains only current messages. Tests check physical row and
+anchor reuse, replacement rebuilding, author/delivery updates, current ordering,
+removal/reappearance, and task/width invalidation.
+
+The existing `test_chat_layout.exe -- --measure` command now also measures twenty
+single-message changes among 2,000 messages. On November 18, 2026, forced full
+rebuilds took 232.177 ms total; reuse of unchanged blocks took 5.743 ms total.
+This includes changed-block wrapping and aggregate row/anchor assembly, but not
+search, viewport scanning, images, terminal output, or application event delivery.
+It is a local component measurement, not a GUI comparison or streaming throughput
+claim. Aggregate list rebuilding remains linear in transcript size.
+
+During the same increment, an initial parallel suite again reported a native
+`test_command` timeout without identifying its case. After adding failure context,
+a later parallel suite reported `repeated output 19: Command timeout exceeded.`
+Direct invocation and other parallel suites passed. Test failures now name
+initial/repeated I/O cases and concurrent batch/worker; no production behavior,
+success deadline, timeout assertion, or parallel scheduling was changed. Passing
+reruns do not establish that startup reliability is fixed.
+
+A direct Python probe of 128 compiled native fixture children, with eight workers
+and one-second completion deadlines, observed no failure (median 0.012 s, maximum
+0.063 s). Three parallel suites with temporary timeout-state instrumentation also
+passed; instrumentation observed only the deliberate 0.1-second timeout cases and
+was removed. Neither probe reproduced the unexpected repeated-output timeout or
+isolated its cause. The original command source was restored byte-for-byte, and
+final checks run without instrumentation. No startup guarantee follows from these
+negative reproduction results; the new case-specific error context is retained.
+
+Incremental layout is also compared against a fresh cache over sixty deterministic
+stream updates, including changing text, author/delivery labels, message order,
+content width, and task identity. Equality checks cover all rows and anchors;
+separate physical-identity tests verify that reuse actually occurs.

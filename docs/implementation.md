@@ -301,3 +301,12 @@ fit, in addition to the 64-column/13-row minimum. Too-small terminals show the
 required row count and remain non-authorizing. Button hitboxes track the actual
 wrapped-content row. Unicode/small-screen unit tests and installed-agent/fake PTY
 checks verify full workspace disclosure, paste isolation, and resize blocking.
+
+Streaming transcript layout reuses unchanged immutable message blocks within the
+current task/content width. Changed text, authors, or queued labels rebuild their
+block; task/width changes rebuild all blocks. Removed messages are absent from the
+new cache, and reordered messages follow current transcript order. Aggregate row
+and anchor lists still rebuild for a changed message list. Pure identity/lifecycle
+tests and the existing streaming/search/history PTY checks verify this optimization.
+No cache state is persisted. Native command fixtures now include failure case,
+iteration, and concurrent-worker context; deadlines and scheduling are unchanged.

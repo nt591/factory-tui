@@ -1,20 +1,22 @@
 type tone = Author of bool | Body | Spacer
 type row = { id : string; index : int; text : string; tone : tone }
 type document = { rows : row list; anchors : (string * int) list }
+type block = { message : Model.message; rows : row list; anchors : (string * int) list }
 
 type cached = {
   task_id : string;
   width : int;
   messages : Model.message list;
   document : document;
+  blocks : (string, block) Hashtbl.t;
 }
 
 type t = { mutable cached : cached option }
 
 let create () = { cached = None }
 let clear t = t.cached <- None
-let rows document = document.rows
-let anchors document = document.anchors
+let rows (document : document) = document.rows
+let anchors (document : document) = document.anchors
 
 let clean text =
   let buffer = Buffer.create (String.length text) in
@@ -30,32 +32,49 @@ let clean text =
     () text;
   Buffer.contents buffer
 
-let build width messages =
+let build_message width (message : Model.message) =
+  let body = Text_layout.wrap width (clean message.text) in
   let rows =
-    List.concat_map
+    {
+      id = message.id;
+      index = 0;
+      text =
+        (message.author
+        ^
+        if message.queued then " / queued"
+        else if message.author = "You" then " / sent"
+        else "");
+      tone = Author message.queued;
+    }
+    :: (List.mapi
+          (fun index text -> { id = message.id; index = index + 1; text; tone = Body })
+          body
+       @ [ { id = message.id; index = List.length body + 1; text = ""; tone = Spacer } ])
+  in
+  { message; rows; anchors = List.map (fun row -> (row.id, row.index)) rows }
+
+let build ~previous width messages =
+  let blocks = Hashtbl.create (List.length messages) in
+  let ordered =
+    List.map
       (fun (message : Model.message) ->
-        let body = Text_layout.wrap width (clean message.text) in
-        {
-          id = message.id;
-          index = 0;
-          text =
-            (message.author
-            ^
-            if message.queued then " / queued"
-            else if message.author = "You" then " / sent"
-            else "");
-          tone = Author message.queued;
-        }
-        :: (List.mapi
-              (fun index text ->
-                { id = message.id; index = index + 1; text; tone = Body })
-              body
-           @ [
-               { id = message.id; index = List.length body + 1; text = ""; tone = Spacer };
-             ]))
+        let block =
+          match
+            Option.bind previous (fun blocks -> Hashtbl.find_opt blocks message.id)
+          with
+          | Some block when block.message == message -> block
+          | _ -> build_message width message
+        in
+        Hashtbl.replace blocks message.id block;
+        block)
       messages
   in
-  { rows; anchors = List.map (fun row -> (row.id, row.index)) rows }
+  (* Only current messages enter the new index. Removed history must not accumulate. *)
+  ( {
+      rows = List.concat_map (fun block -> block.rows) ordered;
+      anchors = List.concat_map (fun block -> block.anchors) ordered;
+    },
+    blocks )
 
 let update t ~task_id ~width messages =
   let width = max 1 width in
@@ -65,7 +84,12 @@ let update t ~task_id ~width messages =
     ->
       cached.document
   | _ ->
-      (* Messages are immutable. A new list invalidates streamed text and delivery labels. *)
-      let document = build width messages in
-      t.cached <- Some { task_id; width; messages; document };
+      let previous =
+        match t.cached with
+        | Some cached when cached.task_id = task_id && cached.width = width ->
+            Some cached.blocks
+        | _ -> None
+      in
+      let document, blocks = build ~previous width messages in
+      t.cached <- Some { task_id; width; messages; document; blocks };
       document
