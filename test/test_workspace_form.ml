@@ -92,6 +92,7 @@ let () =
     (controller.workspace_form = None && not controller.quit);
   let defaults : Workspace_defaults.t =
     {
+      mode = Workspace_defaults.Existing;
       jj = Some "/tools/jj";
       source = Some "/configured/source";
       parent = Some "/configured/tasks";

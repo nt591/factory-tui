@@ -71,8 +71,9 @@ let () =
   Controller.act controller Controller.Begin_compose;
   Controller.set_input controller "First line\nSecond line";
   Controller.key controller (`Home, []);
-  check "multiline composer footer places marker on actual editing line"
-    (Controller.contains (footer ()) "First line ▏Second line");
+  check "visible composer footer does not repeat multiline draft"
+    (Controller.contains (footer ()) "editing above"
+    && not (Controller.contains (footer ()) "First line"));
   List.iter
     (fun action ->
       let controller = Controller.create ~external_events:true () in

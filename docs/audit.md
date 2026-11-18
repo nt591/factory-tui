@@ -506,3 +506,19 @@ explicitly authorized history cleanup; no force push occurs in this milestone.
 Final temporary package/install smoke passed all 19 checks, including packaged
 session instructions and live config preview without automatic mode enable or
 resource creation. UI/perf report hashes match the exact current executable.
+
+Interactive setup and immediate-use UX verification passed format/build/unit gates,
+including nine pure setup tests, 73 config checks and the composer/picker checks.
+All 21 fixture UI cases passed with 68 previews; evidence:
+`/tmp/factory-interactive-setup-ui-20261118/report.json`. Wizard-generated folder
+mode and insert-mode single-copy composer previews were inspected. First picker
+opening fetches against a held loopback request, while startup remains request-free;
+pending/cache/error reopening does not repeat the request. Wizard cancellation,
+private atomic save, overwrite refusal and no agent/database creation are verified.
+Separate discovery (31), setup CLI (37), invocation (26), fake execution (19) and
+package (19) checks passed. The adapted E2E perf smoke also passed and its binary
+hash matches the UI evidence; `/tmp/factory-setup-composer-perf-20261118.json`.
+Its paste observer checks the visible composer rather than the removed duplicate
+input text, so fresh compatible benchmarks are needed for comparisons across
+that observer change. No real key, gateway or paid model was used. Acceptance and
+archive transitions are unchanged; their confirmation/restore UX is separate work.

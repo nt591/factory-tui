@@ -258,7 +258,10 @@ def run(args, report):
                         (
                             "paste",
                             b"\x1b[200~" + marker.encode() + b"\x1b[201~",
-                            lambda marker=marker: marker in tui.screen.display[-3],
+                            lambda marker=marker: (
+                                marker in tui.text()
+                                and "INSERT / Enter queues" in tui.screen.display[-1]
+                            ),
                         ),
                         (
                             "queue_reply",

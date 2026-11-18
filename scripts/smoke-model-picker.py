@@ -106,13 +106,11 @@ def main():
             try:
                 with Terminal(command, env) as tui:
                     tui.ready()
-                    tui.send(b"M")
-                    tui.wait("idle catalogue", lambda: "No request yet" in tui.text())
                     tui.check(
-                        "opening catalogue reads no key/request and starts no agent",
+                        "startup does not fetch models or start an agent",
                         Gateway.calls == [] and not marker.exists(),
                     )
-                    tui.send(b"\x12")
+                    tui.send(b"M")
                     tui.wait(
                         "background request",
                         lambda: (
@@ -124,8 +122,16 @@ def main():
                         "escape stays responsive during network request",
                         lambda: "Gateway models / next run" not in tui.text(),
                     )
-                    Gateway.release.set()
                     tui.send(b"M")
+                    tui.wait(
+                        "pending request reused on reopen",
+                        lambda: "Loading..." in tui.text(),
+                    )
+                    tui.check(
+                        "reopen during load does not start duplicate request",
+                        len(Gateway.calls) == 1,
+                    )
+                    Gateway.release.set()
                     tui.wait(
                         "catalogue loaded", lambda: "fixture-model-00" in tui.text()
                     )
@@ -169,6 +175,11 @@ def main():
                         "auth error never prints dummy key",
                         "dummy-picker-key" not in tui.text(),
                     )
+                    tui.send(b"\x1b")
+                    tui.send(b"M")
+                    tui.check(
+                        "error reopen does not retry in a loop", len(Gateway.calls) == 2
+                    )
                     Gateway.status = 200
                     tui.send(b"\x12")
                     tui.wait("retry recovers", lambda: "fixture-model-00" in tui.text())
@@ -203,6 +214,28 @@ def main():
                     )
                     if args.preview:
                         tui.preview(args.preview.with_stem(args.preview.stem + "-form"))
+                    tui.send(b"\x1b")
+                    tui.send(b"q")
+                    tui.wait_exit()
+                previous_calls = len(Gateway.calls)
+                with Terminal(command, env) as tui:
+                    tui.ready()
+                    tui.send(b"W")
+                    tui.wait(
+                        "new launch workspace form",
+                        lambda: "Source repository" in tui.text(),
+                    )
+                    tui.send(b"\x07")
+                    tui.wait(
+                        "first form picker fetch",
+                        lambda: "fixture-model-00" in tui.text(),
+                    )
+                    tui.check(
+                        "first form opening fetches once without creation",
+                        len(Gateway.calls) == previous_calls + 1
+                        and not marker.exists(),
+                    )
+                    tui.send(b"\x1b")
                     tui.send(b"\x1b")
                     tui.send(b"q")
                     tui.wait_exit()

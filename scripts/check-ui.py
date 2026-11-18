@@ -34,6 +34,7 @@ CASES = (
     "workflow",
     "model-picker",
     "session-root",
+    "setup",
 )
 
 

@@ -13,6 +13,10 @@ let () =
   check "empty config preserves memory mode" ((ok (parse "")).database = None);
   check "empty config keeps automatic pane sizes"
     ((ok (parse "")).layout = Pane_layout.automatic);
+  check "configured folder mode is typed"
+    ((ok (parse "[workspace]\nmode='folder'")).workspace.mode = Workspace_defaults.Folder);
+  check "invalid workspace mode rejected"
+    (Result.is_error (parse "[workspace]\nmode='other'"));
   let codex =
     (ok
        (parse

@@ -103,6 +103,25 @@ let () =
   controller.tasks <- [ { working with model = long.model } ];
   check "rendered long-model composer keeps queue and newline hints visible"
     (Controller.contains (render ()) "Enter queues / Ctrl-L newline / Esc keeps draft");
+  let visible = render () in
+  let occurrences text needle =
+    let rec loop offset count =
+      if offset + String.length needle > String.length text then count
+      else if String.sub text offset (String.length needle) = needle then
+        loop (offset + String.length needle) (count + 1)
+      else loop (offset + 1) count
+    in
+    loop 0 0
+  in
+  check "visible composer has only one copy of draft text"
+    (occurrences visible "Follow-up for the next turn" = 1
+    && Controller.contains visible "editing above");
+  let small = Ui.render controller ~width:80 ~height:8 in
+  let output = Buffer.create 2048 in
+  Notty.Render.to_buffer output Notty.Cap.dumb (0, 0) (80, 8) small.image;
+  check "tiny terminal retains input-line fallback"
+    (Controller.contains (Buffer.contents output) "Follow-up for the next turn"
+    && not (Controller.contains (Buffer.contents output) "editing above"));
   controller.tasks <- [ working ];
 
   check "working composer still displays explicit queue instruction"

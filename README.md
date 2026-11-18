@@ -9,6 +9,18 @@ Session rules are adapted from Factory's Rust session and event reducers, not
 linked through FFI. Startup defaults to simulation. Explicit Codex live execution supports confirmed
 runs in session roots or isolated workspaces; headless execution is also available.
 
+## Interactive setup
+
+```sh
+./scripts/setup.sh
+./scripts/run.sh --live-ui
+```
+
+Setup writes non-secret config after confirmation and prints the launch command.
+It starts no agent and does not fetch models or read your API key. Existing files
+are not overwritten. See `docs/configuration.md` for test config locations and
+folder/repository defaults.
+
 ## LiteLLM discovery and live testing
 
 With `LITELLM_BASE_URL` and `LITELLM_API_KEY` exported in your shell:

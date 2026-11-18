@@ -12,7 +12,7 @@ let make picker ~width ~height =
   let displayed = List.filteri (fun i _ -> i >= offset && i < offset + capacity) models in
   let items =
     match Model_picker.state picker with
-    | Idle -> [ "No request yet. Fetch reads the gateway API key." ]
+    | Idle -> [ "Opening loads models. Refresh retries the gateway request." ]
     | Loading -> [ "Loading... Esc closes; request remains bounded to 12 seconds." ]
     | Error error -> Text_layout.wrap_words (max 1 inner) error
     | Models _ when models = [] ->

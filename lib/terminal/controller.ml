@@ -523,8 +523,8 @@ let rec act t action =
           | None -> ())
       | _ -> ())
   | Open_models when t.live_confirmation <> None || t.review <> None -> ()
-  | Open_models -> (
-      match t.workspace_form with
+  | Open_models ->
+      (match t.workspace_form with
       | Some form when t.creation_job = None && t.creation_request = None ->
           t.model_target <- Some (Workspace_model form);
           Model_picker.reset t.model_picker
@@ -536,7 +536,12 @@ let rec act t action =
               t.input <- Normal;
               t.model_target <- Some (Task_model task.id);
               Model_picker.reset t.model_picker
-          | _ -> ()))
+          | _ -> ()));
+      if t.model_target <> None then (
+        Model_picker.poll t.model_picker;
+        match Model_picker.state t.model_picker with
+        | Idle -> act t Refresh_models
+        | Loading | Models _ | Error _ -> ())
   | Close_models -> t.model_target <- None
   | Refresh_models when t.model_target = None -> ()
   | Refresh_models ->
@@ -670,6 +675,13 @@ let rec act t action =
         in
         t.workspace_form <-
           Some (Workspace_form.create ~jj ~source ~parent ~revision ~model ());
+        Option.iter
+          (fun form ->
+            match defaults.mode with
+            | Workspace_defaults.Existing -> ()
+            | Folder -> Workspace_form.toggle_folder_root form
+            | Greenfield -> Workspace_form.toggle_greenfield form)
+          t.workspace_form;
         t.help <- false;
         t.input <- Normal;
         t.status <-

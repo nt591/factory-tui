@@ -108,9 +108,12 @@ python3 scripts/smoke-gateway-models.py
 
 ## In-app model picker
 
-On a selected nonaccepted task, press `M` to browse gateway model IDs. Opening
-and reopening the picker does not read the key or contact the network. Click
-Fetch or press Ctrl-R for an explicit background request. The interface remains
+On a selected nonaccepted task, press `M` to browse gateway model IDs. First
+opening starts a background catalogue request using the configured API key.
+Opening the workspace form's Models picker does the same. App startup makes no
+request. Reopening reuses pending work or the cached catalogue. Click Fetch or
+press Ctrl-R to refresh or retry an error; reopening an error does not retry in
+a loop. The interface remains
 responsive while the request runs: Escape closes the modal without discarding
 its job. Requests retain the 12-second transport bound; quitting joins a pending
 request and can wait for that bound. The catalogue is cached only for this launch.

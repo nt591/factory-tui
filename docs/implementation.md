@@ -1011,3 +1011,22 @@ rooting is not isolation. Greenfield creation reserves a new task container and
 retains partial failures. Single-repository diff review remains separate; root
 sessions explicitly report that multi-repository review is not implemented.
 See docs/sessions.md for user workflow and scoped follow-up work.
+
+Opening a task or creation-form model picker automatically starts its first
+background catalogue fetch. Startup remains request-free; reopening reuses pending
+work or cached results, and errors require explicit refresh rather than retrying
+on every open. Loopback tests cover both first-open entry points and duplicate
+suppression. This user action can read the configured gateway key but starts no
+agent. Reply editing renders draft text only in the visible composer, with a
+bottom-line editing indicator instead of a duplicate draft. Tiny layouts that
+cannot show the composer retain the input-line fallback; validation and input
+limits keep precedence. Draft/persistence and submission behavior are unchanged.
+
+Interactive scripts/setup.sh configures live defaults without credentials or
+network requests, validates generated TOML using the TUI checker, then requires
+save confirmation. File publication is private and refuses overwrite; failed
+publication rolls back only new files. Workspace mode is a typed saved creation
+preference (folder/existing/greenfield), not an execution-mode auto-enable flag.
+The setup fixture checks cancellation, save, overwrite refusal and that generated
+folder defaults reach the real TUI without starting an agent. No acceptance or
+archive behavior changes in this increment.

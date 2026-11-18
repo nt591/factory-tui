@@ -15,3 +15,5 @@ python3 "$root/scripts/test-check-ui.py"
 python3 "$root/scripts/test-bench-e2e.py"
 
 python3 "$root/scripts/test-compare-e2e.py"
+
+python3 "$root/scripts/test-setup.py"

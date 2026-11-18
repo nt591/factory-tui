@@ -101,3 +101,40 @@ by the UI tests; they are not ready-to-run real-provider configurations.
 Optional `[projects.NAME]` tables provide project shortcuts; they are not required
 for creating folder-rooted or greenfield sessions. See `docs/sessions.md` for
 project fields, creation modes, working-root semantics and review limitations.
+
+## Interactive setup
+
+From a checkout, run:
+
+```sh
+./scripts/setup.sh
+```
+
+The wizard asks for the Codex executable, gateway URL/key **environment variable
+names**, exact model ID, reasoning preference, working-area mode and storage path.
+It validates paths and the generated config, then asks before saving. It does not
+read your key, fetch models, initialize repositories, create workspaces or launch
+an agent. A missing local TUI binary is built only to validate the config.
+Use the model-list command separately if you need a model ID; do not paste a key
+into a model or variable-name prompt.
+
+Saved `config.toml` and `gateway.toml` are private (0600); newly created config
+folders are 0700. Existing config files—including symlinks—are never overwritten.
+For a separate test setup, use `./scripts/setup.sh --config-dir /path/to/new-config`.
+Cancelled setup saves no files. If publishing either file fails, the wizard removes
+only files it created during that save; it does not delete pre-existing files.
+
+`[workspace] mode = "folder"`, `"existing"` or `"greenfield"` chooses the creation
+form's initial mode. The old default is existing-project mode when omitted. The
+form can still switch modes per task; saved mode never enables live runs or writes.
+Folder mode needs only the root/model defaults, not jj or a workspace parent.
+
+After setup, the wizard prints the read-only launch command. For the default
+config location this is also:
+
+```sh
+./scripts/run.sh --live-ui
+```
+
+Each actual run still requires confirmation. Add `--workspace-write` deliberately
+when needed; folder roots are existing working directories, not isolated copies.

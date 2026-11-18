@@ -52,6 +52,9 @@ let () =
     (Model_picker.state picker = Error "Model discovery failed. Diagnostics withheld.");
   let controller = Controller.create () in
   Controller.act controller Open_models;
+  wait controller.model_picker;
+  check "first opening reports missing gateway without touching task"
+    (match Model_picker.state controller.model_picker with Error _ -> true | _ -> false);
   let selected = controller.selected in
   let saved = Controller.snapshot controller in
   check "opening modal changes no persisted data" (Controller.snapshot controller = saved);

@@ -899,3 +899,17 @@ restart. The workflow fixture now selects a configured project and also creates
 an unregistered greenfield task. Tests remain isolated; no real gateways/models
 or repositories are used. Pure root tests include write-run codec validity,
 mutually exclusive root/workspace identities and simulated-write refusal.
+
+Model-picker PTYs verify request-free startup and automatic first-open discovery
+for task/form entry points, cached/pending reuse and no retry loops on errors.
+Composer tests verify one visible draft copy and a tiny-terminal input fallback;
+terminal Unicode editing assertions inspect the actual composer instead of a
+duplicate bottom input line. Both changes retain agent-start isolation and queued
+reply behavior.
+
+Setup has pure wizard/file-publication tests in scripts/test-setup.py and a PTY
+setup case. The latter supplies a fake executable, temporary working folder and
+variable references, validates saved private configs, refuses overwrite, and
+opens the generated live form without a key or network request. The fixture UI
+catalogue now contains 21 cases. Model first-open discovery remains loopback-only
+in tests; reply editor tests verify single draft display and tiny-layout fallback.

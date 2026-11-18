@@ -63,7 +63,7 @@ for event in [
         config.write_text(
             '[storage]\ndatabase="board.sqlite"\n[codex]\nexecutable="fake-codex"\n[workspace]\nsource='
             + json.dumps(str(root))
-            + '\nmodel="fixture-model"\n'
+            + '\nmodel="fixture-model"\nmode="folder"\n'
         )
         env = {key: os.environ[key] for key in ("PATH", "LANG") if key in os.environ}
         env.update(HOME=str(home), XDG_CONFIG_HOME=str(home), TMPDIR=str(directory))
@@ -77,7 +77,6 @@ for event in [
         with Terminal(command, env, columns=180, rows=50) as tui:
             tui.ready()
             tui.send(b"n")
-            tui.send(b"\x05")
             tui.wait("folder root mode", lambda: "FOLDER ROOT" in tui.text())
             tui.send(b"\t" * 4 + b"Work across these services and create a new one\x13")
             tui.wait("session created", lambda: "Workspace task created" in tui.text())

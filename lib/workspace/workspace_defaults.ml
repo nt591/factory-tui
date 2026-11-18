@@ -1,4 +1,7 @@
+type mode = Existing | Folder | Greenfield
+
 type t = {
+  mode : mode;
   jj : string option;
   source : string option;
   parent : string option;
@@ -6,4 +9,12 @@ type t = {
   model : string option;
 }
 
-let empty = { jj = None; source = None; parent = None; revision = None; model = None }
+let empty =
+  {
+    mode = Existing;
+    jj = None;
+    source = None;
+    parent = None;
+    revision = None;
+    model = None;
+  }

@@ -133,7 +133,7 @@ let parse ~base ~home source =
         match get "workspace" table with
         | None -> Workspace_defaults.empty
         | Some (TTable defaults) ->
-            check_keys [ "jj"; "source"; "parent"; "revision"; "model" ] defaults;
+            check_keys [ "mode"; "jj"; "source"; "parent"; "revision"; "model" ] defaults;
             let optional name =
               match get name defaults with
               | None -> None
@@ -170,7 +170,15 @@ let parse ~base ~home source =
                 | Ok _ -> ())
               model;
             {
-              Workspace_defaults.jj = configured_path "jj";
+              Workspace_defaults.mode =
+                (match optional "mode" with
+                | None | Some "existing" -> Workspace_defaults.Existing
+                | Some "folder" -> Workspace_defaults.Folder
+                | Some "greenfield" -> Workspace_defaults.Greenfield
+                | _ ->
+                    raise
+                      (Invalid "Workspace mode must be existing, folder or greenfield."));
+              jj = configured_path "jj";
               source = configured_path "source";
               parent = configured_path "parent";
               revision;

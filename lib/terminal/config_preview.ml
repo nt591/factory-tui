@@ -5,6 +5,12 @@ let describe (settings : Config.t) =
   `Assoc
     [
       ("valid", `Bool true);
+      ( "workspace_mode",
+        `String
+          (match settings.workspace.mode with
+          | Existing -> "existing"
+          | Folder -> "folder"
+          | Greenfield -> "greenfield") );
       ("opens_database", `Bool false);
       ("starts_process", `Bool false);
       ("checks_path_existence", `Bool false);

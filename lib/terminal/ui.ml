@@ -147,6 +147,7 @@ let render t ~width:cols ~height:rows =
   let body_y = 3 and body_h = max 0 (rows - 6) in
   let task = selected t in
   let detail_visible = ref false in
+  let composer_editor_visible = ref false in
   let conversation r =
     let draft_rows = max 1 (List.length (wrap (max 1 (r.w - 6)) (draft t))) in
     let composer_height =
@@ -254,6 +255,8 @@ let render t ~width:cols ~height:rows =
       in
       let instructions = Composer_guidance.text ~width:inner ~mode ~editing task in
       let capacity = composer_height - 3 in
+      if editing && task.state <> Done && capacity > 0 && inner >= 4 then
+        composer_editor_visible := true;
       let window =
         Composer_layout.make ~width:inner ~capacity ~preview
           ~editor:(if editing && task.state <> Done then Some t.editor else None)
@@ -616,6 +619,8 @@ let render t ~width:cols ~height:rows =
     | Search ->
         Input_line.render ~width:cols ~label:" Search: "
           ~hint:"  [Enter finish / Esc close]" t.editor
+    | Compose when !composer_editor_visible ->
+        " Reply (queued): editing above · Enter queues / Esc keeps draft"
     | Compose ->
         Input_line.render ~width:cols ~label:" Reply (queued): "
           ~hint:"  [Enter send / Esc keep draft]" t.editor
