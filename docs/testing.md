@@ -759,3 +759,10 @@ It restores a strict snapshot, creates a unique task/reply and roundtrips update
 state. A temporary SQLite save/reopen case starts from a stale counter and saves
 one new task without rewriting old identities. No agent, credentials or real
 workspace are used; demo-start coverage uses only scheduled fixture events.
+
+Run-status tests inject a persistence warning and reduce accepted start/message/
+completion/failure/stop events. They verify the footer warning survives, task state
+still changes and events remain queued for persistence. Rendering checks visible
+warning text. This is a controller priority test, not a PTY database-failure probe
+or automatic storage recovery test; real temporary database errors are tested by
+the persistence suite.

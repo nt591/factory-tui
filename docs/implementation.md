@@ -792,3 +792,10 @@ not persisted global allocation state. Pure stale-counter/prefix/limit tests and
 a temporary SQLite restart/creation check verify exact retained records, unique
 new tasks/replies, valid snapshot encoding and unchanged explicit-start rules.
 This does not permit loading corrupt snapshots or guarantee cross-process global IDs.
+
+Accepted run events do not replace a current Storage error footer with normal
+start/completion/stop guidance. Task reduction, update markers and pending event
+storage continue normally; the warning does not suppress lifecycle movement or
+claim that unsaved state is durable. Pure event/render checks cover success,
+failure and interruption under a persistence warning, plus ordinary guidance when
+the warning is no longer present. This guard does not reconnect or retry storage.

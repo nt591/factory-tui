@@ -239,3 +239,7 @@ Stale-counter ID allocation has pure namespace/limit checks and temporary SQLite
 restart/creation coverage. Retained identities remain exact while new allocations
 skip occupancy. This is local snapshot safety, not cross-process global identity
 coordination or automatic repair of invalid stored data.
+
+Run guidance preserves a current persistence-error footer while continuing task
+reduction and pending-event retention. Success/failure/stop event and render tests
+verify warning priority. No automatic storage recovery or durability claim is added.

@@ -258,7 +258,11 @@ let receive t event =
       if changed && previous_state <> Some task.state then
         Column_scroll.follow t.column_scroll task.state)
     (selected t);
-  if changed && event.task_id = t.selected then
+  (* Persistence failures take priority over run guidance because updates can be unsaved. *)
+  if
+    changed && event.task_id = t.selected
+    && not (String.starts_with ~prefix:"Storage error:" t.status)
+  then
     match (event.event, selected t) with
     | Turn_started, Some _ ->
         t.status <- "Run started. x stops; replies queue for the next turn."

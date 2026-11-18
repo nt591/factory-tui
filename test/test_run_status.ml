@@ -80,4 +80,40 @@ let () =
       Controller.receive stale { task_id = "task"; run_id = "old-run"; event })
     [ Turn_started; Turn_completed; Exited 1; Interrupted ];
   check "stale run events do not change status" (stale.status = original);
+  List.iter
+    (fun (events, expected_state) ->
+      let controller = running () in
+      controller.retain_events <- true;
+      controller.status <- "Storage error: checkpoint failed";
+      List.iter (receive controller) events;
+      check "run events cannot mask persistence failure"
+        (controller.status = "Storage error: checkpoint failed");
+      check "storage guidance does not suppress task lifecycle reduction"
+        ((Option.get (Controller.selected controller)).state = expected_state);
+      check "events remain queued for storage despite visible failure"
+        (List.length controller.storage_events = List.length events);
+      let frame = Ui.render controller ~width:120 ~height:36 in
+      let buffer = Buffer.create 8192 in
+      Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (120, 36) frame.image;
+      check "persistence failure stays visible with updated chat/card state"
+        (Controller.contains (Buffer.contents buffer) "Storage error: checkpoint failed"))
+    [
+      ( [
+          Turn_started;
+          Message ("reply", "Unsaved fixture answer");
+          Turn_completed;
+          Exited 0;
+        ],
+        Ready );
+      ([ Turn_started; Failed "fixture failure"; Exited 1 ], Needs_you);
+      ([ Interrupted ], Needs_you);
+    ];
+  let recovered = running () in
+  recovered.status <- "Storage error: checkpoint failed";
+  receive recovered Turn_started;
+  recovered.status <- "Storage connection available.";
+  receive recovered Turn_completed;
+  receive recovered (Exited 0);
+  check "normal outcome guidance resumes when storage failure is no longer present"
+    (has recovered "Run complete.");
   Printf.printf "Passed %d run status checks. Pure events only.\n" !checks
