@@ -40,6 +40,29 @@ let () =
   check "word wrapping retains whole accents and emoji"
     (List.concat_map clusters (Ui.wrap_title 2 "aé👍🏽b") = clusters "aé👍🏽b");
   check "word wrap clamps nonpositive widths" (Ui.wrap_title 0 "abc" = [ "a"; "b"; "c" ]);
+  check "fitting label has no ellipsis" (Text_layout.ellipsize 6 "hello" = "hello");
+  check "overflow label reserves marker width" (Text_layout.ellipsize 4 "hello" = "hel…");
+  check "hidden rows mark fitting final text"
+    (Text_layout.ellipsize ~more:true 5 "end" = "end…");
+  check "one-cell label contains only marker" (Text_layout.ellipsize 1 "hello" = "…");
+  check "zero width emits no label" (Text_layout.ellipsize 0 "hello" = "");
+  check "row limit marks overflow but keeps prior rows"
+    (Text_layout.limit_rows ~width:8 ~height:2 [ "first"; "second"; "third" ]
+    = [ "first"; "second…" ]);
+  check "exact row limit has no false overflow"
+    (Text_layout.limit_rows ~width:8 ~height:2 [ "first"; "second" ]
+    = [ "first"; "second" ]);
+  check "zero-height limit has no rows"
+    (Text_layout.limit_rows ~width:8 ~height:0 [ "first" ] = []);
+  List.iter
+    (fun cluster ->
+      let columns = width cluster + 1 in
+      let clipped = Text_layout.ellipsize columns (cluster ^ "extra") in
+      check "ellipsis preserves complete leading grapheme"
+        (clipped = cluster ^ "…" && width clipped <= columns);
+      check "ellipsis never includes partial oversized grapheme"
+        (Text_layout.ellipsize 1 (cluster ^ "extra") = "…"))
+    [ "é"; "👍🏽"; "🇺🇸"; "👨‍👩‍👧‍👦"; "界" ];
   let controller = Controller.create ~external_events:true () in
   let task = Model.make ~id:"unicode" ~title:"aa👍🏽bb" ~repository:"fixture" in
   controller.tasks <- [ task ];

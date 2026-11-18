@@ -142,6 +142,9 @@ Acceptance does not merge, push, or delete a workspace.
    rebuilding on streaming replacements or query changes. Indexed membership
    avoids repeated match-list walks while highlighting visible rows. Cache state
    stays transient; unit and large-list checks preserve selection/seek behavior.
+   Two-row task-card previews mark hidden title content with a grapheme-safe
+   ellipsis. Chat retains the complete instruction; pure/render/PTY tests verify
+   the preview marker and unchanged task text, including Unicode boundaries.
    UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,

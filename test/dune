@@ -172,3 +172,8 @@
  (name test_search_cache)
  (modules test_search_cache)
  (libraries factory_tui unix))
+
+(test
+ (name test_card_title)
+ (modules test_card_title)
+ (libraries factory_tui notty))

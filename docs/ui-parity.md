@@ -186,3 +186,10 @@ its identity. Visible-row highlighting uses an index instead of walking every
 match. Clear discards retained cache data. Pure search and large-list checks cover
 selection, seek, invalidation, and raw/queued conversation preservation; existing
 PTY search/stream tests cover the UI path. Measurements are in `docs/testing.md`.
+
+Long task-card titles end with an ellipsis when the two-row preview omits content.
+The marker reserves terminal-cell width and does not split a grapheme. Fitting
+titles do not get a false truncation marker. Opening the task still shows the
+full original instruction; no title or message is replaced by the preview.
+`Text_layout` owns preview row limits and ellipsis construction. Pure Unicode,
+card-frame, and PTY create/open checks verify display and retained text.

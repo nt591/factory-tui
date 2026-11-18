@@ -805,6 +805,30 @@ printf '%s\\n' '{"type":"turn.completed"}'
         check("first live onboarding exits cleanly", process.returncode==0)
 
 
+    screen.reset()
+    process = subprocess.Popen([str(binary), "--no-config", "--events", str(root / "examples/events.jsonl")],
+                               stdin=slave, stdout=slave, stderr=slave, env=env)
+    wait_ready()
+    long_title = "Implement a complete software factory workflow with persistent task channels and retain the final instruction sentinel CARD_END"
+    send(b"n")
+    send(long_title.encode())
+    send(b"\r")
+    deadline = time.monotonic() + 5
+    while ("Task created in memory" not in text() or not any("…" in row for row in screen.display[4:19])) and time.monotonic() < deadline:
+        pump(0.05)
+    check("long title preview marks hidden text", any("…" in row for row in screen.display[4:19]))
+    if args.preview:
+        preview(args.preview.with_stem(args.preview.stem + "-long-card"))
+    send(b"e")
+    check("long card opens the complete instruction", "CARD_END" in text())
+    if args.preview:
+        preview(args.preview.with_stem(args.preview.stem + "-long-card-chat"))
+    send(b"q")
+    wait_exit(5)
+    check("long-card preview exits cleanly", process.returncode == 0)
+
+
+
 finally:
     if process.poll() is None:
         process.terminate()

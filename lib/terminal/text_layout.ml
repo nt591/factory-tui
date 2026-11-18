@@ -40,3 +40,31 @@ let wrap_words columns text =
           | [] -> loop "" rows rest)
   in
   loop "" [] words
+
+let ellipsize ?(more = false) columns text =
+  if columns <= 0 then ""
+  else if (not more) && width text <= columns then text
+  else
+    let marker = "…" in
+    let remaining = columns - width marker in
+    let prefix = Buffer.create (min columns 4096) in
+    let used = ref 0 and finished = ref false in
+    Uuseg_string.fold_utf_8 `Grapheme_cluster
+      (fun () cluster ->
+        if not !finished then
+          let size = width cluster in
+          if !used + size > remaining then finished := true
+          else (
+            Buffer.add_string prefix cluster;
+            used := !used + size))
+      () text;
+    Buffer.contents prefix ^ marker
+
+let limit_rows ~width ~height rows =
+  let rec select remaining = function
+    | _ when remaining <= 0 -> []
+    | [] -> []
+    | row :: rest when remaining = 1 -> [ ellipsize ~more:(rest <> []) width row ]
+    | row :: rest -> ellipsize width row :: select (remaining - 1) rest
+  in
+  select height rows

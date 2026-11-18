@@ -389,7 +389,8 @@ let render t ~width:cols ~height:rows =
                   if selected then A.(fg text ++ bg (color_rgb 38 57 72)) else attr text
                 in
                 let title_rows =
-                  wrap_title (max 1 (w - 8)) task.title |> List.filteri (fun i _ -> i < 2)
+                  wrap_title (max 1 (w - 8)) task.title
+                  |> Text_layout.limit_rows ~width:(max 1 (w - 8)) ~height:2
                 in
                 let title_image =
                   I.vcat (List.map (fun title -> line (w - 6) a title) title_rows)

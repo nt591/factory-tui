@@ -121,6 +121,7 @@ against these interfaces during the normal Dune build.
 - `Text_layout`: grapheme-preserving terminal-cell and word wrapping for sanitized
   text. It has no controller or resource state; Ui sanitizes text before wrapping.
   A cluster wider than the pane stays whole and is cropped by rendering.
+  Bounded row previews reserve a grapheme-safe ellipsis for hidden title content.
 - `Ui`: frame/hitbox data, render, mouse dispatch, and tested text wrapping. Theme,
   borders, image composition, and pane rendering helpers stay private. Activity
   expansion preserves the previous task layout and exposes full-width output.
