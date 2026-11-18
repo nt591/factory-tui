@@ -193,3 +193,8 @@ Factory notice identity has repeated/collision tests, strict codec/chat checks a
 a temporary SQLite reopen check. Same-revision diagnostics remain distinct without
 rewriting user/imported history or queued prompts. Existing corrupt databases are
 not repaired as part of this change.
+
+Large-turn acknowledgement has pure 20,000-message coverage for captured-only flags,
+later replies, immutable-record/cache reuse and strict reference validation. A scoped
+local CPU comparison supports the indexing optimization, not whole-app latency or
+cross-machine performance. No timing threshold is a safety/test gate.

@@ -608,3 +608,9 @@ identities before persistence. Pure and temporary live-runner checks verify exac
 resolution, missing/duplicate refusal, no executable side effect, channel feedback
 and valid failed-run snapshot encoding. Normal valid capture/queue behavior is
 unchanged.
+
+Large turn acknowledgement avoids a nested submitted-ID scan and preserves sent
+message records. Repeated acknowledgement leaves the wrapped transcript cache
+valid without changing revision/event semantics. Pure large-list and codec checks
+verify captured-only delivery flags, later-reply retention and identity reuse;
+existing terminal/fake-run tests verify normal chat/card movement.

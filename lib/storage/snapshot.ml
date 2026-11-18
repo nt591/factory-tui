@@ -265,10 +265,12 @@ let decode_task json =
   | None, (Queued | Needs_you | Ready | Done), [] -> ()
   | Some active, Working, [ record ] when active.id = record.run_id ->
       unique active.submitted;
+      let messages = Hashtbl.create (List.length task.messages) in
       List.iter
-        (fun id ->
-          if not (List.exists (fun (m : message) -> m.id = id) task.messages) then
-            invalid ())
+        (fun (message : message) -> Hashtbl.replace messages message.id ())
+        task.messages;
+      List.iter
+        (fun id -> if not (Hashtbl.mem messages id) then invalid ())
         active.submitted
   | _ -> invalid ());
   task

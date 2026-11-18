@@ -352,3 +352,8 @@
  (name test_system_messages)
  (modules test_system_messages)
  (libraries factory_tui notty unix))
+
+(test
+ (name test_turn_ack)
+ (modules test_turn_ack)
+ (libraries factory_tui unix))

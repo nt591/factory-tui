@@ -696,3 +696,14 @@ records, queued instructions, task revision or lifecycle. Pure identity/codec/ch
 checks and a temporary SQLite save/reopen check verify repeated diagnostics remain
 readable and persist with exact unique IDs. This does not repair existing corrupt
 snapshots or alter their validation rules.
+
+Turn_started uses indexed captured-ID membership rather than scanning the submitted
+list for every message. Only still-queued captured records are rebuilt; sent history
+and later replies keep their immutable records. If no queued flags change, the
+original transcript list is retained so Chat_layout can reuse its prepared document.
+The event still increments revision normally. Snapshot captured-reference validation
+also uses a message-ID index after its existing uniqueness checks. Pure 20,000-message
+tests verify chronology, late replies, record/cache reuse and codec rejection of
+missing/duplicate references. A scoped local three-pass comparison measured 1.47 ms
+for indexed reductions versus 2355.72 ms for the previous membership scan; this
+excludes storage, rendering and terminal output and is not a timing test gate.

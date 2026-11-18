@@ -382,3 +382,9 @@ Model.system preserves the usual task/revision notice ID when free, then uses an
 unused numeric suffix on collision. Its local membership index includes all
 message authors, so a Factory notice cannot replace user or imported history.
 Allocation appends only; it does not acknowledge prompts or advance lifecycle.
+
+Model's turn acknowledgement indexes submitted IDs for membership and changes only
+queued captured message records. A no-change acknowledgement retains the complete
+transcript list by identity, allowing Chat_layout to reuse its document. Snapshot
+uses a separate ephemeral message-ID index for captured-reference existence checks;
+uniqueness validation remains unchanged. No index is persisted or exposed.

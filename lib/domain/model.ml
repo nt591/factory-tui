@@ -241,14 +241,19 @@ let apply task (envelope : envelope) =
       Some
         (match envelope.event with
         | Turn_started ->
-            {
-              task with
-              messages =
-                List.map
-                  (fun (m : message) ->
-                    if List.mem m.id run.submitted then { m with queued = false } else m)
-                  task.messages;
-            }
+            let submitted = Hashtbl.create (List.length run.submitted) in
+            List.iter (fun id -> Hashtbl.replace submitted id ()) run.submitted;
+            let changed = ref false in
+            let messages =
+              List.map
+                (fun (message : message) ->
+                  if message.queued && Hashtbl.mem submitted message.id then (
+                    changed := true;
+                    { message with queued = false })
+                  else message)
+                task.messages
+            in
+            { task with messages = (if !changed then messages else task.messages) }
         | Thread_started id -> { task with thread_id = Some id }
         | Message (id, text) ->
             let id = run.id ^ "/" ^ id in

@@ -626,3 +626,20 @@ notice IDs. It roundtrips the strict codec, renders restored chat and saves/reop
 a temporary SQLite database with exact IDs/text. No agents, credentials or real
 workspace operations are used. Existing corrupt snapshots remain rejected rather
 than automatically repaired.
+
+## Large captured-turn acknowledgement
+
+`test_turn_ack` checks 20,000 messages and 10,000 captured IDs with a later reply.
+It verifies only captured queued flags change, sent/later records remain identical,
+repeated acknowledgement reuses the transcript document and revision still advances.
+The strict snapshot codec roundtrips a large capture and rejects missing/duplicate
+references after indexed lookup. No subprocess or workspace is used.
+
+```sh
+opam exec --switch=. -- dune exec test/test_turn_ack.exe -- --measure
+```
+
+One local three-pass comparison reported 1.47 ms for indexed reductions and 2355.72 ms
+for the previous submitted-list membership scan. This is scoped CPU work, excluding
+storage, transcript rendering and terminal output. No elapsed-time threshold or
+performance ratio is asserted by tests.
