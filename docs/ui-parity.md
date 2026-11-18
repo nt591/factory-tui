@@ -536,3 +536,13 @@ path editing has a Close button but no Refresh target. File buttons require both
 multiple files and enough room; their keyboard controls remain intact. Width-sweep
 unit tests and fake-jj terminal checks verify exact targets, compact Refresh/jj/
 Close actions and no command side effects from editing, closing or resizing.
+
+
+Passive chat width changes preserve a sanitized body-byte position inside the
+first visible row instead of its old wrap-line number. Repeated narrowing/widening
+retains the precise position, and a width roundtrip restores the original row
+when bounds permit. Public display indices and styling are unchanged; header
+anchors remain row-relative. Pure and replay PTY checks cover source offsets,
+Unicode/newlines, repeated width changes, later streaming output, exact UI row
+restoration, saved-state isolation and End following. Near-end viewport bounds
+still clamp, and replacing earlier text is not mapped as an edit diff.

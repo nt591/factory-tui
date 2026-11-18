@@ -800,3 +800,10 @@ panes use complete compact buttons, with Close taking priority at the smallest
 sizes. A clipped or omitted button has no mouse target. While editing the jj path,
 only Close is available as a button; Enter still explicitly refreshes. File buttons
 appear only when multiple files and enough space exist; `[`/`]` remain available.
+
+
+While reading a long chat message, changing terminal or pane width keeps the same
+body-text position in the first visible row. Returning to the original width
+restores that row, rather than keeping an obsolete wrapped-line number. End or
+Latest still resumes following. Near the transcript end, viewport bounds can
+clamp the position; edits that replace earlier text are not tracked as a diff.

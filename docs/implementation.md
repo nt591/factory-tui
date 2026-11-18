@@ -575,3 +575,18 @@ retaining body capacity and existing key validation. Pure exhaustive width tests
 and the fake-jj review PTY check verify label/hit agreement, narrow Refresh/path/
 Close clicks, path-editor Close, retained executable on reopen, no implicit command
 and exactly three explicit fixture refreshes. Real-jj review/file tests remain.
+
+
+Chat body anchors now use byte positions in sanitized UTF-8 text, not wrapped-row
+indices. Text_layout.wrap_positions returns each grapheme-wrapped row's source
+start; ordinary wrap uses the same implementation. Chat_layout keeps public row
+indices for styling/tests but emits position-based body anchors, with the spacer
+beyond the final byte. Header anchors remain non-positive row indices. Chat_viewport
+keeps the precise body anchor during passive reflow instead of replacing it with
+the earlier start of the containing row, preventing repeated resize drift. Explicit
+scroll/search/Latest still choose a new position; hidden panes retain anchors and
+terminal-end bounds can clamp them. This does not diff-map replaced text. Pure
+Unicode/newline/source-offset/width-roundtrip tests and a real replay PTY verify
+body containment across repeated widths, exact row restoration, later output,
+height changes, unchanged saved data and explicit follow. Header reflow still uses
+row-relative retention. No dependency or persistence schema changes are introduced.

@@ -507,3 +507,24 @@ refreshes. test_review_controls sweeps widths 0–180 in editing/non-editing and
 single/multiple-file modes, checking full brackets, target bounds and separation.
 No label is truncated into a clickable action. Wide existing review tests retain
 full-label file-button geometry and real-jj behavior.
+
+
+## Precise chat reflow fixture
+
+```sh
+uv run --with pyte --with pillow python scripts/smoke-chat-reflow.py \
+  --preview /tmp/factory-chat-reflow.png
+```
+
+A temporary replay supplies a long body and later growing output. The real TUI
+pauses inside the body, changes widths repeatedly, verifies the original position
+inside the first visible row and exact row restoration at the original width,
+then resumes following with End. No storage, agent, credentials or real workspace
+are accessed. `--binary` avoids rebuilding. test_chat_reflow covers sanitized byte
+starts, complete grapheme boundaries, empty/newline rows, width/height changes,
+anchor uniqueness, Unicode and saved-state isolation.
+
+During this increment, one parallel test_process run failed its existing
+`callback failure teardown bounded` one-second assertion. The isolated process
+suite passed afterward. The precise cause is not established; deadlines and
+runtime code were not changed, and a passing rerun is not a diagnosis.

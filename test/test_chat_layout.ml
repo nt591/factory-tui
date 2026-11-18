@@ -82,9 +82,9 @@ let () =
     check "identical list and width reuse document" (update messages == first);
     check "anchor count matches display rows"
       (List.length (Chat_layout.anchors first) = List.length (Chat_layout.rows first));
-    check "body anchors retain wrapped row identity"
+    check "body anchors retain byte position at wrapped row starts"
       (List.mem ("first", 1) (Chat_layout.anchors first)
-      && List.mem ("first", 2) (Chat_layout.anchors first));
+      && List.mem ("first", 4) (Chat_layout.anchors first));
     check "queued header preserves delivery label"
       (String.concat ""
          (List.filter_map

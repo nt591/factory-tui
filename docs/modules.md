@@ -309,3 +309,12 @@ has no Review/controller/process dependency. Review_view re-exports its action
 variant and adds row coordinates, keeping full-label geometry stable on wide
 panes. Compact/minimal modes omit labels that do not fit; editing exposes only
 Close. The module changes no page capacity, editor value or command permission.
+
+
+Text_layout.wrap_positions attaches byte starts to sanitized grapheme-wrapped
+rows, including empty logical lines. Chat_layout uses these for body anchors while
+its display-row indices stay unchanged. The spacer uses message length plus two;
+headers keep non-positive row indices. Chat_viewport retains the original precise
+anchor when reflow puts it inside a row with an earlier start, so narrowing and
+widening do not accumulate row-start drift. Explicit navigation chooses a new
+anchor. Bounds may clamp, and edits are not mapped through a text diff.

@@ -19,7 +19,9 @@ let rows (document : document) = document.rows
 let anchors (document : document) = document.anchors
 
 let build_message width (message : Model.message) =
-  let body = Text_layout.wrap width (Terminal_text.multiline message.text) in
+  let text = Terminal_text.multiline message.text in
+  let positioned = Text_layout.wrap_positions width text in
+  let body = List.map snd positioned in
   let author = Terminal_text.line message.author in
   let heading =
     author
@@ -50,7 +52,12 @@ let build_message width (message : Model.message) =
         body
     @ [ { id = message.id; index = List.length body + 1; text = ""; tone = Spacer } ]
   in
-  { message; rows; anchors = List.map (fun row -> (row.id, row.index)) rows }
+  let anchors =
+    List.map (fun row -> (row.id, row.index)) headers
+    @ List.map (fun (offset, _) -> (message.id, offset + 1)) positioned
+    @ [ (message.id, String.length text + 2) ]
+  in
+  { message; rows; anchors }
 
 let build ~previous width messages =
   let blocks = Hashtbl.create (List.length messages) in

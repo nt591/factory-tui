@@ -2,27 +2,35 @@ open Notty
 
 let width text = I.width (I.string A.empty text)
 
-let wrap columns text =
+let wrap_positions columns text =
   let columns = max 1 columns in
   let current = Buffer.create (min columns 4096) in
   let cells = ref 0 and rows = ref [] in
+  let offset = ref 0 and start = ref 0 in
   let flush () =
-    rows := Buffer.contents current :: !rows;
+    rows := (!start, Buffer.contents current) :: !rows;
     Buffer.clear current;
-    cells := 0
+    cells := 0;
+    start := !offset
   in
   Uuseg_string.fold_utf_8 `Grapheme_cluster
     (fun () cluster ->
-      if cluster = "\n" then flush ()
+      if cluster = "\n" then (
+        flush ();
+        offset := !offset + 1;
+        start := !offset)
       else
         let size = width cluster in
         if !cells + size > columns && !cells > 0 then flush ();
         (* An over-wide grapheme stays whole. The pane crops its display image. *)
         Buffer.add_string current cluster;
-        cells := !cells + size)
+        cells := !cells + size;
+        offset := !offset + String.length cluster)
     () text;
   flush ();
   List.rev !rows
+
+let wrap columns text = List.map snd (wrap_positions columns text)
 
 let wrap_words columns text =
   let columns = max 1 columns in

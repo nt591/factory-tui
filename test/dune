@@ -317,3 +317,8 @@
  (name test_review_controls)
  (modules test_review_controls)
  (libraries factory_tui notty))
+
+(test
+ (name test_chat_reflow)
+ (modules test_chat_reflow)
+ (libraries factory_tui))

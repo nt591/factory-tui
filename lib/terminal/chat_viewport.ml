@@ -55,7 +55,16 @@ let update t ~task_id ~rows ~height ~distance ~seek =
   (* A hidden pane must not replace a readable message anchor with empty geometry. *)
   if height > 0 then (
     t.task_id <- Some task_id;
-    t.anchor <- List.nth_opt rows offset;
+    let row_anchor = List.nth_opt rows offset in
+    (* Reflow can put the same text inside an earlier row. Keep its precise position. *)
+    let keep_anchor =
+      (not user_moved) && distance > 0 && seek = None
+      &&
+      match t.anchor with
+      | Some anchor -> anchor_index rows anchor = Some offset
+      | None -> false
+    in
+    if not keep_anchor then t.anchor <- row_anchor;
     t.distance <- distance;
     t.offset <- offset);
   { offset; distance; following = distance = 0 }
