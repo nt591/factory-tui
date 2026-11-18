@@ -292,3 +292,8 @@
  (name test_composer_layout)
  (modules test_composer_layout)
  (libraries factory_tui notty))
+
+(test
+ (name test_chat_author)
+ (modules test_chat_author)
+ (libraries factory_tui notty))

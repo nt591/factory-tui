@@ -260,3 +260,10 @@ keeps byte-offset validation inside the editor rather than accepting arbitrary
 cursor offsets. Preview mode shows the tail without a cursor. Ui supplies selected
 task placeholders and mode-aware instructions; it renders only the returned rows.
 No controller, storage, process or terminal state is mutated by layout.
+
+
+Chat_layout wraps sanitized author labels as well as message bodies. Continuation
+headers retain Author tone; their indices are non-positive and increase through
+zero. Body indices start at one independently of header length, so header growth
+does not renumber body anchors. The first matching message row remains the search
+seek target. Raw stored authors and message records are not modified by layout.

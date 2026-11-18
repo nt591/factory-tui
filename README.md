@@ -770,3 +770,9 @@ not logical line numbers. The editor keeps the cursor visible without taking a
 row away from the draft; normal preview shows its tail. Arrow/Home/End navigation
 and Escape retain the complete draft. Enter queues the full text, not just the
 visible window. The cue is absent when the draft fits.
+
+
+Transcript author labels wrap across rows instead of losing their suffix at the
+pane edge. All wrapped header rows keep the author/queued styling. Imported long
+authors and queued/sent labels remain readable and searchable; the original stored
+message stays unchanged. Body-row anchors do not shift when an author grows.

@@ -34,22 +34,37 @@ let clean text =
 
 let build_message width (message : Model.message) =
   let body = Text_layout.wrap width (clean message.text) in
+  let author =
+    clean message.author |> String.map (fun char -> if char = '\n' then ' ' else char)
+  in
+  let heading =
+    author
+    ^
+    if message.queued then " / queued"
+    else if message.author = "You" then " / sent"
+    else ""
+  in
+  let heading = Text_layout.wrap_words width heading in
+  let heading = if heading = [] then [ "" ] else heading in
+  let heading_count = List.length heading in
+  (* Header indices end at zero so wrapped author growth cannot renumber body anchors. *)
+  let headers =
+    List.mapi
+      (fun index text ->
+        {
+          id = message.id;
+          index = index - heading_count + 1;
+          text;
+          tone = Author message.queued;
+        })
+      heading
+  in
   let rows =
-    {
-      id = message.id;
-      index = 0;
-      text =
-        (message.author
-        ^
-        if message.queued then " / queued"
-        else if message.author = "You" then " / sent"
-        else "");
-      tone = Author message.queued;
-    }
-    :: (List.mapi
-          (fun index text -> { id = message.id; index = index + 1; text; tone = Body })
-          body
-       @ [ { id = message.id; index = List.length body + 1; text = ""; tone = Spacer } ])
+    headers
+    @ List.mapi
+        (fun index text -> { id = message.id; index = index + 1; text; tone = Body })
+        body
+    @ [ { id = message.id; index = List.length body + 1; text = ""; tone = Spacer } ]
   in
   { message; rows; anchors = List.map (fun row -> (row.id, row.index)) rows }
 

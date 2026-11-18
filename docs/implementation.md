@@ -501,3 +501,15 @@ policy. Layout/cursor moves do not change saved text, and submission queues the
 complete draft. Pure Unicode/window/zero-capacity/UI checks and a temporary replay
 SQLite PTY verify top/middle/bottom navigation, exact draft restart, retained edits,
 and full queued submission without a new run.
+
+
+Chat_layout sanitizes author labels before grapheme-safe word wrapping. Queued/sent
+suffixes remain part of the complete displayed header, and each continuation uses
+its author tone. Header anchor indices increase through zero; body indices still
+start at one so an author replacement cannot renumber a paused body position.
+Search seeks the first row of the message, including a multi-row header. Existing
+message cache identity/invalidation remains intact. Pure tests cover full suffixes,
+widths, controls, empty labels, queued tone, header index uniqueness, stable body
+anchors during author growth, and stored-state isolation. A temporary SQLite PTY
+checks long author tails, delivery labels, complete bodies, full-author search and
+unchanged persisted messages/runs. No model or workspace operation is used.

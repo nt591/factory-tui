@@ -484,3 +484,11 @@ Composer_layout module separates wrapping/window logic from Ui policy. Unit and
 replay/SQLite PTY checks cover top/middle/bottom movement, Unicode retention,
 restart of a long unsent draft, exact retained edits and complete queued submission
 without a new run. Wrap rows are display positions, not logical line numbers.
+
+
+Message authors and queued/sent header suffixes wrap rather than being clipped to
+one row. Continuations use the same author style. Header anchors end at zero and
+body anchors start at one, independently of header height; paused body reading
+survives author growth. Pure and temporary stored-message PTY checks verify full
+author tails, delivery labels, body order, full-author search and unchanged saved
+content. Extremely long headers still require scrolling to read all rows.

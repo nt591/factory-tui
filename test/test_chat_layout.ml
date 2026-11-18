@@ -86,7 +86,12 @@ let () =
       (List.mem ("first", 1) (Chat_layout.anchors first)
       && List.mem ("first", 2) (Chat_layout.anchors first));
     check "queued header preserves delivery label"
-      ((List.hd (Chat_layout.rows first)).text = "You / queued");
+      (String.concat ""
+         (List.filter_map
+            (fun (row : Chat_layout.row) ->
+              if row.id = "first" && row.tone = Author true then Some row.text else None)
+            (Chat_layout.rows first))
+      = "You/queued");
     let resized = update ~width:20 messages in
     check "width changes rebuild wrapping"
       (resized != first

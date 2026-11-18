@@ -420,3 +420,18 @@ text. No run is added. Startup recovery of an existing simulated Working attempt
 is accounted for before checking unchanged run history at submission. No agent,
 credentials or workspace are accessed. `--binary` avoids rebuilding; previews
 show top and bottom. Pure `test_composer_layout` covers wrapped text and bounds.
+
+
+## Wrapped transcript author fixture
+
+```sh
+uv run --with pyte --with pillow python scripts/smoke-chat-author.py \
+  --preview /tmp/factory-chat-author.png
+```
+
+Temporary SQLite messages contain long fixture author labels and delivery states.
+An empty replay file disables timed updates. The terminal check opens chat,
+verifies both author tails and bodies, searches the full author, then verifies
+exact stored messages/runs. HOME/XDG are temporary; no agent, credentials or real
+workspace are used. `--binary` avoids rebuilding. Pure `test_chat_author` checks
+header tones, bounds, index uniqueness and body-anchor preservation.
