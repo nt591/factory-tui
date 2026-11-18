@@ -248,6 +248,11 @@ let render t ~width:cols ~height:rows =
           [
             task.title;
             "repo: " ^ task.repository;
+            ("workspace: "
+            ^
+            match task.workspace with
+            | None -> "not attached"
+            | Some workspace -> workspace.directory);
             ("run: " ^ match task.active with None -> "idle" | Some run -> run.id);
             "next: " ^ harness_label task.harness ^ " / " ^ task.model;
             "updates: " ^ string_of_int task.revision;

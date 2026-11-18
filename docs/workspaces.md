@@ -15,8 +15,11 @@ Any UI creation action must disclose this behavior before submission.
 
 If creation fails after making a partial destination, retain it for inspection.
 The API does not delete or retry a failed creation. Workspace handles expose
-source, destination, exact base commit, and name through accessors. Identity
-association with persisted tasks and the creation form are the next increments.
+source, destination, exact base commit, and name through accessors. Workspace identity can be attached to a queued task before its first run and
+round-trips through SQLite. Older snapshots without workspace metadata still load.
+Attachment cannot replace a workspace or redirect existing run history. Restoring
+metadata validates its structure; it does not prove the directory still exists.
+The creation form is the next increment.
 There is no UI workspace-creation action in this commit.
 
 ## Review

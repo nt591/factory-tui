@@ -67,7 +67,8 @@ Acceptance does not merge, push, or delete a workspace.
    source checkout without fetching or integrating. `Workspace.diff` returns a
    bounded real patch. Temporary-repository tests verify isolation, exact parent,
    source preservation, and rejection of unsafe inputs. Details: `docs/workspaces.md`.
-   Next persist workspace identity on tasks and add explicit creation/review UI. Acceptance remains separate from merge and push.
+   Workspace identity is attached before the first run and persisted with task
+   snapshots; legacy tasks still load. Next add explicit creation/review UI. Acceptance remains separate from merge and push.
    Real calls and workspace changes require explicit live mode and user action.
 8. **Distribution and lifecycle — partial.** Vim navigation, repository sidebar,
    bordered cards, multiline editing/paste, Help/Settings tabs, and terminal smoke tests

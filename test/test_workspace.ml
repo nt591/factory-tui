@@ -44,6 +44,59 @@ let () =
         (Workspace.destination workspace = destination
         && Workspace.source workspace = source
         && Workspace.name workspace = "factory-task-one");
+      let reference = Workspace.reference workspace in
+      let task = Model.make ~id:"task" ~title:"Work on this task" ~repository:"fixture" in
+      let attached = ok (Model.attach_workspace task reference) in
+      check "task attachment records source repository"
+        (attached.repository = source && attached.workspace = Some reference);
+      check "workspace cannot be reattached"
+        (Result.is_error (Model.attach_workspace attached reference));
+      let running = ok (Model.start task "run") in
+      check "workspace cannot change after run start"
+        (Result.is_error (Model.attach_workspace running reference));
+      let snapshot : Snapshot.t =
+        { tasks = [ attached ]; drafts = []; selected = "task"; serial = 200 }
+      in
+      let loaded = ok (Snapshot.decode (Snapshot.encode snapshot)) in
+      check "workspace identity round trips"
+        ((List.hd loaded.tasks).workspace = Some reference);
+      let restored =
+        ok (Workspace.restore (Option.get (List.hd loaded.tasks).workspace))
+      in
+      check "restored workspace keeps exact base"
+        (Workspace.base restored = Workspace.base workspace);
+      let store = ok (Storage.open_store (Filename.concat directory "tasks.sqlite")) in
+      ok (Storage.save store snapshot ~events:[]);
+      Storage.close store;
+      let store = ok (Storage.open_store (Filename.concat directory "tasks.sqlite")) in
+      let loaded = Option.get (ok (Storage.load store)) in
+      Storage.close store;
+      check "workspace persists in SQLite"
+        ((List.hd loaded.tasks).workspace = Some reference);
+      let legacy = Yojson.Basic.from_string (Snapshot.encode snapshot) in
+      let rec strip = function
+        | `Assoc fields ->
+            `Assoc
+              (List.filter_map
+                 (fun (key, value) ->
+                   if key = "workspace" then None else Some (key, strip value))
+                 fields)
+        | `List values -> `List (List.map strip values)
+        | value -> value
+      in
+      let legacy = ok (Snapshot.decode (Yojson.Basic.to_string (strip legacy))) in
+      check "legacy task without workspace loads" ((List.hd legacy.tasks).workspace = None);
+      List.iter
+        (fun invalid ->
+          check "invalid persisted identity refused"
+            (Result.is_error (Workspace.restore invalid)))
+        [
+          { reference with directory = "relative" };
+          { reference with directory = source ^ "/nested" };
+          { reference with base = "@" };
+          { reference with name = "bad\nname" };
+          { reference with directory = "/tmp/../task" };
+        ];
       let parent =
         run
           [

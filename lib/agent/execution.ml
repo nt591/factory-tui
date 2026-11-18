@@ -82,7 +82,11 @@ let run ~executable ~directory ~model ~thread_id ~gateway_file ~database ~prompt
             ({ task with messages = [] }, true)
         | Some id -> (
             match List.filter (fun (t : task) -> t.thread_id = Some id) saved.tasks with
-            | [ task ] when task.repository = directory && task.harness = Codex ->
+            | [ task ]
+              when (match task.workspace with
+                     | None -> task.repository = directory
+                     | Some workspace -> workspace.directory = directory)
+                   && task.harness = Codex ->
                 (task, false)
             | [ _ ] ->
                 raise

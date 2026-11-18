@@ -34,6 +34,8 @@ type run = {
   input_requested : bool;
 }
 
+type workspace_ref = { source : string; directory : string; base : string; name : string }
+
 type task = {
   id : string;
   title : string;
@@ -47,6 +49,7 @@ type task = {
   harness : harness;
   model : string;
   runs : run_record list;
+  workspace : workspace_ref option;
 }
 
 type event =
@@ -76,6 +79,7 @@ let make ~id ~title ~repository =
     harness = Codex;
     model = "coding-large";
     runs = [];
+    workspace = None;
   }
 
 let system task text =
@@ -92,6 +96,42 @@ let system task text =
           };
         ];
   }
+
+let workspace_path path =
+  (not (Filename.is_relative path))
+  && (not (String.exists (fun c -> Char.code c < 32 || Char.code c = 127) path))
+  && not
+       (List.exists
+          (fun part -> part = "." || part = "..")
+          (String.split_on_char '/' path))
+
+let attach_workspace task workspace =
+  if task.state <> Queued || task.runs <> [] then
+    Error "Workspace must be attached before the first run."
+  else if task.workspace <> None then Error "Task already has a workspace."
+  else if
+    workspace.source = workspace.directory
+    || (not (workspace_path workspace.source))
+    || (not (workspace_path workspace.directory))
+    || workspace.name = ""
+    || String.length workspace.name > 200
+    || String.exists (fun c -> Char.code c < 32 || Char.code c = 127) workspace.name
+    || String.starts_with ~prefix:(workspace.source ^ "/") workspace.directory
+    || String.starts_with ~prefix:(workspace.directory ^ "/") workspace.source
+    || not
+         ((String.length workspace.base = 40 || String.length workspace.base = 64)
+         && String.for_all
+              (function '0' .. '9' | 'a' .. 'f' -> true | _ -> false)
+              workspace.base)
+  then Error "Invalid workspace identity."
+  else
+    Ok
+      {
+        task with
+        workspace = Some workspace;
+        repository = workspace.source;
+        revision = task.revision + 1;
+      }
 
 let set_model task value =
   let value = String.trim value in

@@ -51,4 +51,4 @@
 (test
  (name test_workspace)
  (modules test_workspace)
- (libraries factory_tui unix))
+ (libraries factory_tui unix yojson))

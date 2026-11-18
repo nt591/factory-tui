@@ -55,6 +55,17 @@ let task (task : task) =
       ("model", string task.model);
       ("thread", option string task.thread_id);
       ("runs", list run_record task.runs);
+      ( "workspace",
+        option
+          (fun (workspace : workspace_ref) ->
+            obj
+              [
+                ("source", string workspace.source);
+                ("directory", string workspace.directory);
+                ("base", string workspace.base);
+                ("name", string workspace.name);
+              ])
+          task.workspace );
       ("tools", list pair task.tools);
       ( "messages",
         list
@@ -181,6 +192,25 @@ let decode_task json =
       model = id (field "model" json);
       thread_id = opt id (field "thread" json);
       runs = array decode_record (field "runs" json);
+      workspace =
+        (match json with
+        | `Assoc fields -> (
+            match List.assoc_opt "workspace" fields with
+            | None | Some `Null -> None
+            | Some json -> (
+                let workspace =
+                  {
+                    source = text (field "source" json);
+                    directory = text (field "directory" json);
+                    base = id (field "base" json);
+                    name = id (field "name" json);
+                  }
+                in
+                let blank = Model.make ~id:"validation" ~title:"" ~repository:"" in
+                match Model.attach_workspace blank workspace with
+                | Ok _ -> Some workspace
+                | Error _ -> invalid ()))
+        | _ -> invalid ());
       tools = array decode_pair (field "tools" json);
       messages =
         array
@@ -205,6 +235,9 @@ let decode_task json =
           (field "active" json);
     }
   in
+  Option.iter
+    (fun workspace -> if workspace.source <> task.repository then invalid ())
+    task.workspace;
   unique (List.map (fun (m : message) -> m.id) task.messages);
   unique (List.map (fun (r : run_record) -> r.run_id) task.runs);
   unique (List.map fst task.tools);

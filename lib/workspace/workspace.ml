@@ -109,3 +109,19 @@ let diff ~jj workspace =
   with
   | Workspace_error error -> Error error
   | Unix.Unix_error _ | Sys_error _ -> Error "Cannot read workspace changes."
+
+let reference t : Model.workspace_ref =
+  { source = t.source; directory = t.destination; base = t.base; name = t.name }
+
+let restore (reference : Model.workspace_ref) =
+  let task = Model.make ~id:"workspace-validation" ~title:"" ~repository:"" in
+  match Model.attach_workspace task reference with
+  | Error error -> Error error
+  | Ok _ ->
+      Ok
+        {
+          source = reference.source;
+          destination = reference.directory;
+          base = reference.base;
+          name = reference.name;
+        }
