@@ -53,6 +53,8 @@ def main():
                 lambda: (
                     "draft rows 14-18/18" in tui.text()
                     and "Draft line 17" in tui.text()
+                    and "Reply (queued):" in tui.text()
+                    and "Enter queues" in tui.text()
                 ),
             )
             tui.check(

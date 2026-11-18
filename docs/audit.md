@@ -271,3 +271,24 @@ Restart conversation selection has pure filter/archive/fallback tests and repeat
 SQLite terminal coverage. Accepted chat remains selected independently of an active
 board; retained drafts stay read-only and exact history is unchanged. The fixture UI
 catalogue includes restart-selection as its 17th case. No agent resumes on restart.
+
+Archive sidebar/toggle actions and normal-mode Escape retain a valid selected
+conversation even when its card is outside the visible board. View changes do not
+reset transcript search or remembered Chat/Activity positions. Missing identities
+still fall back to visible cards; explicit board navigation selects a visible task.
+Board search keeps its existing match-selection behavior. Pure controller tests
+and the SQLite restart PTY cover active-chat/archive and accepted-chat/active-board
+switches, mouse/keyboard input, retained read-only drafts and unchanged task history.
+No new keybindings, persistence fields or execution behavior are added.
+
+The composer PTY waits for both the draft window and its submit-guidance footer.
+A captured partial redraw showed the window before the footer finished. Checking
+both before asserting avoids treating that intermediate frame as the final view;
+the deadline and all content assertions remain unchanged. Runtime rendering is
+unchanged by this fixture condition.
+
+Verification on 2026-11-18: the final one-build UI audit passed all 17 cases and
+produced 58 previews. Evidence: `/tmp/factory-view-selection-ui-20261118-final/report.json`.
+Archive/expanded-chat previews were inspected. CLI invocation (20), fake execution
+(19), and temporary package (14) checks passed separately. These are fixture-only
+results; provider, security and public-release limitations remain unchanged.

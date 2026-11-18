@@ -59,7 +59,7 @@ def main():
         with sqlite3.connect(database) as db:
             db.execute("UPDATE snapshot SET payload=?", (json.dumps(saved),))
         for attempt in range(2):
-            with Terminal(command, env) as tui:
+            with Terminal(command, env, columns=120 if attempt == 0 else 180) as tui:
                 tui.ready()
                 tui.wait(
                     "restored accepted chat",
@@ -72,6 +72,50 @@ def main():
                 tui.check(
                     "retained draft is read-only after restart",
                     "draft retained" in tui.text() and "i to edit" not in tui.text(),
+                )
+                tui.send(b"\x1b")
+                tui.check(
+                    "Escape preserves accepted chat on active board",
+                    f"{accepted['id']} / Done / conversation" in tui.text(),
+                )
+                tui.send(b"j")
+                tui.wait(
+                    "explicit navigation selects active task",
+                    lambda: f"{active['id']} / Queued / conversation" in tui.text(),
+                )
+                if attempt == 0:
+                    tui.send(b"d")
+                else:
+                    archive_row = next(
+                        row
+                        for row, text in enumerate(tui.screen.display)
+                        if "Archive" in text
+                    )
+                    tui.send(
+                        f"\x1b[<0;3;{archive_row + 1}M\x1b[<0;3;{archive_row + 1}m".encode()
+                    )
+                tui.check(
+                    "archive switch keeps active conversation open",
+                    f"{active['id']} / Queued / conversation" in tui.text()
+                    and "1 tasks accepted" in tui.screen.display[2],
+                )
+                if args.preview and attempt == 1:
+                    tui.preview(args.preview.with_stem(args.preview.stem + "-archive"))
+                tui.send(b"dbd")
+                tui.check(
+                    "keyboard view switches keep active conversation open",
+                    f"{active['id']} / Queued / conversation" in tui.text(),
+                )
+                tui.send(b"j")
+                tui.wait(
+                    "archive navigation selects accepted task",
+                    lambda: f"{accepted['id']} / Done / conversation" in tui.text(),
+                )
+                tui.send(b"b")
+                tui.check(
+                    "session board retains accepted conversation",
+                    f"{accepted['id']} / Done / conversation" in tui.text()
+                    and "Queued 1" in tui.text(),
                 )
                 tui.send(b"e")
                 tui.wait(

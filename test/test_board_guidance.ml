@@ -153,11 +153,54 @@ let () =
     (reopened.selected = accepted.id);
   reopened.query <- "not-visible";
   Controller.act reopened Controller.Archive_view;
-  check "archive selection respects task filters"
-    (reopened.selected = "" && Controller.visible reopened = []);
+  check "archive filter preserves retained conversation"
+    (reopened.selected = accepted.id && Controller.visible reopened = []);
   reopened.query <- "";
   Controller.act reopened Controller.Archive_view;
-  check "archive action restores selection when filter clears"
+  check "clearing archive filter preserves selected conversation"
+    (reopened.selected = accepted.id);
+  let active =
+    Model.make ~id:"active" ~title:"Active task" ~repository:"another-fixture"
+  in
+  reopened.tasks <- [ active; accepted ];
+  reopened.zoom <- false;
+  Controller.act reopened (Controller.Select active.id);
+  Chat_search.set_query reopened.chat_search "retained search";
+  Pane_scroll.remember reopened.pane_scroll Chat 7;
+  Pane_scroll.remember reopened.pane_scroll Activity 11;
+  let check_active_view name =
+    check name
+      (reopened.selected = active.id
+      && Chat_search.query reopened.chat_search = "retained search"
+      && Pane_scroll.position reopened.pane_scroll Chat = 7
+      && Pane_scroll.position reopened.pane_scroll Activity = 11)
+  in
+  Controller.act reopened Controller.Archive_view;
+  check "archive shows accepted cards while active chat remains open"
+    (Controller.visible reopened = [ accepted ]);
+  check_active_view "sidebar archive preserves conversation reading state";
+  Controller.act reopened Controller.Toggle_archive;
+  Controller.act reopened Controller.Toggle_archive;
+  check_active_view "archive toggle preserves conversation reading state";
+  Controller.act reopened Controller.Session_board;
+  check_active_view "session board preserves conversation reading state";
+  Controller.act reopened (Controller.Select accepted.id);
+  reopened.query <- "hidden";
+  Controller.key reopened (`Escape, []);
+  check "Escape clears board search without replacing accepted chat"
+    (reopened.query = "" && reopened.selected = accepted.id);
+  Controller.act reopened (Controller.Select active.id);
+  Controller.act reopened Controller.Archive_view;
+  Controller.key reopened (`ASCII 'j', []);
+  check "explicit archive navigation selects the visible accepted task"
+    (reopened.selected = accepted.id);
+  Controller.act reopened Controller.Session_board;
+  Controller.key reopened (`ASCII 'j', []);
+  check "explicit board navigation enters visible active tasks"
+    (reopened.selected = active.id);
+  reopened.selected <- "missing";
+  Controller.act reopened Controller.Archive_view;
+  check "archive repairs missing identity from visible tasks"
     (reopened.selected = accepted.id);
   let old_empty = Controller.create () in
   ok (Controller.initialize_board old_empty ~saved:(Some saved) ~live:None);

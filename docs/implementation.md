@@ -853,3 +853,16 @@ remains accurate; no task/draft/history is rewritten or agent resumed. Pure acti
 archive/filter/missing/empty tests and a repeated SQLite PTY restart verify accepted
 chat and read-only drafts alongside an active board. The dedicated restart-selection
 case joins the full fixture UI catalogue, now 17 cases.
+
+Archive sidebar/toggle actions and normal-mode Escape retain a valid selected
+conversation even when its card is outside the visible board. View changes do not
+reset transcript search or remembered Chat/Activity positions. Missing identities
+still fall back to visible cards; explicit board navigation selects a visible task.
+Board search keeps its existing match-selection behavior. Pure controller tests
+and the SQLite restart PTY cover active-chat/archive and accepted-chat/active-board
+switches, mouse/keyboard input, retained read-only drafts and unchanged task history.
+No new keybindings, persistence fields or execution behavior are added.
+
+The composer PTY readiness condition includes its submit-guidance footer as well
+as the draft window. This prevents assertion against an observed partial redraw;
+its existing timeout and content checks remain unchanged.

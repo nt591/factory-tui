@@ -248,6 +248,8 @@ let repair_selection t =
   if not (List.exists (fun (task : task) -> task.id = t.selected) (visible t)) then
     match visible t with task :: _ -> select t task.id | [] -> t.selected <- ""
 
+let ensure_selection t = if selected t = None then repair_selection t
+
 let receive t event =
   let previous_state = Option.map (fun (task : task) -> task.state) (selected t) in
   let tasks = reduce t.tasks event in
@@ -373,7 +375,7 @@ let rec act t action =
   | Archive_view ->
       t.archive <- true;
       t.board_scroll <- 0;
-      repair_selection t;
+      ensure_selection t;
       focus_pane t Board
   | Session_board ->
       t.sidebar_scroll <- None;
@@ -594,7 +596,7 @@ let rec act t action =
   | Toggle_archive ->
       t.archive <- not t.archive;
       t.board_scroll <- 0;
-      if t.archive then repair_selection t
+      if t.archive then ensure_selection t
   | Start -> (
       if t.live_config <> None then
         match selected t with
@@ -920,7 +922,7 @@ let normal_key t (key, mods) =
               t.scroll <- 0)
             else (
               t.query <- "";
-              repair_selection t))
+              ensure_selection t))
     | `ASCII '/' ->
         command (fun () ->
             act t (if t.focus = Conversation then Begin_chat_search else Begin_search))

@@ -639,3 +639,12 @@ Compact lists show [N new]. Markers follow task identity when cards move, and cl
 when task detail is visible outside a modal; board-only selection cannot clear them.
 Pure visibility/state tests and replay PTY checks verify movement and clearing.
 These markers are not unread receipts; already-viewed history is not badged on restart.
+
+Archive sidebar/toggle actions and normal-mode Escape retain a valid selected
+conversation even when its card is outside the visible board. View changes do not
+reset transcript search or remembered Chat/Activity positions. Missing identities
+still fall back to visible cards; explicit board navigation selects a visible task.
+Board search keeps its existing match-selection behavior. Pure controller tests
+and the SQLite restart PTY cover active-chat/archive and accepted-chat/active-board
+switches, mouse/keyboard input, retained read-only drafts and unchanged task history.
+No new keybindings, persistence fields or execution behavior are added.
