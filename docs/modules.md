@@ -33,6 +33,8 @@ against these interfaces during the normal Dune build.
 
 - `Model`: immutable task/run/event data and lifecycle transitions. Records and
   variants are public because reducers, codecs, and rendering inspect them.
+- `Restart_guidance`: pure pre-recovery snapshot summary of interrupted tasks and
+  retained nonempty drafts. It changes no task, timestamp, or execution state.
 - `Snapshot`: the persistence payload, encode/decode, restart recovery, and the
   run-record encoder used by the SQL store. JSON parsing helpers remain private.
 - `Events`: replay envelope encode/decode and an abstract file/FIFO source. Callers

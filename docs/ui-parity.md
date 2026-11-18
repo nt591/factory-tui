@@ -400,3 +400,10 @@ belongs to the active run. Missing status remains unknown and unrecorded origin
 is explicit. The summary uses the same cached decoder as expanded inspection.
 Unit and fake-process PTY checks verify supplied status, latest-item replacement,
 origin, and hidden details. No run or task state is changed by inspection.
+
+Restart feedback reports the actual count of Working tasks recovered as interrupted
+and the number of nonempty saved drafts retained. A board with no interrupted runs
+says so instead of implying a recovery failure. `Restart_guidance.ml/.mli` reads
+the pre-recovery snapshot; recovery still moves Working tasks to Needs you and
+starts no process. Pure snapshot/controller and SQLite-restart PTY checks verify
+accurate counts, retained editing text, and unchanged completion gates.

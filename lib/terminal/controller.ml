@@ -266,6 +266,7 @@ let snapshot t : Snapshot.t =
   { tasks = t.tasks; drafts = t.drafts; selected = t.selected; serial = t.serial }
 
 let restore t saved =
+  let guidance = Restart_guidance.describe saved in
   let saved = Snapshot.recover saved in
   t.tasks <- saved.tasks;
   t.drafts <- saved.drafts;
@@ -273,7 +274,7 @@ let restore t saved =
   t.serial <- saved.serial;
   t.schedules <- [];
   repair_selection t;
-  t.status <- "Saved conversations restored. Interrupted runs need your input."
+  t.status <- guidance
 
 let tick t now =
   if not t.paused then (

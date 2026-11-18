@@ -257,3 +257,8 @@
  (name test_tool_cache)
  (modules test_tool_cache)
  (libraries factory_tui yojson notty unix))
+
+(test
+ (name test_restart_guidance)
+ (modules test_restart_guidance)
+ (libraries factory_tui))

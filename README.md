@@ -683,6 +683,10 @@ No remote is configured and nothing is pushed without an explicit request.
 A lighter UI does not eliminate execution, durability, or safety work. No
 performance comparison with the Rust application has been established yet.
 
+Restart feedback reports how many Working tasks were recovered as interrupted and
+how many nonempty drafts were retained. No interrupted runs are reported when the
+saved board was already idle. Recovery still starts no process.
+
 ## Verification and remaining scope
 
 See [docs/audit.md](docs/audit.md) for a requirement-by-requirement evidence map.

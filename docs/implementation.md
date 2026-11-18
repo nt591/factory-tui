@@ -399,3 +399,10 @@ Collapsed Activity shows the latest reducer-ordered tool summary and source-run
 context without command/output details. Tool updates do not imply run completion;
 the supplied decoder status remains authoritative, with explicit unknown fallback.
 Unit and fake-process PTY checks verify current summary and hidden payload details.
+
+Restart feedback reports the actual count of Working tasks recovered as interrupted
+and the number of nonempty saved drafts retained. A board with no interrupted runs
+says so instead of implying a recovery failure. `Restart_guidance.ml/.mli` reads
+the pre-recovery snapshot; recovery still moves Working tasks to Needs you and
+starts no process. Pure snapshot/controller and SQLite-restart PTY checks verify
+accurate counts, retained editing text, and unchanged completion gates.

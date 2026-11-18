@@ -326,6 +326,13 @@ try:
         process = subprocess.Popen([str(binary), "--config", str(config)],
                                    stdin=slave, stdout=slave, stderr=slave, env=env)
         wait_ready()
+        interrupted = sum(task["state"] == "working" for task in saved["tasks"])
+        retained_drafts = sum(bool(value) for _, value in saved["drafts"])
+        check("startup reports actual interrupted recovery and retained draft",
+              f"{interrupted} interrupted" in screen.display[-3]
+              and f"{retained_drafts} saved draft retained" in screen.display[-3])
+        if args.preview:
+            preview(args.preview.with_stem(args.preview.stem + "-restart-summary"))
         send(b"e")
         check("UI restart recovers working task", "T-101 / Needs you / conversation" in text())
         send(b"i")
@@ -343,6 +350,7 @@ try:
         process = subprocess.Popen([str(binary)], stdin=slave, stdout=slave, stderr=slave,
                                    env={**env, "XDG_CONFIG_HOME": directory})
         wait_ready()
+        check("second restart does not invent new interrupted runs", "No interrupted runs." in screen.display[-3])
         send(b"e")
         check("argument-free startup discovers TOML", "T-101 / Needs you / conversation" in text())
         send(b"q")
