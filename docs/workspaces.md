@@ -76,3 +76,28 @@ Form/controller tests and the PTY smoke create workspaces only in temporary jj
 repositories. They cover modal keyboard/mouse isolation, paste safety, field
 navigation, background creation, Queued/no-run state, persistence and reopening,
 and retaining an existing destination after a failed duplicate creation.
+
+## Changes review pane
+
+Press `v` on a workspace-backed task. The full-screen changes pane keeps the task
+ID/title attached to its own review object. It does not start a command on opening.
+Enter an absolute jj executable if needed (`i` edits it), then press Enter or `r`
+to refresh. Refresh snapshots the workspace and reads the diff relative to its
+recorded base on a background worker. The pane distinguishes not-loaded, loading,
+empty diff, patch, and error states. Paths are remembered for this application
+session after creation or review, not silently guessed from a global install.
+
+`j/k`, Page Up/Down, and the mouse wheel scroll; `g/G` goes to top/bottom. The diff
+uses addition/deletion/hunk colors and preserves line text without word wrapping.
+Long lines are clipped to the terminal width. Escape returns to the same task
+chat; it does not accept the task. During a bounded refresh, close waits for
+completion rather than abandoning a worker; shutdown joins it. Review blocks
+underlying board, run, and acceptance shortcuts. Its buttons are clickable.
+
+A task with no workspace shows an error instead of a demo patch. Patches are
+read on explicit refresh and not saved into the conversation database. Each review
+owns its task ID and workspace; results cannot update another task's chat.
+`Changes` owns the background job, `Review` owns input/scroll state, and
+`Review_view` renders the result. Their interfaces hide worker handles and state
+representation. Tests and the PTY smoke verify a real added file in a temporary
+workspace, empty/error states, modal isolation, scrolling, and return to chat.

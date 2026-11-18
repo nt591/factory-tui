@@ -336,6 +336,8 @@ try:
         task = next(t for t in saved["tasks"] if t.get("workspace"))
         check("created workspace identity persisted", task["workspace"]["source"] == str(source)
               and Path(task["workspace"]["directory"]).is_dir())
+        (Path(task["workspace"]["directory"]) / "review.txt").write_text("A real workspace addition\n")
+
         check("created workspace task starts no run", task["state"] == "queued" and task["active"] is None
               and task["runs"] == [])
         check("complete task instruction retained", task["messages"][0]["text"] == "Create an isolated task through the TUI")
@@ -346,6 +348,21 @@ try:
         wait_ready()
         send(b"e")
         check("created task chat restores after restart", "Create an isolated task through the TUI" in text())
+        send(b"v")
+        check("changes pane opens on selected task", "CHANGES / " + task["id"] in text())
+        check("changes refresh disclosure visible", "Refresh snapshots the workspace" in text())
+        send(b"/opt/homebrew/bin/jj\r")
+        deadline = time.monotonic() + 5
+        while "+A real workspace addition" not in text() and time.monotonic() < deadline:
+            pump(0.05)
+        check("real workspace patch appears in TUI", "+A real workspace addition" in text()
+              and "review.txt" in text())
+        if args.preview:
+            preview(args.preview.with_stem(args.preview.stem + "-review"))
+        send(b"\x1b")
+        check("closing changes returns to task chat", "Create an isolated task through the TUI" in text()
+              and "CHANGES / " not in text())
+
         send(b"q")
         process.wait(timeout=3)
         check("reopened workspace UI exits cleanly", process.returncode == 0)

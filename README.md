@@ -342,7 +342,7 @@ requested. The CLI returns only a small summary; open the database in the TUI to
 inspect the chat. TUI Start still uses simulation, not this execution path.
 
 Only fake-executable execution has been verified. Installed-Codex/gateway
-compatibility, interactive approvals, live UI execution, and changes review remain
+compatibility, interactive approvals, live UI execution remain
 pending. Isolated workspace task creation is available separately via `W`. See [docs/harness.md](docs/harness.md) for the full safety boundary.
 `python3 scripts/smoke-execution.py` runs fake CLI execution checks only.
 
@@ -389,7 +389,12 @@ shows the source-snapshot disclosure. Creation runs in the background and select
 the new Queued chat; it starts no agent. Source, parent, exact base, and model are
 remembered from previous workspace-backed tasks. jj's path remains explicit.
 
-Real changes review is the next UI increment. Creation requires durable storage;
+Press `v` to open real changes review for the selected workspace task. Opening
+runs nothing: enter jj's absolute path if needed, then Enter/`r` refreshes in the
+background. `i` edits the path; `j/k`, Page Up/Down, and the wheel scroll; Escape
+returns to chat. Empty and failed diffs are explicit states, not sample patches.
+Review does not accept, merge, push, or delete. Long diff lines are clipped.
+Creation requires durable storage;
 a save failure leaves the new directory for inspection instead of deleting it.
 See [docs/workspaces.md](docs/workspaces.md) for the API limits and next steps.
 

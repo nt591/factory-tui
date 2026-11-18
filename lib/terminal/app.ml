@@ -78,6 +78,7 @@ let interactive ?(fake_harness = false) ~events ~database () =
           in
           let@ () =
             on_exit (fun () ->
+                Option.iter Review.close t.review;
                 Controller.finish_creation t ~storage:worker;
                 Demo.Runner.close runner (Controller.demo_context t);
                 Notty_unix.Term.release term;
@@ -100,6 +101,7 @@ let interactive ?(fake_harness = false) ~events ~database () =
           let pasting = ref false in
           while not t.quit do
             Controller.tick t (Unix.gettimeofday ());
+            Option.iter Review.poll t.review;
             Option.iter
               (fun source ->
                 List.iter

@@ -27,6 +27,10 @@ type action =
   | Quit
   | Begin_search
   | Begin_compose
+  | Open_review
+  | Refresh_review
+  | Edit_review_executable
+  | Close_review
   | Begin_workspace
   | Submit_workspace
   | Cancel_workspace
@@ -34,6 +38,8 @@ type action =
   | Begin_new
 
 type t = {
+  mutable review : Review.t option;
+  mutable jj_executable : string;
   mutable workspace_form : Workspace_form.t option;
   mutable creation_job : Task_creation.job option;
   mutable creation_request : Task_creation.request option;

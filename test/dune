@@ -57,3 +57,8 @@
  (name test_workspace_form)
  (modules test_workspace_form)
  (libraries factory_tui notty unix))
+
+(test
+ (name test_review)
+ (modules test_review)
+ (libraries factory_tui notty unix))

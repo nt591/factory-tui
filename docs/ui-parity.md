@@ -40,10 +40,11 @@ from `scripts/smoke-terminal.py --preview /tmp/factory-tui.png`.
 
 ## Remaining work
 
-Live UI execution and a real changes review surface follow the implementation
-sequence. The `W` creation form now creates isolated Queued tasks with persistent
+Live UI execution follows the implementation sequence. The `v` changes pane
+now shows real workspace patches with explicit refresh, empty/error/loading
+states, scrolling, and return to chat. The `W` creation form now creates isolated Queued tasks with persistent
 workspace identity and explicit source-snapshot disclosure. Simulation currently uses
 fixture data only. Do not present a simulated tool result as real verification.
 The composer supports multiline drafts (Ctrl-L or Alt-Enter), Unicode codepoint cursor movement,
 insertion/deletion, and newline-preserving paste. Further refinements may include
-grapheme-aware cursor movement, configurable layouts, and transcript search. No real review drawer exists yet.
+grapheme-aware cursor movement, configurable layouts, and transcript search. Changes review is implemented as a full-screen pane rather than a drawer.

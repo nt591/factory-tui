@@ -62,7 +62,7 @@ Acceptance does not merge, push, or delete a workspace.
    Dry-run invocation must disclose no credentials. Verify protocol compatibility
    against a loopback fixture before an explicitly requested real gateway check.
    Configuration validity does not prove model compatibility.
-7. **Isolated jj workspaces — creation integrated; review UI pending.**
+7. **Isolated jj workspaces — creation and changes review integrated.**
    `Workspace` resolves an exact base and creates a new destination outside the
    source checkout without fetching or integrating. `Workspace.diff` returns a
    bounded real patch. Temporary-repository tests verify isolation, exact parent,
@@ -71,7 +71,9 @@ Acceptance does not merge, push, or delete a workspace.
    snapshots; legacy tasks still load. `W` opens a modal creation form when SQLite
    is configured. A bounded background job creates the workspace, then selects its
    Queued chat without starting an agent. Form and PTY checks verify input safety,
-   persistence/reopening, and isolation. Changes review UI is next. Acceptance remains separate from merge and push.
+   persistence/reopening, and isolation. `v` opens explicit background diff review
+   with real patch/empty/error states and task-bound result ownership. Review never
+   accepts, integrates, or deletes. Live UI execution is still pending. Acceptance remains separate from merge and push.
    Real calls and workspace changes require explicit live mode and user action.
 8. **Distribution and lifecycle — partial.** Vim navigation, repository sidebar,
    bordered cards, multiline editing/paste, Help/Settings tabs, and terminal smoke tests

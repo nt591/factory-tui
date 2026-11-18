@@ -1,0 +1,17 @@
+type t
+
+val create : Model.task -> jj:string -> (t, string) result
+val task_id : t -> string
+val title : t -> string
+val executable : t -> string
+val editing : t -> bool
+val state : t -> Changes.state
+val scroll : t -> int
+val set_scroll : t -> int -> unit
+val refresh : t -> unit
+val status : t -> string option
+val edit_executable : t -> unit
+val key : t -> Notty.Unescape.key -> unit
+val paste_key : t -> Notty.Unescape.key -> unit
+val poll : t -> unit
+val close : t -> unit

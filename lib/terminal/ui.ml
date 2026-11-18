@@ -499,6 +499,7 @@ let render t ~width:cols ~height:rows =
       ("a accept", Accept);
       ("m model", Begin_model);
       ("H harness", Next_harness);
+      ("v changes", Open_review);
       ("W workspace", Begin_workspace);
       ("n demo", Begin_new);
       ("d archive", Toggle_archive);
@@ -542,6 +543,7 @@ let render t ~width:cols ~height:rows =
         "m edits next-run model. H cycles Codex / Claude.";
         "s starts a simulated run; x interrupts; a accepts Ready work.";
         "b returns to all tasks. R cycles repositories. d opens Archive.";
+        "v opens real workspace changes; r refreshes; Escape returns.";
         "t expands/collapses tools. f pauses/resumes demo events.";
         "/ filters tasks by title, ID, or repository. Escape clears search.";
         "";
@@ -638,6 +640,22 @@ let render t ~width:cols ~height:rows =
           in
           hit (x + item.x) (y + item.y) item.width 1 action)
         dialog.hits);
+  (match t.review with
+  | None -> ()
+  | Some review ->
+      let view = Review_view.render review ~width:cols ~height:(max 1 (rows - 1)) in
+      paint 0 1 view.image;
+      hits := [];
+      List.iter
+        (fun (item : Review_view.hit) ->
+          let action =
+            match item.action with
+            | Review_view.Refresh -> Refresh_review
+            | Review_view.Edit_executable -> Edit_review_executable
+            | Review_view.Close -> Close_review
+          in
+          hit item.x (item.y + 1) item.width 1 action)
+        view.hits);
   { image = fit cols rows !canvas; hits = !hits }
 
 let mouse t frame ~now = function
@@ -664,6 +682,9 @@ let mouse t frame ~now = function
       if t.help then
         t.menu_scroll <-
           max 0 (min 10000 (t.menu_scroll + if direction = `Up then -3 else 3))
+      else if t.review <> None then
+        let review = Option.get t.review in
+        Review.set_scroll review (Review.scroll review + if direction = `Up then -3 else 3)
       else if t.input = Normal && t.workspace_form = None then (
         reset_keys t;
         (match hit_at frame x y with

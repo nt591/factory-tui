@@ -27,6 +27,10 @@ type action =
   | Quit
   | Begin_search
   | Begin_compose
+  | Open_review
+  | Refresh_review
+  | Edit_review_executable
+  | Close_review
   | Begin_workspace
   | Submit_workspace
   | Cancel_workspace
@@ -34,6 +38,8 @@ type action =
   | Begin_new
 
 type t = {
+  mutable review : Review.t option;
+  mutable jj_executable : string;
   mutable workspace_form : Workspace_form.t option;
   mutable creation_job : Task_creation.job option;
   mutable creation_request : Task_creation.request option;
@@ -73,6 +79,8 @@ type t = {
 
 let create ?(external_events = false) ?(fake_harness = false) () =
   {
+    review = None;
+    jj_executable = "";
     workspace_form = None;
     creation_job = None;
     creation_request = None;
@@ -271,6 +279,27 @@ let act t action =
           t.model_text <- task.model;
           t.input <- Edit_model;
           t.editor <- Text_edit.create task.model)
+  | Open_review -> (
+      match selected t with
+      | None -> t.status <- "Select a workspace task to review."
+      | Some task -> (
+          match Review.create task ~jj:t.jj_executable with
+          | Error error -> t.status <- error
+          | Ok review ->
+              t.review <- Some review;
+              t.input <- Normal;
+              t.help <- false))
+  | Refresh_review -> Option.iter Review.refresh t.review
+  | Edit_review_executable -> Option.iter Review.edit_executable t.review
+  | Close_review -> (
+      match t.review with
+      | None -> ()
+      | Some review when Review.state review = Changes.Loading ->
+          t.status <- "Changes refresh is running; wait for bounded completion."
+      | Some review ->
+          t.jj_executable <- Review.executable review;
+          Review.close review;
+          t.review <- None)
   | Begin_workspace ->
       if t.database_path = None then
         t.status <-
@@ -415,8 +444,9 @@ let insert_text t value =
     edit t (fun editor ->
         Text_edit.insert editor (clean ~newlines:(t.input = Compose) value))
 
-let paste_key t (key, _) =
-  if t.workspace_form <> None then (
+let paste_key t (key, mods) =
+  if t.review <> None then Review.paste_key (Option.get t.review) (key, mods)
+  else if t.workspace_form <> None then (
     if t.creation_job = None && t.creation_request = None then
       Workspace_form.paste_key (Option.get t.workspace_form) (key, []))
   else if t.input <> Normal then
@@ -627,6 +657,7 @@ let normal_key t (key, mods) =
     | `ASCII 't' -> command (fun () -> act t Toggle_tools)
     | `ASCII 'm' -> command (fun () -> act t Begin_model)
     | `ASCII 'H' -> command (fun () -> act t Next_harness)
+    | `ASCII 'v' -> command (fun () -> act t Open_review)
     | `ASCII 'W' -> command (fun () -> act t Begin_workspace)
     | `ASCII 'n' -> command (fun () -> act t Begin_new)
     | `ASCII 's' | `Function 5 -> command (fun () -> act t Start)
@@ -658,6 +689,11 @@ let key t (key, mods) =
   if key = `ASCII 'c' && List.mem `Ctrl mods then (
     reset_keys t;
     t.quit <- true)
+  else if t.review <> None then (
+    reset_keys t;
+    match key with
+    | `Escape -> act t Close_review
+    | _ -> Review.key (Option.get t.review) (key, mods))
   else if t.workspace_form <> None then (
     reset_keys t;
     if t.creation_job <> None || t.creation_request <> None then ()
@@ -726,6 +762,7 @@ let poll_creation t ~storage =
   | None -> ()
   | Some request -> (
       t.creation_request <- None;
+      t.jj_executable <- request.jj;
       match storage with
       | None -> t.status <- "Persistent storage is required for workspace creation."
       | Some worker -> (
