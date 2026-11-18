@@ -10,6 +10,7 @@ type t = {
   mutable document : Diff_document.t option;
   mutable display : Diff_display.t option;
   mutable page_rows : int;
+  mutable notice_rows : int;
 }
 
 let create (task : Model.task) ~jj =
@@ -29,6 +30,7 @@ let create (task : Model.task) ~jj =
           document = None;
           display = None;
           page_rows = 10;
+          notice_rows = 0;
         }
 
 let task_id t = t.task_id
@@ -44,6 +46,7 @@ let state t = Changes.state t.changes
 let document t = t.document
 let display t = t.display
 let set_page_rows t value = t.page_rows <- max 1 value
+let set_notice_rows t value = t.notice_rows <- max 0 value
 let scroll t = t.scroll
 let set_scroll t value = t.scroll <- max 0 (min 1000000 value)
 let horizontal t = t.horizontal
@@ -139,9 +142,11 @@ let key t (key, mods) =
     | `Page `Up -> set_scroll t (t.scroll - t.page_rows)
     | `Home | `ASCII 'g' -> set_scroll t 0
     | `End | `ASCII 'G' ->
-        Option.iter
-          (fun document -> set_scroll t (Diff_document.line_count document - t.page_rows))
-          t.document
+        let total =
+          max t.notice_rows
+            (Option.fold ~none:0 ~some:Diff_document.line_count t.document)
+        in
+        set_scroll t (total - t.page_rows)
     | _ -> ()
 
 let paste_key t (key, _) = if t.editing then input t key

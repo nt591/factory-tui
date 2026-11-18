@@ -466,3 +466,22 @@ to inspect the complete query, and clicks the view label to enter Archive. Saved
 tasks/runs remain exact. HOME/XDG are temporary; no model, credentials or real
 workspace are used. `--binary` avoids rebuilding. Pure `test_board_summary` covers
 sanitation, fallback widths, non-overlapping spans and input/modal isolation.
+
+
+## Review failure and retry fixture
+
+```sh
+uv run --with pyte --with pillow python scripts/smoke-review-notice.py \
+  --preview /tmp/factory-review-notice.png
+```
+
+A temporary task points to a temporary directory and a fake jj shell executable.
+The first explicit refresh returns failure; its printed fixture output remains
+withheld. The TUI displays wrapped failure/retry guidance at 60 columns and pages
+it at 30 columns. Open, pasted paths, reading and paging start no command. Replacing
+the fixture does not retry until explicit `r`, which returns a fixed patch. Checks
+verify three explicit calls total (failure, patch, empty result), End paging of
+an empty-result notice despite its empty patch document, and exact saved
+task/run/draft retention. This does not test real jj semantics: those remain in test_review. No model, credentials or real
+repository are accessed. `--binary` avoids rebuilding. Pure test_review_notice
+covers sanitation, wrapped limits, empty/idle states and document-free End.

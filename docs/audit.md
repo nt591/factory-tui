@@ -78,6 +78,10 @@ accessible help/settings. The staged native-app implementation remains the guide
    writes since the last checkpoint and leave an unassociated created workspace.
    Conversation/tool content is sensitive. These limits remain documented.
 
+Review failure notices also wrap and page without a patch document. Pure and
+fake-jj PTY checks verify complete retry guidance, output privacy, no implicit
+retry during reading/reflow, explicit patch recovery and saved-state isolation.
+
 Run confirmations also support long disclosures in a bounded scrollable viewport.
 Pure and temporary-harness PTY checks cover shown-row coverage, skipped gaps,
 resize/new-dialog reset, fixed button targets and an explicitly confirmed fake run.

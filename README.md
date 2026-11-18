@@ -786,3 +786,10 @@ the sidebar; full repository/filter identity is unchanged. Click the displayed
 view label to toggle Archive, or the displayed `/` search text to edit the full
 query. Hitboxes follow these labels rather than fixed terminal columns. On very
 small widths, counts take priority and omitted controls have no click target.
+
+
+Changes-view notices now wrap in the review body. If a failure or troubleshooting
+message exceeds the pane, use `j/k`, Page Up/Down, Ctrl-U/D/B/F, or Home/End to read
+it. Resizing reflows notices, not patch lines; diffs retain horizontal scrolling.
+Reading or paging an error never retries the command. `r`/Enter remains an explicit
+refresh, and command output is still withheld from failure messages.

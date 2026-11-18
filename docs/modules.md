@@ -283,3 +283,10 @@ text plus non-overlapping control spans. Count visibility takes priority over
 long labels. Ui supplies shortest-distinguishing repository suffixes but leaves
 stored identities and filter values unchanged; it maps returned actions to normal
 controller dispatch. The module does not own tasks, input editors or persistence.
+
+
+Review_notice supplies sanitized wrapped body rows for Changes idle/loading/error
+and empty-patch states. Review_view keeps patch geometry separate and reports the
+notice row count to Review for document-free End navigation. Notice layout has no
+Review/controller/process dependency. Page capacity and notice count are transient
+render geometry, not persisted state or execution permission.

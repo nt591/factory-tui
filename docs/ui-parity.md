@@ -511,3 +511,12 @@ label/search spans define click targets rather than fixed screen coordinates.
 Narrow count-first fallback omits the view-label action; tiny text exposes no
 hidden targets. Pure/temporary-board PTY checks verify widths, counts, full-query
 editing via mouse, archive clicks, modal isolation and unchanged saved task data.
+
+
+Review failures and troubleshooting guidance wrap into the existing scrollable
+body instead of losing their tails. Home/End and viewport-sized paging work when
+there is no patch document. Patch lines retain their original horizontal scrolling
+and file navigation. The pure Review_notice module handles notice sanitation and
+reflow; no layout operation retries a command. Unit and fake-jj PTY checks cover
+narrow failure pages, explicit retry to a patch, output privacy, paste/open/page
+inactivity and unchanged saved task/run data.

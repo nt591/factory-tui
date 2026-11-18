@@ -29,21 +29,11 @@ let render review ~width:cols ~height:rows =
     | Changes.Patch patch when patch <> "" -> Review.document review
     | _ -> None
   in
-  let messages =
-    match Review.state review with
-    | Changes.Idle -> [ "Press r / Enter to read the workspace diff. No agent starts." ]
-    | Changes.Loading -> [ "Reading workspace changes… input remains responsive." ]
-    | Changes.Error error ->
-        [
-          "Changes error: " ^ error;
-          "Retain the workspace. i edits jj path; r retries explicitly.";
-        ]
-    | Changes.Patch "" -> [ "No changes relative to this task's recorded base." ]
-    | Changes.Patch _ -> []
-  in
+  let messages = Review_notice.rows ~width:cols (Review.state review) in
   let line_count =
     Option.fold ~none:(List.length messages) ~some:Diff_document.line_count document
   in
+  Review.set_notice_rows review (List.length messages);
   let display = Option.bind document (fun _ -> Review.display review) in
   let widest = Option.fold ~none:0 ~some:Diff_display.widest display in
   Review.set_horizontal review (min (Review.horizontal review) (max 0 (widest - cols)));

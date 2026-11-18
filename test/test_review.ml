@@ -80,6 +80,13 @@ let () =
              hit.action <> Review_view.Next_file
              && hit.action <> Review_view.Previous_file)
            empty_view.hits);
+      ignore (Review_view.render review ~width:20 ~height:8);
+      Review.key review (`End, []);
+      check "empty actual jj patch still pages its notice"
+        (Review.scroll review
+        = List.length (Review_notice.rows ~width:20 (Changes.Patch "")) - 2);
+      Review.key review (`Home, []);
+      ignore (Review_view.render review ~width:120 ~height:36);
       check "refresh leaves editing mode" (not (Review.editing review));
       let channel =
         open_out (Filename.concat (Workspace.destination workspace) "changed.txt")

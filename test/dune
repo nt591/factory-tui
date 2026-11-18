@@ -302,3 +302,8 @@
  (name test_board_summary)
  (modules test_board_summary)
  (libraries factory_tui notty))
+
+(test
+ (name test_review_notice)
+ (modules test_review_notice)
+ (libraries factory_tui notty))

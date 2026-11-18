@@ -537,3 +537,16 @@ Extremely small widths show bounded count text with no absent control targets.
 Pure tests and a temporary-board PTY check cover long paths/queries, compact
 counts, Unicode-safe spans, visible search/archive clicks, exact query editing,
 modal isolation and unchanged persisted task/run data.
+
+
+Review_notice produces sanitized, wrapped idle/loading/error/empty-result body rows.
+Error diagnostics and explicit retry guidance are not clipped to one line. Patch
+content remains in Diff_document/Diff_display with unwrapped line navigation and
+horizontal scroll. Review tracks the current notice row count so End works without
+a patch document; rendered capacity still drives page navigation. The changes view
+updates these transient counts without running a command. Retry remains explicit,
+command output remains withheld, and scrolling/reflow never changes task state.
+Pure notices/viewport tests and a fake-jj temporary-workspace PTY check verify full
+failure text, narrow paging and Home/End, no command on paste/open/page, only
+explicit retries, unwrapped patch recovery, empty-result paging and unchanged
+stored tasks/runs/drafts.
