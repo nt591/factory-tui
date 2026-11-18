@@ -112,7 +112,8 @@ let render t ~width:cols ~height:rows =
   in
   let header =
     Printf.sprintf " FACTORY / terminal     %s  %s"
-      (if t.fake_harness then "FAKE HARNESS / NO MODEL CALLS"
+      (if t.live_config <> None then "LIVE ENABLED / CONFIRMED CALLS"
+       else if t.fake_harness then "FAKE HARNESS / NO MODEL CALLS"
        else if t.external_events then "FIXTURE REPLAY"
        else "SIMULATION")
       (if t.paused then "[PAUSED]" else "[UPDATING]")
@@ -565,7 +566,7 @@ let render t ~width:cols ~height:rows =
         if t.fake_harness then "local process fixtures"
         else if t.external_events then "fixture replay"
         else "simulated agents");
-        "No live agent starts from this menu.";
+        "Setup never starts an agent. Live runs require confirmation.";
         "";
         "STORAGE";
         (match t.database_path with
@@ -583,7 +584,8 @@ let render t ~width:cols ~height:rows =
         | Some task ->
             [
               task.id ^ " / " ^ task.title;
-              "Harness: " ^ harness_label task.harness ^ " (simulated)";
+              ("Harness: " ^ harness_label task.harness
+              ^ if t.live_config = None then " (simulated)" else " / live Codex only");
               "Model: " ^ task.model;
               (if task.state = Done then "Accepted task / settings are read-only"
                else "m edits model / H changes harness");
@@ -656,6 +658,24 @@ let render t ~width:cols ~height:rows =
           in
           hit item.x (item.y + 1) item.width 1 action)
         view.hits);
+  (match t.live_confirmation with
+  | None -> ()
+  | Some id ->
+      let width = min 88 cols and height = min 13 rows in
+      let x = (cols - width) / 2 and y = (rows - height) / 2 in
+      let task = List.find_opt (fun (task : task) -> task.id = id) t.tasks in
+      let view = Live_confirmation.render task ~width ~height in
+      t.confirmation_readable <- view.readable;
+      paint x y view.image;
+      hits := [];
+      List.iter
+        (fun (item : Live_confirmation.hit) ->
+          hit (x + item.x) (y + item.y) item.width 1
+            (match item.action with
+            | Live_confirmation.Run -> Confirm_live
+            | Live_confirmation.Cancel -> Cancel_live))
+        view.hits);
+
   { image = fit cols rows !canvas; hits = !hits }
 
 let mouse t frame ~now = function

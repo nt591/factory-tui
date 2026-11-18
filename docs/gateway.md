@@ -29,9 +29,10 @@ adds provider settings with a TOML string encoder: named provider, base URL,
 environment-key reference, Responses wire protocol, and no OpenAI authentication
 requirement. It never reads the referenced variable. Explicit resume remains on
 the same exact thread ID, and prompts remain on stdin. Tests cover both new and
-resume forms. The TUI does not yet use this provider to start a real agent.
+resume forms. The provider is available to explicit `--run-codex` and `--live-ui` paths.
+Live UI setup alone starts nothing; per-run confirmation is required.
 
-The next integration check must use an installed Codex against a loopback fixture,
-with isolated temporary CODEX_HOME/workspace and a dummy key. No real gateway call
+The installed-Codex headless integration passes a loopback fixture; it uses
+isolated temporary CODEX_HOME/workspace and a dummy key. No real gateway call
 is approved by a passing config check. Live execution and credential access must
 remain explicit user actions, separate from setup and application startup.

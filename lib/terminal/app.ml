@@ -9,8 +9,11 @@ let snapshot ~size t =
     invalid_arg "Snapshot dimensions must be between 1 and 1000.";
   Notty_unix.output_image (Ui.render t ~width ~height).image
 
-let interactive ?(fake_harness = false) ~events ~database () =
-  if fake_harness && events <> "" then Error "Fake harness and replay cannot be combined."
+let interactive ?(fake_harness = false) ?live ~events ~database () =
+  if live <> None && (fake_harness || events <> "" || database = "") then
+    Error "Live UI needs SQLite and cannot use replay or fake mode."
+  else if fake_harness && events <> "" then
+    Error "Fake harness and replay cannot be combined."
   else if not (Unix.isatty Unix.stdin && Unix.isatty Unix.stdout) then
     Error "Interactive mode needs a terminal. Use --snapshot for a headless preview."
   else
@@ -38,6 +41,12 @@ let interactive ?(fake_harness = false) ~events ~database () =
     match opened with
     | Error error -> Error error
     | Ok worker -> (
+        Option.iter
+          (fun config ->
+            match Controller.enable_live t config with
+            | Ok () -> ()
+            | Error error -> invalid_arg error)
+          live;
         let final_error = ref None in
         let () =
           let@ () =
@@ -57,6 +66,7 @@ let interactive ?(fake_harness = false) ~events ~database () =
           in
           let last_saved = ref (Controller.snapshot t) in
           let runner = Demo.Runner.create () in
+          let live_runner = Option.map Live_runner.create live in
           let persist () =
             Option.iter
               (fun worker ->
@@ -78,6 +88,9 @@ let interactive ?(fake_harness = false) ~events ~database () =
           in
           let@ () =
             on_exit (fun () ->
+                Option.iter
+                  (fun runner -> Live_runner.close runner (Controller.live_context t))
+                  live_runner;
                 Option.iter Review.close t.review;
                 Controller.finish_creation t ~storage:worker;
                 Demo.Runner.close runner (Controller.demo_context t);
@@ -112,6 +125,11 @@ let interactive ?(fake_harness = false) ~events ~database () =
               source;
             Controller.poll_creation t ~storage:worker;
             Demo.Runner.poll runner (Controller.demo_context t) ~storage:worker;
+            Option.iter
+              (fun runner ->
+                Live_runner.poll runner (Controller.live_context t)
+                  ~storage:(Option.get worker))
+              live_runner;
             persist ();
             let width, height = Notty_unix.Term.size term in
             let frame = Ui.render t ~width ~height in

@@ -199,3 +199,54 @@ loopback Responses server. It verifies execution, persisted Ready state, streame
 answer, and same-thread resume through the OCaml CLI. Verified November 17, 2026
 with codex-cli 0.166.0. No real model gateway or credentials are used. Tool execution
 and platform sandbox enforcement are not exercised by the fixed-answer fixture.
+
+## Confirmed live UI execution
+
+```sh
+./scripts/run.sh --live-ui --codex-executable /absolute/path/to/codex
+# Storage comes from startup TOML, or explicitly:
+./scripts/run.sh --live-ui --codex-executable /absolute/path/to/codex \
+  --database /absolute/path/to/board.sqlite --gateway /path/to/gateway.toml
+```
+
+**A real executable can use existing Codex authentication and incur model usage.**
+`--live-ui` must be explicitly selected; it cannot be combined with fake/replay
+modes. SQLite storage and an executable accessible at an absolute path are required.
+An optional gateway file is validated without reading its referenced key. No
+process starts while configuring or launching the app. Default launches remain
+simulated, and there is no live-setting auto-enable field in the startup TOML.
+
+Only workspace-backed Codex tasks can run. `W` creates such a task; `i` adds queued
+instructions and `m` edits the next-run model. `s` asks for confirmation, showing
+model, workspace, new/resumed thread, usage/auth disclosure, and requested read-only
+sandbox. Enter/`y` confirms; Escape/`n` cancels. Pasted text cannot authorize a run.
+At less than 64 columns or 13 rows confirmation is blocked; resize or cancel.
+
+Confirmation creates a non-simulated run record. The runner captures that run's
+model/harness selection, snapshots Working, and waits for the SQLite acknowledgment
+before spawn. Later selector edits affect only the next run. Known events stream
+into the selected chat and move cards through the existing reducer; messages posted
+while Working remain queued for the next confirmed turn. Captured thread identity
+must match the resumed harness thread; a mismatch cancels the process and cannot
+replace the stored identity. The fixed provider/executable is shared for the launch.
+
+`x` records interruption and requests cancellation; stale events are rejected.
+Shutdown cancels and joins live handles before final task/event persistence.
+Storage errors prevent launching or cancel running handles, and are displayed.
+Foreground writes remain asynchronous; abrupt termination can lose updates since
+the last acknowledged write. Ready comes from validated completion plus process
+exit, not from a claim that every asynchronous update is already on disk.
+
+The UI displays LIVE ENABLED / CONFIRMED CALLS throughout. Demo seed cards may
+remain visible, but tasks without isolated workspaces cannot run in live mode.
+Acceptance still changes only task state; it never merges, pushes, or deletes.
+The exec adapter requests read-only sandboxing and provides no interactive approval
+channel. This is not a verified code-writing workflow or proof of platform sandbox
+containment. Real gateway compatibility still requires explicit user-approved checks.
+
+`test_live_runner` and the PTY smoke verify this UI path with temporary jj workspaces
+and a fake executable, including startup inactivity, cancel/confirm, paste isolation,
+small-terminal gating, streaming, captured model selection, resume mismatch, late
+queued messages, checkpoint refusal, and stop/shutdown. The installed-Codex loopback
+check verifies the headless path only; live UI behavior against a real model provider
+has not been exercised.

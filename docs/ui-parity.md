@@ -40,7 +40,9 @@ from `scripts/smoke-terminal.py --preview /tmp/factory-tui.png`.
 
 ## Remaining work
 
-Live UI execution follows the implementation sequence. The `v` changes pane
+Confirmed `--live-ui` execution is implemented for workspace tasks. Fake-process
+UI checks cover startup inactivity, per-run confirmation, small-screen blocking,
+streaming, and cancellation; real gateway behavior is not verified. The `v` changes pane
 now shows real workspace patches with explicit refresh, empty/error/loading
 states, scrolling, and return to chat. The `W` creation form now creates isolated Queued tasks with persistent
 workspace identity and explicit source-snapshot disclosure. Simulation currently uses

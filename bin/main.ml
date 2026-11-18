@@ -11,6 +11,7 @@ let () =
   and check_gateway = ref None
   and dry_run = ref false
   and run_codex = ref false
+  and live_ui = ref false
   and executable = ref None
   and directory = ref None
   and model = ref None
@@ -18,6 +19,9 @@ let () =
   and gateway_file = ref None in
   Arg.parse
     [
+      ( "--live-ui",
+        Arg.Set live_ui,
+        " Enable explicit confirmed Codex runs on workspace tasks; SQLite required" );
       ( "--run-codex",
         Arg.Set run_codex,
         " Execute a read-only agent explicitly; stdin prompt and --database required" );
@@ -63,8 +67,8 @@ let () =
   try
     if !run_codex then (
       if
-        !dry_run || !snapshot || !events <> "" || !config <> None || !fake_harness
-        || !check_gateway <> None
+        !live_ui || !dry_run || !snapshot || !events <> "" || !config <> None
+        || !fake_harness || !check_gateway <> None
       then
         invalid_arg
           "Live execution cannot be combined with other execution modes or default \
@@ -119,6 +123,39 @@ let () =
                     );
                   ]));
           if not summary.succeeded then exit 1)
+    else if !live_ui then (
+      if
+        !snapshot || !events <> "" || !fake_harness || !check_gateway <> None || !dry_run
+        || !directory <> None || !model <> None || !thread_id <> None
+      then
+        invalid_arg
+          "Live UI cannot be combined with other execution modes or per-run arguments.";
+      let executable =
+        match !executable with
+        | Some path -> path
+        | None -> invalid_arg "Live UI requires --codex-executable."
+      in
+      let home = Option.value ~default:(Sys.getcwd ()) (Sys.getenv_opt "HOME") in
+      let database =
+        match
+          Config.resolve ~home
+            ~xdg:(Sys.getenv_opt "XDG_CONFIG_HOME")
+            ~config:!config ~no_config:!no_config ~database:!database
+        with
+        | Ok (Some path) -> path
+        | Ok None -> invalid_arg "Live UI requires SQLite via TOML or --database."
+        | Error error -> invalid_arg error
+      in
+      let live =
+        match Live_runner.configure ~executable ~gateway_file:!gateway_file with
+        | Ok config -> config
+        | Error error -> invalid_arg error
+      in
+      match App.interactive ~live ~events:"" ~database () with
+      | Ok () -> ()
+      | Error error ->
+          prerr_endline error;
+          exit 2)
     else if !dry_run then (
       if
         !snapshot || !database <> None || !events <> "" || !config <> None
@@ -145,7 +182,9 @@ let () =
       if
         !directory <> None || !model <> None || !thread_id <> None
         || !gateway_file <> None || !executable <> None
-      then invalid_arg "Codex invocation options require --dry-run-codex or --run-codex.";
+      then
+        invalid_arg
+          "Codex invocation options require --dry-run-codex, --run-codex, or --live-ui.";
       if !check_gateway <> None then (
         if
           !snapshot || !database <> None || !events <> "" || !config <> None

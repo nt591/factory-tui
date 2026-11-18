@@ -37,6 +37,11 @@ against these interfaces during the normal Dune build.
   run-record encoder used by the SQL store. JSON parsing helpers remain private.
 - `Events`: replay envelope encode/decode and an abstract file/FIFO source. Callers
   close the source through an idempotent operation, not its raw descriptor.
+- `Live_runner`: abstract validated executable/provider config and background live
+  handle ownership. Preflight restricts execution to workspace-backed Codex tasks;
+  a callback context keeps it independent of controller/rendering internals.
+- `Live_confirmation`: task-specific usage/auth disclosure rendering and hitboxes;
+  small terminals cannot authorize a hidden confirmation.
 - `Changes`: abstract background diff ownership for one task/workspace, with
   explicit refresh, poll, and join. Results never mutate another task.
 - `Review`: abstract changes-pane state, executable editing, and scrolling.

@@ -308,6 +308,32 @@ the process group. The fake UI path is verified. A pure Codex invocation builder
 resume identity and read-only arguments without launching anything. Explicit headless execution is tested with fake executables; installed Codex
 and gateway compatibility remain unverified.
 
+## Explicit live UI mode
+
+```sh
+./scripts/run.sh --live-ui --codex-executable /absolute/path/to/codex
+```
+
+SQLite must be configured through TOML or `--database`. Optional `--gateway PATH`
+selects an explicit non-secret provider file. **A real Codex executable can use
+existing authentication and incur model usage.** Launch starts no process; the
+banner marks live mode. Only workspace-backed Codex tasks can run.
+
+Create a task with `W`, queue instructions with `i`, and press `s` to inspect the
+confirmation. Enter/`y` runs; Escape/`n` cancels. Pasted text cannot confirm, and
+terminals smaller than 64x13 must resize first. Every run waits for its SQLite
+Working checkpoint before spawn. Streaming output updates the same chat and moves
+its card. `x` cancels; shutdown cancels/joins and flushes. `v` reviews real changes.
+
+Next-run selector changes do not alter active runs. Replies while Working stay
+queued. Resume uses the task's saved thread and verifies returned identity.
+Acceptance does not merge/push/delete. Requested sandboxing is read-only; this is
+not yet a code-writing or interactive-approval workflow.
+
+The UI integration is verified using fake executables, not a real gateway. The
+installed-Codex loopback execution/resume check covers the headless path separately.
+See [docs/harness.md](docs/harness.md) for limits and persistence semantics.
+
 ## Inspect an agent invocation without running it
 
 ```sh
@@ -339,11 +365,12 @@ events and final state are persisted. Ctrl-C/SIGTERM cancels the process group.
 Use `--gateway PATH` for explicit provider settings and `--resume ID` for a thread
 already recorded in this database/workspace. Read-only sandbox settings are
 requested. The CLI returns only a small summary; open the database in the TUI to
-inspect the chat. TUI Start still uses simulation, not this execution path.
+inspect the chat. TUI Start uses simulation unless `--live-ui` is explicitly selected; live mode
+adds per-run confirmation and requires isolated task workspaces.
 
 Only fake-executable execution has been verified. Installed-Codex/gateway
-compatibility, interactive approvals, live UI execution remain
-pending. Isolated workspace task creation is available separately via `W`. See [docs/harness.md](docs/harness.md) for the full safety boundary.
+compatibility, interactive approvals, real provider UI checks remain
+pending. Confirmed live UI execution is implemented and tested with fake processes. Isolated workspace task creation is available separately via `W`. See [docs/harness.md](docs/harness.md) for the full safety boundary.
 `python3 scripts/smoke-execution.py` runs fake CLI execution checks only.
 
 ## Gateway configuration validation
@@ -357,7 +384,8 @@ A separate non-secret gateway TOML file holds `base_url` and `key_environment`
 
 The check opens no database, reads no key, starts no agent, and makes no network
 request. Valid settings do not prove model or Responses compatibility. Gateway
-provider construction is implemented but not connected to live UI execution.
+provider construction is available to explicit headless or live UI execution;
+configuration validation alone does not approve a model call.
 See [docs/gateway.md](docs/gateway.md) for validation rules and the next checks.
 
 ## Source organization

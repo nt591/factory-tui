@@ -1,0 +1,238 @@
+open Factory_tui
+open Model
+
+let checks = ref 0
+
+let check name value =
+  incr checks;
+  if not value then failwith name
+
+let ok = function Ok value -> value | Error error -> failwith error
+
+let await runner controller worker predicate =
+  let deadline = Unix.gettimeofday () +. 5. in
+  while (not (predicate ())) && Unix.gettimeofday () < deadline do
+    Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
+    Thread.delay 0.01
+  done;
+  check "live fixture finishes before deadline" (predicate ())
+
+let () =
+  let temporary = Filename.temp_file "factory-live-fixture" "" in
+  Sys.remove temporary;
+  Unix.mkdir temporary 0o700;
+  let temporary = Unix.realpath temporary in
+  let rec remove path =
+    if (Unix.lstat path).Unix.st_kind = Unix.S_DIR then (
+      Array.iter (fun name -> remove (Filename.concat path name)) (Sys.readdir path);
+      Unix.rmdir path)
+    else Sys.remove path
+  in
+  Scope.on_exit
+    (fun () -> remove temporary)
+    (fun () ->
+      let source = Filename.concat temporary "source" in
+      Unix.mkdir source 0o700;
+      ignore
+        (ok
+           (Command.run ~executable:"/opt/homebrew/bin/jj"
+              ~arguments:[ "git"; "init"; "--colocate" ]
+              ~directory:source ~timeout:15. ~max_output:2097152));
+      let workspace =
+        ok
+          (Workspace.create ~jj:"/opt/homebrew/bin/jj" ~source
+             ~destination:(Filename.concat temporary "task")
+             ~revision:"@")
+      in
+      let task =
+        ok
+          (Model.attach_workspace
+             (Model.make ~id:"task" ~title:"Fixture instruction" ~repository:source)
+             (Workspace.reference workspace))
+      in
+      let executable = Filename.concat temporary "fixture-codex" in
+      let write script =
+        let channel = open_out executable in
+        output_string channel ("#!/bin/sh\n" ^ script);
+        close_out channel;
+        Unix.chmod executable 0o700
+      in
+      let marker = Filename.concat (Workspace.destination workspace) "started" in
+      write
+        {|printf '%s\n' "$@" > arguments.txt
+cat > prompt.txt
+touch started
+printf '%s\n' '{"type":"thread.started","thread_id":"fixture-thread"}'
+printf '%s\n' '{"type":"turn.started"}'
+sleep 0.1
+printf '%s\n' '{"type":"item.updated","item":{"type":"agent_message","id":"reply","text":"part"}}'
+printf '%s\n' '{"type":"item.completed","item":{"type":"agent_message","id":"reply","text":"Fixture complete"}}'
+printf '%s\n' '{"type":"turn.completed"}'
+|};
+      let config = ok (Live_runner.configure ~executable ~gateway_file:None) in
+      let controller = Controller.create () in
+      check "live config alone starts no process" (not (Sys.file_exists marker));
+      check "live enable needs storage"
+        (Result.is_error (Controller.enable_live controller config));
+      let database = Filename.concat temporary "board.sqlite" in
+      let worker, _ = ok (Persistence.start database) in
+      Scope.on_exit
+        (fun () -> ignore (Persistence.close worker))
+        (fun () ->
+          controller.database_path <- Some database;
+          controller.retain_events <- true;
+          controller.tasks <- [ task ];
+          controller.selected <- task.id;
+          ok (Controller.enable_live controller config);
+          check "enable live clears demo scheduler"
+            (controller.schedules = [] && not (Sys.file_exists marker));
+          let runner = Live_runner.create config in
+          Scope.on_exit
+            (fun () -> Live_runner.close runner (Controller.live_context controller))
+            (fun () ->
+              Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
+              check "idle poll starts nothing" (not (Sys.file_exists marker));
+              Controller.act controller Controller.Start;
+              check "Start asks confirmation without changing task"
+                (controller.live_confirmation = Some task.id
+                && (Option.get (Controller.selected controller)).state = Queued);
+              Controller.paste_key controller (`Enter, []);
+              Controller.paste_key controller (`ASCII 'y', []);
+              check "paste cannot confirm a real run"
+                ((Option.get (Controller.selected controller)).active = None);
+              let frame = Ui.render controller ~width:120 ~height:36 in
+              check "confirmation blocks all background buttons"
+                (List.for_all
+                   (fun (hit : Ui.hit) ->
+                     hit.action = Controller.Confirm_live
+                     || hit.action = Controller.Cancel_live)
+                   frame.hits);
+              List.iter
+                (fun (width, height) ->
+                  let frame = Ui.render controller ~width ~height in
+                  check "confirmation frame bounds"
+                    (Notty.I.width frame.image = width
+                    && Notty.I.height frame.image = height);
+                  List.iter
+                    (fun (hit : Ui.hit) ->
+                      let r = hit.rect in
+                      check "confirmation hit bounds"
+                        (r.x >= 0 && r.y >= 0 && r.x + r.w <= width && r.y + r.h <= height))
+                    frame.hits)
+                [ (1, 1); (20, 8); (60, 20); (120, 36); (180, 50) ];
+              ignore (Ui.render controller ~width:60 ~height:20);
+              Controller.key controller (`Enter, []);
+              check "small terminal cannot confirm usage"
+                (controller.live_confirmation <> None
+                && (Option.get (Controller.selected controller)).active = None);
+              ignore (Ui.render controller ~width:120 ~height:36);
+              let view =
+                Live_confirmation.render
+                  (Controller.selected controller)
+                  ~width:88 ~height:13
+              in
+              let hit =
+                List.find
+                  (fun (hit : Live_confirmation.hit) ->
+                    hit.action = Live_confirmation.Run)
+                  view.hits
+              in
+              let buffer = Buffer.create 4096 in
+              Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (88, 13) view.image;
+              check "confirmation click aligns with visible Run button"
+                (Controller.contains
+                   (List.nth (String.split_on_char '\n' (Buffer.contents buffer)) hit.y)
+                   "Run / Enter");
+              Controller.key controller (`Escape, []);
+              check "Escape cancels confirmation"
+                (controller.live_confirmation = None && not (Sys.file_exists marker));
+              Controller.act controller Controller.Start;
+              Controller.key controller (`Enter, []);
+              check "confirmed task records live origin"
+                (not
+                   (List.hd (Option.get (Controller.selected controller)).runs).simulated);
+              controller.tasks <-
+                List.map
+                  (fun (task : task) -> ok (Model.set_model task "next-model"))
+                  controller.tasks;
+              Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
+              Controller.act controller Controller.Begin_compose;
+              Controller.set_input controller "Later reply";
+              Controller.submit controller;
+              await runner controller worker (fun () ->
+                  (Option.get (Controller.selected controller)).state = Ready);
+              let result = Option.get (Controller.selected controller) in
+              check "streamed fixture produces single live message"
+                (List.length
+                   (List.filter (fun (m : message) -> m.author = "Codex") result.messages)
+                = 1);
+              check "thread recorded" (result.thread_id = Some "fixture-thread");
+              check "late message stays queued"
+                (List.exists
+                   (fun (m : message) -> m.text = "Later reply" && m.queued)
+                   result.messages);
+              let channel =
+                open_in
+                  (Filename.concat (Workspace.destination workspace) "arguments.txt")
+              in
+              let arguments = really_input_string channel (in_channel_length channel) in
+              close_in channel;
+              check "captured run model used"
+                ((not (Controller.contains arguments "next-model"))
+                && Controller.contains arguments "coding-large");
+              let observer = Sqlite3.db_open ~mode:`READONLY database in
+              let stmt = Sqlite3.prepare observer "SELECT payload FROM snapshot" in
+              check "Working snapshot exists before output"
+                (Sqlite3.step stmt = Sqlite3.Rc.ROW);
+              let saved = ok (Snapshot.decode (Sqlite3.column_text stmt 0)) in
+              check "checkpoint belongs to confirmed task"
+                ((List.hd saved.tasks).id = task.id);
+              ignore (Sqlite3.finalize stmt);
+              ignore (Sqlite3.db_close observer);
+              write
+                "cat >/dev/null\n\
+                 printf '%s\\n' \
+                 '{\"type\":\"thread.started\",\"thread_id\":\"wrong-thread\"}'\n\
+                 sleep 1\n";
+              Controller.act controller Controller.Start;
+              Controller.act controller Controller.Confirm_live;
+              await runner controller worker (fun () ->
+                  (Option.get (Controller.selected controller)).state = Needs_you);
+              check "resume mismatch preserves recorded thread"
+                ((Option.get (Controller.selected controller)).thread_id
+               = Some "fixture-thread");
+              write "cat >/dev/null\nsleep 10\n";
+              Controller.act controller Controller.Start;
+              Controller.act controller Controller.Confirm_live;
+              Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
+              Controller.act controller Controller.Stop;
+              Live_runner.close runner (Controller.live_context controller);
+              check "Stop cancels live task"
+                ((Option.get (Controller.selected controller)).state = Needs_you);
+              Controller.act controller Controller.Start;
+              Controller.act controller Controller.Confirm_live;
+              Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
+              Live_runner.close runner (Controller.live_context controller);
+              check "shutdown records interruption"
+                ((Option.get (Controller.selected controller)).active = None);
+              let demo = Model.make ~id:"demo" ~title:"No workspace" ~repository:"demo" in
+              check "demo cannot run live"
+                (Result.is_error (Live_runner.prepare config demo));
+              check "other harness refused"
+                (Result.is_error
+                   (Live_runner.prepare config { task with harness = Claude }));
+              check "empty pending prompt refused"
+                (Result.is_error (Live_runner.prepare config { task with messages = [] }));
+              ok (Persistence.close worker);
+              Controller.act controller Controller.Start;
+              Controller.act controller Controller.Confirm_live;
+              Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
+              await runner controller worker (fun () ->
+                  (Option.get (Controller.selected controller)).state = Needs_you);
+              check "failed checkpoint prevents new live process"
+                ((Option.get (Controller.selected controller)).state = Needs_you)));
+      let replay = Controller.create ~external_events:true () in
+      replay.database_path <- Some "/fixture";
+      check "replay cannot enable live"
+        (Result.is_error (Controller.enable_live replay config)));
+  Printf.printf "Passed %d live UI runner checks. Fake executable only.\n" !checks

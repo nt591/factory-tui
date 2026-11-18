@@ -62,3 +62,8 @@
  (name test_review)
  (modules test_review)
  (libraries factory_tui notty unix))
+
+(test
+ (name test_live_runner)
+ (modules test_live_runner)
+ (libraries factory_tui notty unix sqlite3))

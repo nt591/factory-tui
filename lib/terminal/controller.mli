@@ -27,6 +27,8 @@ type action =
   | Quit
   | Begin_search
   | Begin_compose
+  | Confirm_live
+  | Cancel_live
   | Open_review
   | Refresh_review
   | Edit_review_executable
@@ -38,6 +40,9 @@ type action =
   | Begin_new
 
 type t = {
+  mutable live_config : Live_runner.config option;
+  mutable live_confirmation : string option;
+  mutable confirmation_readable : bool;
   mutable review : Review.t option;
   mutable jj_executable : string;
   mutable workspace_form : Workspace_form.t option;
@@ -100,3 +105,5 @@ val paste_key : t -> Notty.Unescape.key -> unit
 val demo_context : t -> Demo.Runner.context
 val poll_creation : t -> storage:Persistence.t option -> unit
 val finish_creation : t -> storage:Persistence.t option -> unit
+val enable_live : t -> Live_runner.config -> (unit, string) result
+val live_context : t -> Live_runner.context

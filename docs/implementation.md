@@ -52,13 +52,14 @@ Acceptance does not merge, push, or delete a workspace.
    prompt, preserving known events and non-simulated run origin. Fake tests cover
    resume identity, cancellation, malformed output, and checkpoint refusal.
    Installed Codex 0.166.0 execution and resume pass an isolated loopback fixture.
-   Real gateway, sandbox enforcement, and live UI integration remain unverified.
+   Confirmed live UI integration passes fake-process tests and the PTY smoke.
+   Real gateway UI behavior and sandbox enforcement remain unverified.
 6. **Gateway setup — validation and provider builder complete; integration pending.**
    `Gateway` validates a capped non-secret TOML file, HTTPS/loopback endpoints, and
    environment-key references without reading secrets or contacting the network.
    `--check-gateway` validates without opening storage or starting agents. Codex
    provider overrides are pure and tested for new/resumed threads. Details:
-   `docs/gateway.md`. Loopback and real compatibility checks remain pending. Setup starts no agent and reads no secret.
+   `docs/gateway.md`. Installed-Codex headless loopback checks pass; real gateway checks remain pending. Setup starts no agent and reads no secret.
    Dry-run invocation must disclose no credentials. Verify protocol compatibility
    against a loopback fixture before an explicitly requested real gateway check.
    Configuration validity does not prove model compatibility.
@@ -73,7 +74,8 @@ Acceptance does not merge, push, or delete a workspace.
    Queued chat without starting an agent. Form and PTY checks verify input safety,
    persistence/reopening, and isolation. `v` opens explicit background diff review
    with real patch/empty/error states and task-bound result ownership. Review never
-   accepts, integrates, or deletes. Live UI execution is still pending. Acceptance remains separate from merge and push.
+   accepts, integrates, or deletes. `--live-ui` explicitly enables confirmed
+   workspace-backed Codex execution with a durable Working checkpoint. Acceptance remains separate from merge and push.
    Real calls and workspace changes require explicit live mode and user action.
 8. **Distribution and lifecycle — partial.** Vim navigation, repository sidebar,
    bordered cards, multiline editing/paste, Help/Settings tabs, and terminal smoke tests

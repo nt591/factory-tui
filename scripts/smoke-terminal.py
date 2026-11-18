@@ -366,6 +366,90 @@ try:
         send(b"q")
         process.wait(timeout=3)
         check("reopened workspace UI exits cleanly", process.returncode == 0)
+        executable = directory / "fake-codex"
+        executable.write_text("""#!/bin/sh
+cat > live-prompt.txt
+touch live-started
+printf '%s\\n' '{"type":"thread.started","thread_id":"ui-fixture-thread"}'
+printf '%s\\n' '{"type":"turn.started"}'
+sleep 0.2
+printf '%s\\n' '{"type":"item.completed","item":{"type":"agent_message","id":"reply","text":"Live-mode local fixture answer"}}'
+printf '%s\\n' '{"type":"turn.completed"}'
+""")
+        executable.chmod(0o700)
+        marker = Path(task["workspace"]["directory"]) / "live-started"
+        screen.reset()
+        process = subprocess.Popen([str(binary), "--live-ui", "--no-config", "--database", str(database),
+                                   "--codex-executable", str(executable)],
+                                   stdin=slave, stdout=slave, stderr=slave, env=env)
+        wait_ready()
+        check("live UI explicitly labeled", "LIVE ENABLED / CONFIRMED CALLS" in text())
+        check("live UI starts no executable on launch", not marker.exists())
+        send(b"s")
+        check("Start requires confirmation", "Confirm live run" in text() and not marker.exists())
+        check("confirmation discloses usage", "may incur model usage" in text())
+        if args.preview:
+            preview(args.preview.with_stem(args.preview.stem + "-live-confirmation"))
+        send(b"\x1b[200~y\r\x1b[201~")
+        check("paste cannot authorize execution", "Confirm live run" in text() and not marker.exists())
+        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 20, 60, 0, 0))
+        screen.resize(lines=20, columns=60)
+        os.kill(process.pid, signal.SIGWINCH)
+        pump(0.2)
+        send(b"\r")
+        check("small terminal cannot authorize live execution", not marker.exists()
+              and "larger terminal" in text())
+        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
+        screen.resize(lines=rows, columns=cols)
+        os.kill(process.pid, signal.SIGWINCH)
+        pump(0.2)
+
+        send(b"\x1b")
+        send(b"s")
+        send(b"\r")
+        deadline = time.monotonic() + 5
+        while "Live-mode local fixture answer" not in text() and time.monotonic() < deadline:
+            pump(0.05)
+        send(b"e")
+        check("confirmed process streams into chat", "Live-mode local fixture answer" in text() and marker.exists())
+        check("confirmed process moves selected task Ready", " / Ready / conversation" in text())
+        send(b"q")
+        process.wait(timeout=5)
+        check("live fixture UI exits cleanly", process.returncode == 0)
+        with sqlite3.connect(database) as db:
+            saved = json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
+        live_task = next(t for t in saved["tasks"] if t["id"] == task["id"])
+        check("live UI run origin and thread saved", live_task["thread"] == "ui-fixture-thread"
+              and live_task["runs"][-1]["simulated"] is False)
+        check("live UI saved genuine author label", live_task["messages"][-1]["author"] == "Codex")
+        executable.write_text("#!/bin/sh\ncat >/dev/null\ntouch cancel-started\nsleep 10\n")
+        screen.reset()
+        process = subprocess.Popen([str(binary), "--live-ui", "--no-config", "--database", str(database),
+                                   "--codex-executable", str(executable)],
+                                   stdin=slave, stdout=slave, stderr=slave, env=env)
+        wait_ready()
+        send(b"iContinue fixture\r")
+        send(b"s\r")
+        cancel_marker = Path(task["workspace"]["directory"]) / "cancel-started"
+        deadline = time.monotonic() + 5
+        while not cancel_marker.exists() and time.monotonic() < deadline:
+            pump(0.05)
+        check("second confirmed fixture starts", cancel_marker.exists())
+        send(b"x")
+        pump(0.3)
+        check("live cancellation is disclosed", "Live cancellation requested" in text())
+        send(b"iContinue after stop\r")
+        send(b"s\r")
+        pump(0.1)
+        process.terminate()
+        process.wait(timeout=5)
+        check("live UI SIGTERM cancels and joins", process.returncode == 0)
+        with sqlite3.connect(database) as db:
+            saved = json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
+        cancelled_task = next(t for t in saved["tasks"] if t["id"] == task["id"])
+        check("live shutdown leaves task interrupted", cancelled_task["active"] is None
+              and cancelled_task["state"] == "needs_you" and cancelled_task["runs"][-1]["status"] == "stopped")
+
 
 finally:
     if process.poll() is None:

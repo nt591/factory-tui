@@ -27,6 +27,8 @@ type action =
   | Quit
   | Begin_search
   | Begin_compose
+  | Confirm_live
+  | Cancel_live
   | Open_review
   | Refresh_review
   | Edit_review_executable
@@ -38,6 +40,9 @@ type action =
   | Begin_new
 
 type t = {
+  mutable live_config : Live_runner.config option;
+  mutable live_confirmation : string option;
+  mutable confirmation_readable : bool;
   mutable review : Review.t option;
   mutable jj_executable : string;
   mutable workspace_form : Workspace_form.t option;
@@ -79,6 +84,9 @@ type t = {
 
 let create ?(external_events = false) ?(fake_harness = false) () =
   {
+    live_config = None;
+    live_confirmation = None;
+    confirmation_readable = true;
     review = None;
     jj_executable = "";
     workspace_form = None;
@@ -279,6 +287,26 @@ let act t action =
           t.model_text <- task.model;
           t.input <- Edit_model;
           t.editor <- Text_edit.create task.model)
+  | Cancel_live -> t.live_confirmation <- None
+  | Confirm_live when not t.confirmation_readable ->
+      t.status <- "Resize the terminal before confirming a live run."
+  | Confirm_live -> (
+      match (t.live_confirmation, t.live_config) with
+      | Some id, Some config -> (
+          t.live_confirmation <- None;
+          match List.find_opt (fun (task : task) -> task.id = id) t.tasks with
+          | None -> t.status <- "Confirmed task no longer exists."
+          | Some task -> (
+              match Live_runner.prepare config task with
+              | Error error -> t.status <- error
+              | Ok _ -> (
+                  match Model.start ~simulated:false task (next_id t "live-run") with
+                  | Error error -> t.status <- error
+                  | Ok task ->
+                      replace t task;
+                      t.status <-
+                        "Live Codex run queued. Waiting for the durable checkpoint.")))
+      | _ -> ())
   | Open_review -> (
       match selected t with
       | None -> t.status <- "Select a workspace task to review."
@@ -357,7 +385,9 @@ let act t action =
       t.new_title <- "";
       t.editor <- Text_edit.create ""
   | Toggle_pause ->
-      if t.fake_harness then
+      if t.live_config <> None then
+        t.status <- "Live updates cannot be paused; use x to stop."
+      else if t.fake_harness then
         t.status <- "Process fixture updates cannot be paused. Use x to stop."
       else if t.external_events then
         t.status <- "Replay input stays live. Pause is available for the demo only."
@@ -372,7 +402,14 @@ let act t action =
       t.archive <- not t.archive;
       t.board_scroll <- 0
   | Start -> (
-      if t.external_events then
+      if t.live_config <> None then
+        match selected t with
+        | None -> ()
+        | Some task -> (
+            match Live_runner.prepare (Option.get t.live_config) task with
+            | Error error -> t.status <- error
+            | Ok _ -> t.live_confirmation <- Some task.id)
+      else if t.external_events then
         t.status <- "Replay mode cannot start runs. Use a fixture run ID."
       else
         match selected t with
@@ -397,7 +434,10 @@ let act t action =
       match selected t with
       | Some { active = Some run; id; _ } ->
           receive t { task_id = id; run_id = run.id; event = Interrupted };
-          t.status <- "Simulated run interrupted. Stale updates are ignored."
+          t.status <-
+            (if t.live_config <> None then
+               "Live cancellation requested. Stale updates are ignored."
+             else "Simulated run interrupted. Stale updates are ignored.")
       | _ -> t.status <- "There is no active run to stop.")
   | Accept -> ( match selected t with Some task -> result t (accept task) | None -> ())
 
@@ -445,7 +485,8 @@ let insert_text t value =
         Text_edit.insert editor (clean ~newlines:(t.input = Compose) value))
 
 let paste_key t (key, mods) =
-  if t.review <> None then Review.paste_key (Option.get t.review) (key, mods)
+  if t.live_confirmation <> None then ()
+  else if t.review <> None then Review.paste_key (Option.get t.review) (key, mods)
   else if t.workspace_form <> None then (
     if t.creation_job = None && t.creation_request = None then
       Workspace_form.paste_key (Option.get t.workspace_form) (key, []))
@@ -472,7 +513,10 @@ let submit t =
               replace t task;
               set_draft t "";
               t.input <- Normal;
-              t.status <- "Reply queued for the next run. No live agent receives it."))
+              t.status <-
+                (if t.live_config <> None then
+                   "Reply queued for the next confirmed turn; active run is unchanged."
+                 else "Reply queued for the next run. No live agent receives it.")))
   | Edit_model -> (
       match selected t with
       | None -> t.input <- Normal
@@ -689,6 +733,12 @@ let key t (key, mods) =
   if key = `ASCII 'c' && List.mem `Ctrl mods then (
     reset_keys t;
     t.quit <- true)
+  else if t.live_confirmation <> None then (
+    reset_keys t;
+    match key with
+    | `Escape | `ASCII 'n' -> act t Cancel_live
+    | (`Enter | `ASCII 'y') when mods = [] -> act t Confirm_live
+    | _ -> ())
   else if t.review <> None then (
     reset_keys t;
     match key with
@@ -795,3 +845,26 @@ let finish_creation t ~storage =
   t.creation_request <- None;
   Option.iter Task_creation.close t.creation_job;
   poll_creation t ~storage
+
+let enable_live t config =
+  if t.database_path = None then Error "Live UI requires configured SQLite storage."
+  else if t.fake_harness || t.external_events then
+    Error "Live UI cannot use demo processes or replay."
+  else (
+    t.live_config <- Some config;
+    t.schedules <- [];
+    t.tasks <- (Snapshot.recover (snapshot t)).tasks;
+    t.status <-
+      "Live UI enabled / no process started. s asks for confirmation on workspace tasks.";
+    Ok ())
+
+let live_context t : Live_runner.context =
+  {
+    tasks = (fun () -> t.tasks);
+    snapshot = (fun () -> snapshot t);
+    pending_events = (fun () -> t.storage_events);
+    acknowledge_events = (fun () -> t.storage_events <- []);
+    receive = receive t;
+    report_error = (fun error -> t.status <- "Live error: " ^ error);
+    quitting = (fun () -> t.quit);
+  }
