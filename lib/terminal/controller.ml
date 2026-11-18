@@ -371,9 +371,14 @@ let rec act t action =
   | Next_harness -> (
       match selected t with
       | None -> ()
+      | Some task when task.state = Done -> t.status <- "Accepted tasks are read-only."
+      | Some task when t.live_config <> None && task.harness = Codex ->
+          t.status <- "Live execution supports Codex only. No selection changed."
       | Some task -> (
           match
-            set_harness task (match task.harness with Codex -> Claude | Claude -> Codex)
+            set_harness task
+              (if t.live_config <> None then Codex
+               else match task.harness with Codex -> Claude | Claude -> Codex)
           with
           | Error error -> t.status <- error
           | Ok task ->
@@ -382,6 +387,7 @@ let rec act t action =
   | Begin_model -> (
       match selected t with
       | None -> ()
+      | Some task when task.state = Done -> t.status <- "Accepted tasks are read-only."
       | Some task ->
           t.model_text <- task.model;
           t.input <- Edit_model;

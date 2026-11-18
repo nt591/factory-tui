@@ -87,4 +87,39 @@ let () =
     && not (Controller.contains content "H changes harness"));
   check "menu content creates no live confirmation"
     (controller.live_confirmation = None && Controller.snapshot controller = before);
+  Controller.key controller (`ASCII 'H', []);
+  check "live Settings shortcut cannot select unsupported harness"
+    (Controller.snapshot controller = before && controller.live_confirmation = None);
+  Controller.key controller (`Escape, []);
+  Controller.key controller (`ASCII 'H', []);
+  check "normal live shortcut preserves Codex and captured settings"
+    (Controller.snapshot controller = before
+    && Controller.contains controller.status "supports Codex only");
+  controller.tasks <- [ { task with harness = Claude } ];
+  Controller.key controller (`ASCII 'H', []);
+  check "explicit live shortcut can repair imported simulated harness"
+    ((Option.get (Controller.selected controller)).harness = Codex
+    && (Option.get (Controller.selected controller)).runs = []
+    && controller.live_confirmation = None);
+  controller.tasks <- [ accepted ];
+  let accepted_snapshot = Controller.snapshot controller in
+  Controller.key controller (`ASCII 'm', []);
+  check "accepted task cannot open an unsavable model editor"
+    (controller.input = Controller.Normal
+    && Controller.snapshot controller = accepted_snapshot);
+  Controller.key controller (`ASCII 'H', []);
+  check "accepted task cannot repair or cycle harness"
+    (Controller.snapshot controller = accepted_snapshot);
+  Controller.act controller Controller.Help;
+  Controller.key controller (`Tab, []);
+  Controller.key controller (`ASCII 'm', []);
+  check "accepted Settings model shortcut also refuses editing"
+    (controller.input = Controller.Normal
+    && Controller.snapshot controller = accepted_snapshot);
+  let demo = Controller.create ~external_events:true () in
+  demo.tasks <- [ task ];
+  demo.selected <- task.id;
+  Controller.key demo (`ASCII 'H', []);
+  check "simulation still permits harness cycling"
+    ((Option.get (Controller.selected demo)).harness = Claude);
   Printf.printf "Passed %d menu content checks. Pure modes and rendering only.\n" !checks

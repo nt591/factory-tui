@@ -235,3 +235,10 @@ Archive entry selects a visible accepted task when the saved selection is absent
 Selected-run lifecycle events replace stale checkpoint text with run/review/retry
 guidance; acceptance shows retained read-only chat. Stale/background events do not
 replace another task's status.
+
+Live harness shortcuts preserve Codex instead of cycling to unsupported Claude.
+An explicit H can select Codex for an imported simulated Claude task, without
+starting a run or changing its captured history. Accepted tasks reject model-editor
+entry as well as harness changes. Mode/content tests and the installed-agent
+loopback workflow verify these shortcuts before confirmation; simulation still
+supports its two-harness cycle.

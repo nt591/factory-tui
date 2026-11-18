@@ -228,3 +228,10 @@ names the local process fixture; replay explicitly cannot start a run. Accepted
 tasks retain read-only settings text. Content generation and menu browsing access
 no credentials and start no process. Pure mode/render tests and the installed
 Codex loopback PTY check verify the live disclosure before run confirmation.
+
+Settings shortcuts follow the mode boundary as well as the displayed guidance:
+live H does not cycle Codex to unsupported Claude. For an imported simulated
+Claude task, explicit H selects Codex without starting execution or rewriting past
+runs. Accepted tasks do not open a model editor or change harness. Simulation
+retains Codex/Claude cycling. Tests cover normal/menu shortcuts and no automatic
+confirmation; the installed-agent PTY workflow uses both H paths before Start.

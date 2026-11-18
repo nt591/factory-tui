@@ -585,7 +585,9 @@ validation even when their actions are absent from the bar.
 
 Help/Settings shows the visible row range and indicates more content above or
 below. Its instructions reflect simulation, fake-process, replay, or live mode;
-live mode names Codex-only execution and the per-run confirmation. Page Up/Down moves by the current menu height; switching tabs returns to
+live mode names Codex-only execution and the per-run confirmation. Live `H`
+keeps Codex (or explicitly selects it for an imported Claude task); it starts no
+run. Accepted tasks cannot open the model editor or change harness. Page Up/Down moves by the current menu height; switching tabs returns to
 the top. `?` or Escape closes the menu without changing tasks or drafts.
 
 The wide repository sidebar keeps navigation pinned and scrolls repository rows

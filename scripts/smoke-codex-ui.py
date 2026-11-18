@@ -179,7 +179,16 @@ def main():
                 )
                 if args.preview:
                     tui.preview(args.preview.with_stem(args.preview.stem + "-settings"))
+                tui.send(b"H")
+                tui.check(
+                    "live Settings H keeps a runnable Codex task",
+                    UiGateway.requests == 0,
+                )
                 tui.send(b"\x1b")
+                tui.send(b"H")
+                tui.wait(
+                    "live harness boundary", lambda: "supports Codex only" in tui.text()
+                )
                 tui.send(b"s")
                 tui.wait("run confirmation", lambda: "Confirm live run" in tui.text())
                 tui.check(
