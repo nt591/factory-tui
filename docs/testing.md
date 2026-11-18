@@ -766,3 +766,9 @@ still changes and events remain queued for persistence. Rendering checks visible
 warning text. This is a controller priority test, not a PTY database-failure probe
 or automatic storage recovery test; real temporary database errors are tested by
 the persistence suite.
+
+Task-attention unit checks cover awaiting input, failure, interruption, latest-run
+selection, missing history, Ready omission, update coexistence and snapshot isolation.
+The queue-summary replay PTY additionally checks the seeded question card and the
+interrupted task's board reason after returning from chat. Full diagnostics remain
+in conversation; no model or real workspace is accessed by this fixture.

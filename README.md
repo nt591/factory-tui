@@ -887,3 +887,8 @@ Restored counters do not determine identity uniqueness on their own. Creating a 
 posting a reply, or starting a run skips IDs already present in retained tasks,
 messages, runs, or output namespaces. Imported history is never renumbered. This
 protects valid snapshots with stale counters; invalid snapshots still fail validation.
+
+Needs-you cards distinguish “Reply requested,” “Run failed,” and “Run interrupted”
+from the latest recorded attempt. Cards with no compatible outcome show “Needs
+attention” instead of guessing. The same reason appears in compact previews; new
+update counts remain alongside it. Open the task chat for the full diagnostic.

@@ -36,6 +36,10 @@ def main():
             [str(binary), "--no-config", "--events", str(replay)], env
         ) as tui:
             tui.ready()
+            tui.check(
+                "waiting card explains recorded input request",
+                any("Reply requested" in row for row in tui.screen.display[:19]),
+            )
             tui.send(b"e")
             tui.wait("captured queue", lambda: "1 awaiting ack · 0 next" in tui.text())
             tui.send(b"i")
@@ -84,6 +88,19 @@ def main():
             )
             if args.preview:
                 tui.preview(args.preview.with_stem(args.preview.stem + "-after-stop"))
+            tui.send(b"e")
+            tui.wait(
+                "interrupted card reason",
+                lambda: any(
+                    "Run interrupted" in row for row in tui.screen.display[:19]
+                ),
+            )
+            tui.check(
+                "stopped card explains interruption without changing queued replies",
+                "Reply / next turn · 2 queued" in tui.text(),
+            )
+            if args.preview:
+                tui.preview(args.preview.with_stem(args.preview.stem + "-card-reason"))
             tui.send(b"q")
             tui.wait_exit()
             tui.check(

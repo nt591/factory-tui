@@ -387,3 +387,8 @@
  (name test_id_allocation)
  (modules test_id_allocation)
  (libraries factory_tui unix))
+
+(test
+ (name test_task_attention)
+ (modules test_task_attention)
+ (libraries factory_tui notty))

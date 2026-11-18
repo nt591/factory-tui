@@ -3,6 +3,11 @@ let width text = Notty.I.width (Notty.I.string Notty.A.empty text)
 let text ?(updates = 0) ~width:columns ~selected (task : Model.task) =
   let id = Terminal_text.line task.id and title = Terminal_text.line task.title in
   let title = if updates > 0 then Printf.sprintf "[%d new] %s" updates title else title in
+  let title =
+    match Task_attention.reason task with
+    | None -> title
+    | Some reason -> reason ^ " · " ^ title
+  in
   let state = Model.label task.state in
   let marker = if selected then " › " else "   " in
   let padded size text = text ^ String.make (max 0 (size - width text)) ' ' in

@@ -799,3 +799,11 @@ storage continue normally; the warning does not suppress lifecycle movement or
 claim that unsaved state is durable. Pure event/render checks cover success,
 failure and interruption under a persistence warning, plus ordinary guidance when
 the warning is no longer present. This guard does not reconnect or retry storage.
+
+Task_attention.ml/.mli derives a short Needs_you reason from the newest recorded
+run status: awaiting input, failure, or interruption. Missing/inconsistent history
+uses neutral Needs attention copy; other states have no attention reason. Card
+metadata shares this pure view with compact previews, preserving update badges.
+No error-text parsing, lifecycle change or stored-history mutation is introduced.
+Pure lifecycle/record-order/render tests and the queue replay PTY verify input
+request and interruption reasons on the board while queued replies stay intact.

@@ -448,9 +448,6 @@ let render t ~width:cols ~height:rows =
                   I.vcat (List.map (fun title -> line (w - 6) a title) title_rows)
                   |> fit (w - 6) 2
                 in
-                let pending =
-                  List.length (List.filter (fun (m : message) -> m.queued) task.messages)
-                in
                 let card =
                   I.vcat
                     [
@@ -460,15 +457,11 @@ let render t ~width:cols ~height:rows =
                            (max 1 (w - 6))
                            (clean ~newlines:false (repository_label task.repository)));
                       line (w - 6) (attr muted)
-                        (if Task_updates.count t.task_updates task.id > 0 then
-                           let updates = Task_updates.count t.task_updates task.id in
-                           Printf.sprintf "%d new update%s" updates
-                             (if updates = 1 then "" else "s")
-                         else if pending = 0 then
-                           Printf.sprintf "%d messages" (List.length task.messages)
-                         else
-                           Printf.sprintf "%d msg / %d queued" (List.length task.messages)
-                             pending);
+                        (Text_layout.ellipsize
+                           (max 1 (w - 6))
+                           (Task_attention.card_text
+                              ~updates:(Task_updates.count t.task_updates task.id)
+                              task));
                     ]
                   |> I.hpad 1 1
                 in

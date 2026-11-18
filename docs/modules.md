@@ -426,3 +426,8 @@ Its private ephemeral index includes exact task/message/tool/run IDs and slash
 namespace ancestors. Controller owns the counter and applies returned values;
 existing records are never modified by allocation. It is not a global/distributed
 ID service and exposes no mutable handle.
+
+Task_attention produces attention reason and card metadata from task state and
+recorded run status. It does not infer outcomes from message wording or process
+exit alone. Ui and Task_row share the same reason; update counts remain supplied
+separately. Missing or inconsistent run history uses neutral copy.

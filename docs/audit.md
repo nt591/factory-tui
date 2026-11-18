@@ -243,3 +243,8 @@ coordination or automatic repair of invalid stored data.
 Run guidance preserves a current persistence-error footer while continuing task
 reduction and pending-event retention. Success/failure/stop event and render tests
 verify warning priority. No automatic storage recovery or durability claim is added.
+
+Needs-you card reasons share a pure task/run-status view with compact previews.
+Lifecycle/render tests and replay input/stop board checks verify reply-requested
+and interruption visibility, recorded failure handling and retained queued replies.
+Neutral fallback avoids inventing a reason from absent/inconsistent history.
