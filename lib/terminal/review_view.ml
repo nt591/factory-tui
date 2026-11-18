@@ -115,7 +115,7 @@ let render review ~width:cols ~height:rows =
           (" [Refresh / r]  [jj path / i]  [Close / Esc]"
           ^ if file_navigation then "  [Prev file]  [Next file]" else "");
         row A.white
-          " h/l: horizontal · j/k: scroll · g/G: top/bottom · [/]: files · Esc: chat";
+          " h/l: horizontal · j/k: scroll · Ctrl-U/D: half · Ctrl-B/F: page · [/]: files";
       ]
   in
   let hits = ref [] in

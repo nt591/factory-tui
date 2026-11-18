@@ -92,7 +92,10 @@ empty diff, patch, and error states. Paths are remembered for this application
 session after creation or review, not silently guessed from a global install.
 
 `j/k`, Page Up/Down, and the mouse wheel scroll; `g/G` goes to top/bottom.
-Page keys use the visible patch height. `]` jumps to the next file, and `[` jumps
+Page keys use the visible patch height. Ctrl-U/D moves a half-page, and Ctrl-B/F
+moves a full page, using the same visible patch height. These controls do not
+navigate or edit the path while the executable field is active; only plain Enter
+refreshes that field. Modified shortcuts do not implicitly run jj. `]` jumps to the next file, and `[` jumps
 to the previous file. Multi-file patches also show clickable Prev/Next file buttons.
 File jumps put the header at the top, even for a short final file, and reset the
 horizontal offset. Navigation stops at the first/last file rather than wrapping.

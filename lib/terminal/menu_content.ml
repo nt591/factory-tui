@@ -28,7 +28,7 @@ let help ~mode =
     | Simulation -> "s starts a simulated run; x stops; a accepts Ready tasks.");
     "b returns to all tasks. R cycles repositories. d opens Archive.";
     "v opens real workspace changes; r refreshes; Escape returns.";
-    "Review: [/]: previous/next file; h/l: long lines; Page Up/Down: page.";
+    "Review: [/]: files; h/l: long lines; Ctrl-U/D: half; Ctrl-B/F: page.";
     (match mode with
     | Simulation -> "t expands tools; T toggles readable/raw payload. f pauses demo."
     | _ -> "t expands tools; T toggles readable/raw payload. Updates stay live.");

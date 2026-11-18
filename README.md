@@ -561,7 +561,8 @@ runs nothing: enter jj's absolute path if needed, then Enter/`r` refreshes in th
 background. `i` edits the path; `j/k`, Page Up/Down, and the wheel scroll; Escape
 returns to chat. `]`/`[` jump to next/previous files; multi-file patches also have
 clickable Prev/Next buttons. The footer shows file position, and jumps reset the
-horizontal offset. Page keys move by the visible patch height. Empty and failed
+horizontal offset. Page keys move by the visible patch height; Ctrl-U/D moves a
+half-page and Ctrl-B/F a full page. Paging controls are inactive during path editing. Empty and failed
 diffs are explicit states, not sample patches.
 Review does not accept, merge, push, or delete. Wheel input over its path field,
 header, or buttons does not scroll the patch. `h/l` or Left/Right scroll long

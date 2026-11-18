@@ -98,11 +98,27 @@ let jump_file t direction =
       t.document
 
 let key t (key, mods) =
+  let key =
+    match key with
+    | `ASCII char when List.mem `Ctrl mods -> `ASCII (Char.lowercase_ascii char)
+    | key -> key
+  in
   if t.editing then
     match key with
-    | `Enter -> refresh t
+    | `Enter when mods = [] -> refresh t
     | _ when mods = [] || mods = [ `Shift ] -> input t key
     | _ -> ()
+  else if mods = [ `Ctrl ] then
+    let delta =
+      match key with
+      | `ASCII 'u' -> Some (-max 1 (t.page_rows / 2))
+      | `ASCII 'd' -> Some (max 1 (t.page_rows / 2))
+      | `ASCII 'b' -> Some (-t.page_rows)
+      | `ASCII 'f' -> Some t.page_rows
+      | _ -> None
+    in
+    Option.iter (fun delta -> set_scroll t (t.scroll + delta)) delta
+  else if mods <> [] && mods <> [ `Shift ] then ()
   else
     match key with
     | `ASCII 'r' | `Enter -> refresh t

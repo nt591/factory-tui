@@ -478,6 +478,31 @@ try:
         review_rows = screen.display[1:]
         send(b"\x1b[<65;10;35M\x1b[<81;10;35M")
         check("review buttons do not scroll the patch", screen.display[1:] == review_rows)
+        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 12, cols, 0, 0))
+        screen.resize(lines=12, columns=cols)
+        os.kill(process.pid, signal.SIGWINCH)
+        pump(0.2)
+        send(b"\x04")
+        check("review Ctrl-D pages by half the current viewport", "Line 3 / 16" in text())
+        send(b"\x15")
+        check("review Ctrl-U returns by half the current viewport", "Line 1 / 16" in text())
+        send(b"\x06")
+        check("review Ctrl-F pages by the current viewport", "Line 6 / 16" in text())
+        send(b"\x02")
+        check("review Ctrl-B returns by the current viewport", "Line 1 / 16" in text())
+        send(b"i")
+        path_before = screen.display[3]
+        send(b"\x04\x15\x06\x02")
+        check("review paging keys are inactive in executable editing", screen.display[3] == path_before
+              and "Line 1 / 16" in text())
+        send(b"\r")
+        deadline = time.monotonic() + 5
+        while "file 1/2: review.txt" not in text() and time.monotonic() < deadline:
+            pump(0.05)
+        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
+        screen.resize(lines=rows, columns=cols)
+        os.kill(process.pid, signal.SIGWINCH)
+        pump(0.2)
         send(b"]")
         check("next file key opens final file", "file 2/2: z-final.txt" in text()
               and "+Final file sentinel" in text()

@@ -177,6 +177,29 @@ let () =
       check "page scroll uses rendered patch height" (Review.scroll review = 2);
       Review.key review (`Page `Up, []);
       check "page up returns by rendered patch height" (Review.scroll review = 0);
+      Review.key review (`ASCII 'D', [ `Ctrl ]);
+      check "Ctrl-D accepts decoded uppercase and moves half a page"
+        (Review.scroll review = 1);
+      Review.key review (`ASCII 'u', [ `Ctrl ]);
+      check "Ctrl-U returns half a page" (Review.scroll review = 0);
+      Review.key review (`ASCII 'f', [ `Ctrl ]);
+      check "Ctrl-F moves a full visible page" (Review.scroll review = 2);
+      Review.key review (`ASCII 'b', [ `Ctrl ]);
+      check "Ctrl-B returns a full visible page" (Review.scroll review = 0);
+      Review.set_page_rows review 1;
+      Review.key review (`ASCII 'd', [ `Ctrl ]);
+      check "one-row half-page motion still advances" (Review.scroll review = 1);
+      Review.key review (`ASCII 'u', [ `Ctrl ]);
+      Review.key review (`ASCII 'r', [ `Ctrl ]);
+      check "Ctrl-R does not trigger workspace refresh"
+        (Review.state review <> Changes.Loading);
+      Review.key review (`ASCII 'i', [ `Meta ]);
+      check "modified i does not accidentally open path editing"
+        (not (Review.editing review));
+      Review.key review (`ASCII 'd', [ `Ctrl; `Meta ]);
+      check "mixed modifiers do not page review" (Review.scroll review = 0);
+      ignore (rendered review 60 8);
+
       Review.key review (`ASCII 'G', []);
       check "bottom uses last full viewport"
         (Review.scroll review = max 0 (Diff_document.line_count document - 2));
@@ -215,6 +238,16 @@ let () =
         (Review.scroll review = 0);
       await review;
       Review.edit_executable review;
+      let path = Review.executable review in
+      List.iter
+        (fun char -> Review.key review (`ASCII char, [ `Ctrl ]))
+        [ 'u'; 'd'; 'b'; 'f'; 'r' ];
+      check "paging shortcuts neither scroll nor alter executable while editing"
+        (Review.executable review = path
+        && Review.scroll review = 0
+        && Review.state review <> Changes.Loading);
+      Review.key review (`Enter, [ `Ctrl ]);
+      check "modified Enter cannot refresh while editing" (Review.editing review);
       Review.key review (`ASCII 'l', []);
       check "path editing keeps navigation literal"
         (String.ends_with ~suffix:"l" (Review.executable review)

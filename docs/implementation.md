@@ -281,3 +281,9 @@ pure and names task ID, queued instructions, confirmation/setup prerequisites,
 read-only acceptance, or replay boundaries. Selection does not mask storage errors
 or invoke preflight. Pure and PTY tests verify correct identity and no new runs;
 filtering still keeps the selected chat until a task is explicitly selected.
+
+Changes review supports Ctrl-U/D half-page and Ctrl-B/F full-page movement using
+its rendered patch capacity, including one-row panes. Control-letter decoding
+matches the main TUI; unrelated/mixed modifiers cannot invoke refresh or path
+editing. Paging keys are inactive while editing the executable, and modified
+Enter cannot refresh it. Unit and resized-terminal PTY checks cover these paths.

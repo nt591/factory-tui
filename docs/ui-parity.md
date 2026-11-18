@@ -281,3 +281,10 @@ Missing workspace or unsupported live harness points to explicit setup/selection
 no preflight command starts on inspection. Storage errors stay visible across task
 selection. `Task_guidance.ml/.mli` generates copy independently of the controller;
 pure state tests and PTY keyboard selection checks verify the footer identity.
+
+Review paging follows the main panes' Vim conventions: Ctrl-U/D for half-pages,
+Ctrl-B/F for full pages, with distances derived from the visible patch height.
+A one-row pane still advances one row. While editing the jj executable these
+shortcuts do not move the patch or alter the path, and only unmodified Enter
+refreshes. Unsupported modifiers do not trigger plain-key commands. Unit tests
+and actual PTY control bytes after resize verify behavior; review remains read-only.
