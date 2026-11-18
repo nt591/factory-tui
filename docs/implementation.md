@@ -590,3 +590,12 @@ Unicode/newline/source-offset/width-roundtrip tests and a real replay PTY verify
 body containment across repeated widths, exact row restoration, later output,
 height changes, unchanged saved data and explicit follow. Header reflow still uses
 row-relative retention. No dependency or persistence schema changes are introduced.
+
+
+Task_row.ml/.mli computes bounded compact/archive list previews. Short rows retain
+familiar spacing; titles exceeding available cells receive a grapheme-safe ellipsis.
+Long IDs cannot push the state out of the row: tighter fallback prioritizes state
+and abbreviates ID/title. Ui still registers the exact task ID over the visible
+row. No task text, order, selection semantics or saved state is rewritten. Pure
+width/Unicode/control tests and the compact filtered-board PTY verify omission
+markers, ID/state visibility, exact hit identity and full expanded instruction.

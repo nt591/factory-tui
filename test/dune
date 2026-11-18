@@ -322,3 +322,8 @@
  (name test_chat_reflow)
  (modules test_chat_reflow)
  (libraries factory_tui))
+
+(test
+ (name test_task_row)
+ (modules test_task_row)
+ (libraries factory_tui notty))

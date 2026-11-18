@@ -375,9 +375,7 @@ let render t ~width:cols ~height:rows =
             in
             hit (r.x + 1) (r.y + 1 + i) content_width 1 (Select task.id);
             line content_width a
-              (Printf.sprintf " %s %-7s %-10s %s"
-                 (if task.id = t.selected then "›" else " ")
-                 task.id (label task.state) task.title))
+              (Task_row.text ~width:content_width ~selected:(task.id = t.selected) task))
           tasks
       in
       let title =

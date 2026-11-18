@@ -318,3 +318,9 @@ headers keep non-positive row indices. Chat_viewport retains the original precis
 anchor when reflow puts it inside a row with an earlier start, so narrowing and
 widening do not accumulate row-start drift. Explicit navigation chooses a new
 anchor. Bounds may clamp, and edits are not mapped through a text diff.
+
+
+Task_row owns single-line compact task preview text. It sanitizes display ID/title,
+uses terminal-cell widths and grapheme-safe ellipsis, and reserves state visibility
+when a long identity cannot fit normal spacing. Controller and Ui keep exact task
+IDs for selection/hit dispatch; the module does not mutate tasks or filters.

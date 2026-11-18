@@ -807,3 +807,9 @@ body-text position in the first visible row. Returning to the original width
 restores that row, rather than keeping an obsolete wrapped-line number. End or
 Latest still resumes following. Near the transcript end, viewport bounds can
 clamp the position; edits that replace earlier text are not tracked as a diff.
+
+
+Compact task lists mark shortened titles with a grapheme-safe ellipsis. Ordinary
+rows retain task ID/state columns; when identities are too long or space is tight,
+the state takes priority and the ID/title are abbreviated. Mouse targets still
+select the exact stored task, and opening chat shows the complete instruction.

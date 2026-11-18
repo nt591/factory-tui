@@ -528,3 +528,9 @@ During this increment, one parallel test_process run failed its existing
 `callback failure teardown bounded` one-second assertion. The isolated process
 suite passed afterward. The precise cause is not established; deadlines and
 runtime code were not changed, and a passing rerun is not a diagnosis.
+
+
+The filtered-board summary PTY also verifies compact task title omission and
+visible task ID/state at 60 columns. test_task_row covers cell bounds, grapheme
+sequences, controls, long IDs, exact hit identity and expanded complete titles.
+These are display changes only; full stored task/run data remains unchanged.

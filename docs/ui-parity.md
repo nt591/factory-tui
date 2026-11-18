@@ -546,3 +546,10 @@ anchors remain row-relative. Pure and replay PTY checks cover source offsets,
 Unicode/newlines, repeated width changes, later streaming output, exact UI row
 restoration, saved-state isolation and End following. Near-end viewport bounds
 still clamp, and replacing earlier text is not mapped as an edit diff.
+
+
+Compact/archive task rows disclose title omission with ellipsis rather than silent
+cropping. Long IDs use a state-first fallback with abbreviated identity/title;
+short rows keep column spacing. Pure and compact-filtered-board PTY checks cover
+visible ID/state, omission, Unicode widths, exact click identity and full title in
+expanded chat. Preview changes do not affect stored text or list navigation order.
