@@ -158,8 +158,10 @@ plugins, modify shell startup files, or require global OCaml tool installations.
 - `i` composes a reply; Enter queues it. Ctrl-L or Alt-Enter inserts a newline.
   Arrows move the cursor, Home/End move within a line, and Backspace/Delete edit.
   Multiline paste preserves newlines without submitting or activating shortcuts.
-  Escape keeps a task-specific draft. Cursor movement uses Unicode codepoints,
-  not complete grapheme clusters; combining sequences need care when editing.
+  Escape keeps a task-specific draft. Cursor movement and deletion use extended
+  grapheme clusters, so combining accents, flags, skin tones, and joined emoji
+  stay together. Rendering width
+  for complex emoji still depends on the terminal and font.
 - `n` creates a demo task; `W` opens explicit workspace task creation (SQLite).
   `m` edits the next-run model; `H` cycles Codex / Claude.
   Both harnesses are simulated. Selection starts no process.

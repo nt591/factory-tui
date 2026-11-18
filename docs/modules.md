@@ -78,7 +78,8 @@ against these interfaces during the normal Dune build.
 - `Chat_search`: abstract transient query/matching-message selection, anchored
   by stable message ID. It searches content/authors without modifying tasks.
 - `Text_edit`: abstract bounded UTF-8 text and cursor state, with insertion,
-  deletion, line navigation, and codepoint movement. It performs no UI actions.
+  deletion, line navigation, and extended-grapheme movement. Segmentation uses
+  Uuseg; cached boundaries are private and malformed UTF-8 is normalized. It performs no UI actions.
 - `Ui`: frame/hitbox data, render, mouse dispatch, and tested text wrapping. Theme,
   borders, image composition, and pane rendering helpers stay private.
 - `Demo.Runner`: abstract ownership of fixture runs with poll/close. Its fixed

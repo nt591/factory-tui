@@ -5,4 +5,15 @@
  (foreign_stubs
   (language c)
   (names clock_stubs))
- (libraries notty notty.unix yojson uutf unix sqlite3 threads toml spawn uri))
+ (libraries
+  notty
+  notty.unix
+  yojson
+  uutf
+  uuseg.string
+  unix
+  sqlite3
+  threads
+  toml
+  spawn
+  uri))

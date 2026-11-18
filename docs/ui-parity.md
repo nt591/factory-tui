@@ -47,9 +47,9 @@ The `v` changes pane now shows real workspace patches with explicit refresh, emp
 states, vertical/horizontal scrolling, and return to chat.
 The `W` creation form creates isolated Queued tasks with persistent workspace identity and explicit source-snapshot disclosure. Simulation currently uses
 fixture data only. Do not present a simulated tool result as real verification.
-The composer supports multiline drafts (Ctrl-L or Alt-Enter), Unicode codepoint
+The composer supports multiline drafts (Ctrl-L or Alt-Enter), extended-grapheme
 cursor movement, insertion/deletion, and newline-preserving paste. Further refinements may include
-grapheme-aware cursor movement and configurable layouts. Chat search now uses
+configurable layouts and improved terminal-dependent emoji rendering. Chat search now uses
 literal matching, visible message counts, and n/N navigation anchored to IDs.
 Changes review is implemented as a full-screen pane rather than a drawer.
 

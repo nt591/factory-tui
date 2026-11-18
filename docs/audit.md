@@ -16,7 +16,7 @@ accessible help/settings. The staged native-app implementation remains the guide
 | Help/settings | `?` opens tabbed modal, keyboard/mouse tabs, scrolling, current storage and next-run settings; tests verify modal isolation and content. | Implemented |
 | Vim navigation | hjkl, gg/G, counts, Ctrl-W pane selection, half/full-page keys, and mode-specific editing. Tests include actual terminal-decoded control bytes. | Implemented |
 | Mouse and resizing | Card selection, expansion, buttons, modal hitboxes, wheel; exact frame/hit bounds from 1x1 through 180x50. Live authorization blocked below 64x13. PTY checks actual escape/input sequences. | Implemented |
-| Compose and queue instructions | Abstract Text_edit cursor state, multiline draft, Ctrl-L/Alt-Enter newline, safe bracketed paste, captured submitted messages acknowledged only at turn start. Drafts/queued replies survive persistence. | Implemented; codepoint, not grapheme-cluster editing |
+| Compose and queue instructions | Abstract Text_edit cursor state, multiline draft, Ctrl-L/Alt-Enter newline, safe bracketed paste, captured submitted messages acknowledged only at turn start. Drafts/queued replies survive persistence. | Implemented; grapheme-aware movement/deletion, terminal-dependent emoji width |
 | Settings/history | Next-run model/harness settings do not rewrite captured run records. Requested read/write policy is captured per run and legacy snapshots default read-only. Live Codex-only preflight and active model-capture tests. | Implemented; Claude is simulation only |
 | SQLite and restart | Versioned snapshots, separate run rows, ordered events, transaction rollback, exclusive ownership, coalesced bounded writes, shutdown flush, Working recovery. Storage and PTY save/reopen cover real temporary databases. | Implemented |
 | Low-effort configuration | Optional default/XDG TOML, explicit file, CLI override/no-config, capped reads and rejected unknown fields. Argument-free startup discovery is in the PTY smoke. | Implemented |
@@ -49,8 +49,8 @@ accessible help/settings. The staged native-app implementation remains the guide
    against the existing switch; a completely new switch reconstruction, cross-OS
    support, signing, and notarization are not verified. The local archive is not
    represented as a public production release.
-4. **Additional usability refinements.** Grapheme-aware editing, configurable
-   panes and fully abstract controller view state remain
+4. **Additional usability refinements.** Configurable panes, terminal-dependent
+   emoji rendering and fully abstract controller view state remain
    candidates. They do not justify claiming current rendering or interaction
    quality from unit tests alone; keep inspecting PTY captures.
 5. **Operational limits.** Group cancellation does not contain descendants that
