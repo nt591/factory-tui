@@ -932,3 +932,13 @@ read-only conversation. Exact SQLite history, one invocation, captured prompt/po
 unchanged source commit/content and retained workspace file are checked. This is a
 fake executable, not a model or sandbox security check. The continuous case joins
 the 18-case one-build UI suite and complements the broader terminal checks.
+
+The continuous workflow includes a second confirmed turn before acceptance.
+Next-run model editing and a queued follow-up start nothing by themselves. The
+fake invocation must resume workflow-thread, receive only the new queued prompt,
+and use the changed model in the same workspace. Both completed run records keep
+unique identities; the first record/settings and original message prefix remain
+byte-for-byte JSON-equivalent. Real jj review includes the second file. Accepted
+restart preserves both turns and the unsent draft without a third invocation.
+This strengthens fake-process workflow evidence, not installed-agent/provider
+resume compatibility or sandbox enforcement.

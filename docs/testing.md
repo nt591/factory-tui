@@ -838,3 +838,9 @@ It checks exact prompt/policy, one invocation, source preservation and unchanged
 persisted history on restart. No installed agent, real model or credentials are
 used. Explicit diff refresh remains a user action. The UI catalogue now has 18
 cases; the fake runner demonstrates integration, not real sandbox enforcement.
+
+The workflow fixture now covers two confirmed turns: first implementation, then
+next-model editing/queued follow-up with exact same-thread resume. It checks the
+second invocation's prompt/arguments/workspace, first-run record and message-prefix
+immutability, both reviewable files and read-only restart without another process.
+A fake executable supplies answers; no installed agent or real provider is used.

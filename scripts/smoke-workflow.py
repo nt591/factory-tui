@@ -91,11 +91,16 @@ arguments = sys.argv[1:]
 prompt = sys.stdin.read()
 with pathlib.Path({str(marker)!r}).open('a') as output:
     output.write(json.dumps({{'arguments': arguments, 'prompt': prompt, 'cwd': str(pathlib.Path.cwd())}}) + '\\n')
-pathlib.Path('implementation.txt').write_text('Reviewed fixture implementation\\n')
+resumed = arguments[:2] == ['exec', 'resume']
+if resumed:
+    pathlib.Path('followup.txt').write_text('Reviewed follow-up implementation\\n')
+else:
+    pathlib.Path('implementation.txt').write_text('Reviewed fixture implementation\\n')
+answer = 'Fixture follow-up ready for review' if resumed else 'Fixture implementation ready for review'
 for event in [
     {{'type': 'thread.started', 'thread_id': 'workflow-thread'}},
     {{'type': 'turn.started'}},
-    {{'type': 'item.completed', 'item': {{'type': 'agent_message', 'id': 'answer', 'text': 'Fixture implementation ready for review'}}}},
+    {{'type': 'item.completed', 'item': {{'type': 'agent_message', 'id': 'answer', 'text': answer}}}},
     {{'type': 'turn.completed'}},
 ]:
     print(json.dumps(event), flush=True)
@@ -172,6 +177,56 @@ for event in [
             if args.preview:
                 tui.preview(args.preview.with_stem(args.preview.stem + "-review"))
             tui.send(b"\x1b")
+            first_task = snapshot(database)["tasks"][0]
+            first_record = first_task["runs"][0]
+            first_messages = first_task["messages"]
+            tui.send(b"m\x1b[H")
+            tui.send(b"\x1b[200~followup-\x1b[201~\r")
+            tui.send(b"iAdd the follow-up file\r")
+            tui.check(
+                "queueing a follow-up and changing model do not start a run",
+                len(marker.read_text().splitlines()) == 1,
+            )
+            tui.send(b"s")
+            tui.wait("follow-up confirmation", lambda: "Confirm live run" in tui.text())
+            tui.check(
+                "follow-up confirmation discloses resume and new model",
+                "workflow-thread" in tui.text()
+                and "followup-fixture-model" in tui.text()
+                and "Add the follow-up file" in tui.text(),
+            )
+            tui.send(b"\x1b[6~" * 20 + b"y")
+            tui.wait(
+                "follow-up run completes",
+                lambda: (
+                    "Fixture follow-up ready for review" in tui.text()
+                    and "/ Ready / conversation" in tui.text()
+                ),
+            )
+            calls = [json.loads(line) for line in marker.read_text().splitlines()]
+            tui.check(
+                "second confirmed run resumes exact thread with only new prompt",
+                len(calls) == 2
+                and calls[1]["arguments"][:2] == ["exec", "resume"]
+                and calls[1]["arguments"][-2:] == ["workflow-thread", "-"]
+                and calls[1]["prompt"] == "Add the follow-up file"
+                and calls[1]["cwd"] == str(workspace),
+            )
+            model_index = calls[1]["arguments"].index("--model")
+            tui.check(
+                "second invocation captures changed next-run model",
+                calls[1]["arguments"][model_index + 1] == "followup-fixture-model",
+            )
+            tui.send(b"vr")
+            tui.wait("follow-up diff loaded", lambda: "diff --git" in tui.text())
+            tui.send(b"G")
+            tui.wait(
+                "follow-up review",
+                lambda: "+Reviewed follow-up implementation" in tui.text(),
+            )
+            if args.preview:
+                tui.preview(args.preview.with_stem(args.preview.stem + "-followup"))
+            tui.send(b"\x1b")
             tui.send(b"iRetained unsent draft\x1b")
             tui.send(b"a")
             tui.wait(
@@ -188,20 +243,36 @@ for event in [
         saved = snapshot(database)
         task = saved["tasks"][0]
         assert len(saved["tasks"]) == 1 and task["state"] == "done"
-        assert task["thread"] == "workflow-thread" and len(task["runs"]) == 1
+        assert task["thread"] == "workflow-thread" and len(task["runs"]) == 2
         assert task["runs"][0]["simulated"] is False
         assert task["runs"][0]["policy"] == "workspace-write"
+        assert task["runs"][0] == first_record
+        assert task["messages"][: len(first_messages)] == first_messages
+        assert task["runs"][1]["model"] == "followup-fixture-model"
+        assert task["runs"][0]["model"] == "fixture-model"
+        assert all(record["status"] == "completed" for record in task["runs"])
+        assert all(record["simulated"] is False for record in task["runs"])
+        assert len({record["id"] for record in task["runs"]}) == 2
+        assert all(record["policy"] == "workspace-write" for record in task["runs"])
+        assert (
+            workspace / "followup.txt"
+        ).read_text() == "Reviewed follow-up implementation\n"
+        assert not (source / "followup.txt").exists()
+
         assert saved["drafts"] == [[task["id"], "Retained unsent draft"]]
         with Terminal(command, env, columns=180, rows=50) as tui:
             tui.ready()
             tui.send(b"e")
             tui.wait(
                 "accepted conversation restored",
-                lambda: "Fixture implementation ready for review" in tui.text(),
+                lambda: (
+                    "Fixture implementation ready for review" in tui.text()
+                    and "Fixture follow-up ready for review" in tui.text()
+                ),
             )
             tui.check(
                 "restart never resumes accepted runner",
-                len(marker.read_text().splitlines()) == 1,
+                len(marker.read_text().splitlines()) == 2,
             )
             tui.check(
                 "restored task stays read-only",

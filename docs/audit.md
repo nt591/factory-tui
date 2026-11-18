@@ -377,3 +377,13 @@ instruction and requested write policy, isolated file change, real jj review,
 acceptance with retained draft and exact restart history/source preservation.
 Separate setup CLI (34), invocation (20), fake execution (19) and temporary package
 (16) checks passed. No real-model compatibility or sandbox enforcement is claimed.
+
+Two-turn continuous workflow verification on 2026-11-18 passed all 18 fixture
+UI cases and format/build/unit gates with 63 previews. Evidence:
+`/tmp/factory-workflow-resume-ui-20261118/report.json`. The accepted transcript
+preview shows both instructions/answers and distinct immutable model selections
+in the run history. The resumed invocation receives only the follow-up prompt
+on the exact same thread/workspace; cancellation, draft acceptance and restart
+remain explicit and preserve source/history. Separate setup (34), invocation (20),
+fake execution (19) and package (16) checks passed. This is fake-process integration,
+not installed-agent or real-provider resume compatibility.
