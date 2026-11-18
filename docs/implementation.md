@@ -923,3 +923,12 @@ relative/home paths, layout/workspace defaults, override, malformed/missing conf
 mode isolation and unchanged invalid database/sentinel executable. Commands and
 limits are in docs/configuration.md. This is setup validation, not provider or
 workspace compatibility verification.
+
+The fixture UI catalogue includes a full workflow case: a configured empty live
+board creates an isolated temporary jj task, cancels one run confirmation, confirms
+a fake workspace-write process, displays its answer/Ready state, explicitly reads
+the real jj diff, retains an unsent draft on acceptance, and reopens the accepted
+read-only conversation. Exact SQLite history, one invocation, captured prompt/policy,
+unchanged source commit/content and retained workspace file are checked. This is a
+fake executable, not a model or sandbox security check. The continuous case joins
+the 18-case one-build UI suite and complements the broader terminal checks.

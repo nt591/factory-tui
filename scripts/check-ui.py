@@ -31,6 +31,7 @@ CASES = (
     "queue-summary",
     "review-notice",
     "panes",
+    "workflow",
 )
 
 

@@ -368,3 +368,12 @@ bundled example TOML and must create no SQLite file; configuration instructions
 are included. No interactive render or process-runner behavior changes in this
 increment. Config validity remains separate from resource/provider compatibility.
 Temporary package smoke passed all 16 checks, including standalone config preview.
+
+Continuous workflow verification on 2026-11-18 passed all 18 fixture UI cases
+and format/build/unit gates with 62 previews. Evidence:
+`/tmp/factory-workflow-ui-20261118/report.json`. Diff and accepted-restart previews
+were inspected. The workflow verifies one confirmed fake process, exact queued
+instruction and requested write policy, isolated file change, real jj review,
+acceptance with retained draft and exact restart history/source preservation.
+Separate setup CLI (34), invocation (20), fake execution (19) and temporary package
+(16) checks passed. No real-model compatibility or sandbox enforcement is claimed.

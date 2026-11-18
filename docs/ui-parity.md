@@ -678,3 +678,9 @@ omit buttons that cannot fit. Normal card clicks and modal controls retain their
 existing input isolation. Pure mouse/render tests and the input-feedback PTY
 verify clicked submission, newline, model correction, task creation and search
 closure without starting agents.
+
+A continuous temporary factory workflow now verifies configured empty board,
+workspace creation, cancelled/confirmed run, answer and Ready movement, explicit
+real jj diff refresh, acceptance with retained draft and accepted-chat restart.
+It runs a fake process and preserves the source and exact SQLite history; this
+is workflow evidence, not real-model compatibility. It is the 18th fixture UI case.

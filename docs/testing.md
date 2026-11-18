@@ -827,3 +827,14 @@ and conflict rejection without requiring a terminal. Pure Config_preview checks
 run with dune runtest. Package smoke checks the standalone preview command and
 included configuration instructions. Setup checks establish syntax/resolution,
 not that a path, revision, database or model is usable.
+
+## Continuous factory workflow
+
+The `workflow` case in `scripts/check-ui.py` runs
+`scripts/smoke-workflow.py` against a temporary jj source/workspace and SQLite
+board. It covers create, cancellation, confirmed fake run, real diff review,
+acceptance with retained draft and read-only restart in one continuous flow.
+It checks exact prompt/policy, one invocation, source preservation and unchanged
+persisted history on restart. No installed agent, real model or credentials are
+used. Explicit diff refresh remains a user action. The UI catalogue now has 18
+cases; the fake runner demonstrates integration, not real sandbox enforcement.
