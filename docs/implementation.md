@@ -159,6 +159,11 @@ Acceptance does not merge, push, or delete a workspace.
    including checkpoint/cleanup waits, not necessarily process spawn. Pure
    `Run_time` handles invalid/reversed/missing timestamps without inventing time
    or changing completion. Unit and fixture PTY tests verify the displayed values.
+   `Menu_content` generates Help/Settings copy from explicit execution mode,
+   storage path, and selected task. Live copy names Codex-only execution and
+   confirmation rather than advertising simulated harness cycling. Fake/replay
+   copy states its actual process boundary; mode tests and installed-agent PTY
+   checks verify browsing menus starts no invocation.
    UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,

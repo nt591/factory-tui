@@ -584,7 +584,8 @@ accepted tasks show inspection rather than run/edit controls. Live Start says
 validation even when their actions are absent from the bar.
 
 Help/Settings shows the visible row range and indicates more content above or
-below. Page Up/Down moves by the current menu height; switching tabs returns to
+below. Its instructions reflect simulation, fake-process, replay, or live mode;
+live mode names Codex-only execution and the per-run confirmation. Page Up/Down moves by the current menu height; switching tabs returns to
 the top. `?` or Escape closes the menu without changing tasks or drafts.
 
 The wide repository sidebar keeps navigation pinned and scrolls repository rows

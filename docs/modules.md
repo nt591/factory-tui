@@ -119,6 +119,9 @@ against these interfaces during the normal Dune build.
 - `Text_edit`: abstract bounded UTF-8 text and cursor state, with insertion,
   deletion, line navigation, and extended-grapheme movement. Segmentation uses
   Uuseg; cached boundaries are private and malformed UTF-8 is normalized. It performs no UI actions.
+- `Menu_content`: pure mode-specific Help/Settings rows. Simulation, fake, replay,
+  and live modes state their actual invocation boundary. No controller, Notty,
+  filesystem, process, or authentication dependency is required.
 - `Menu_window`: pure menu row selection, viewport clamping, and visible
   position/overflow cues. Ui supplies wrapped content and owns rendering; the
   controller uses the resulting capacity for page navigation.

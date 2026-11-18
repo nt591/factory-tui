@@ -202,3 +202,20 @@ column-specific scrolling, retained chat selection, keyboard-following, manual
 top positioning, and unchanged saved task content. It starts no agent and touches
 no real workspace. Unit tests additionally verify selected state movement,
 Start-following, unrelated stream updates, modal blocking, and compact-list input.
+
+## Menu execution-mode disclosure
+
+`test_menu_content` covers simulation, fake-process, replay, read-only live, and
+workspace-write live instructions. It verifies that live help/settings do not
+advertise simulated harness cycling, accepted-task settings remain read-only,
+and the actual rendered menu leaves tasks and confirmation unchanged. The opt-in
+installed-Codex UI check browses Help/Settings before confirming and requires zero
+loopback requests from that browsing.
+
+During this increment on November 18, 2026, one default parallel suite reported
+`Command timeout exceeded.` in `test_command`; a second unchanged suite passed.
+No fixture case or OS cause was isolated from that error. This is not evidence
+that native fixtures eliminate all startup latency or that menu edits affect
+command behavior. Command implementation, one-second success deadlines, and
+parallel scheduling remain unchanged. The failure remains a reliability limit
+requiring case-specific evidence if it recurs.

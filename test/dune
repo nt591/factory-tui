@@ -192,3 +192,8 @@
  (name test_run_time)
  (modules test_run_time)
  (libraries factory_tui))
+
+(test
+ (name test_menu_content)
+ (modules test_menu_content)
+ (libraries factory_tui notty))

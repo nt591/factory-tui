@@ -159,6 +159,27 @@ def main():
                     and workspace.parent == parent
                     and UiGateway.requests == 0,
                 )
+                tui.send(b"?")
+                tui.wait(
+                    "live help",
+                    lambda: "Live execution supports Codex only" in tui.text(),
+                )
+                tui.check(
+                    "live help omits unsupported harness cycling",
+                    "H cycles" not in tui.text(),
+                )
+                tui.send(b"\tG")
+                tui.wait(
+                    "live settings",
+                    lambda: "m edits model / live Codex only" in tui.text(),
+                )
+                tui.check(
+                    "live settings discloses supported selection without starting Codex",
+                    "H changes harness" not in tui.text() and UiGateway.requests == 0,
+                )
+                if args.preview:
+                    tui.preview(args.preview.with_stem(args.preview.stem + "-settings"))
+                tui.send(b"\x1b")
                 tui.send(b"s")
                 tui.wait("run confirmation", lambda: "Confirm live run" in tui.text())
                 tui.check(

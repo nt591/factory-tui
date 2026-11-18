@@ -587,80 +587,15 @@ let render t ~width:cols ~height:rows =
   if t.help then (
     let w = min 86 cols and h = min 31 rows in
     let x = (cols - w) / 2 and y = (rows - h) / 2 in
-    let help_rows =
-      [
-        "FACTORY / terminal";
-        "";
-        "Click a card to inspect chat. Enter/e expands; Escape returns.";
-        "Focus Activity and e expands tool output to full terminal width.";
-        "hjkl/arrows navigate. Counts repeat movement (for example, 3j).";
-        "gg / G: first / last card, or top / bottom of the focused pane.";
-        "Ctrl-W then hjkl moves pane focus. Ctrl-W w cycles panes.";
-        "Ctrl-U/D: half-page. Ctrl-B/F: full-page. Tab/Shift-Tab: cycle.";
-        "Mouse wheel and Page Up/Down scroll. Home/End: first/last.";
-        "i composes a reply. Enter queues; Ctrl-L/Alt-Enter adds a line.";
-        "Arrows edit; Home/End move within a line; Escape keeps the draft.";
-        "n creates a demo, or a workspace task in live mode. W: workspace.";
-        "m edits next-run model. H cycles Codex / Claude.";
-        "s starts a demo or asks for live confirmation; x stops; a accepts.";
-        "b returns to all tasks. R cycles repositories. d opens Archive.";
-        "v opens real workspace changes; r refreshes; Escape returns.";
-        "Review: [/]: previous/next file; h/l: long lines; Page Up/Down: page.";
-        "t expands tools; T toggles readable/raw payload. f pauses demo.";
-        "/ searches focused board or chat. S searches chat from any pane.";
-        "In chat search: n/N moves matches; Escape clears. Literal search.";
-        "";
-        "Cards move from events; selected chat stays attached to its task.";
-        "Process exit alone never marks a task Ready.";
-        "Acceptance does not merge, push, or delete a workspace.";
-        "Startup starts no agent. Live mode and writes require explicit opt-in.";
-        "Configured SQLite storage retains chats and drafts.";
-        "";
-        "Menu: Tab/h/l switches tabs; j/k scrolls; ? or Escape closes.";
-      ]
+    let mode =
+      match t.live_config with
+      | Some config -> Menu_content.Live (Live_runner.policy config)
+      | None when t.fake_harness -> Menu_content.Fake
+      | None when t.external_events -> Menu_content.Replay
+      | None -> Menu_content.Simulation
     in
-    let settings_rows =
-      [
-        "SESSION SETTINGS";
-        "";
-        ("Execution: "
-        ^
-        match t.live_config with
-        | Some config ->
-            "live Codex / " ^ Live_runner.policy_label config ^ " / confirmation required"
-        | None ->
-            if t.fake_harness then "local process fixtures"
-            else if t.external_events then "fixture replay"
-            else "simulated agents");
-        "Setup never starts an agent. Live runs require confirmation.";
-        "";
-        "STORAGE";
-        (match t.database_path with
-        | None -> "In memory / data is discarded on exit."
-        | Some path -> "SQLite / " ^ path);
-        "Config: ~/.config/factory-tui/config.toml or --config PATH";
-        {|[storage] database = "board.sqlite"|};
-        "Database changes take effect on the next launch.";
-        "Optional [workspace]: jj, source, parent, revision, model prefill W.";
-        "Defaults never create workspaces or enable live execution.";
-        "Stored conversations and tool output are sensitive.";
-        "";
-        "NEXT RUN / SELECTED TASK";
-      ]
-      @ (match task with
-        | None -> [ "Select a task first." ]
-        | Some task ->
-            [
-              task.id ^ " / " ^ task.title;
-              ("Harness: " ^ harness_label task.harness
-              ^ if t.live_config = None then " (simulated)" else " / live Codex only");
-              "Model: " ^ task.model;
-              (if task.state = Done then "Accepted task / settings are read-only"
-               else "m edits model / H changes harness");
-              "Past run settings do not change.";
-            ])
-      @ [ ""; "Menu: Tab/h/l switches tabs; j/k scrolls; ? or Escape closes." ]
-    in
+    let help_rows = Menu_content.help ~mode in
+    let settings_rows = Menu_content.settings ~mode ~database:t.database_path ~task in
     let menu_rows = if t.menu_tab = Help_tab then help_rows else settings_rows in
     let menu_rows =
       List.concat_map
