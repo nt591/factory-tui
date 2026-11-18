@@ -40,6 +40,41 @@ let () =
           { task with messages = task.messages @ [ message "new" "Later reply" true ] }
           [ "first"; "second" ])
     = expected);
+  check "validated capture assembles exact text"
+    (Run_prompt.captured_text task [ "second"; "first" ] = Ok expected);
+  List.iter
+    (fun ids ->
+      check "missing duplicate or empty captures fail instead of sending partial text"
+        (Result.is_error (Run_prompt.captured_text task ids)))
+    [ []; [ "first"; "missing" ]; [ "first"; "first" ] ];
+  let duplicate = { task with messages = task.messages @ [ List.hd queued ] } in
+  check "ambiguous message record cannot enter captured prompt"
+    (Result.is_error (Run_prompt.captured_text duplicate [ "first"; "second" ]));
+  let acknowledged =
+    {
+      task with
+      messages =
+        List.map
+          (fun (message : Model.message) -> { message with queued = false })
+          task.messages;
+    }
+  in
+  check "validated capture does not depend on queued flags"
+    (Run_prompt.captured_text acknowledged [ "first"; "second" ] = Ok expected);
+  check "duplicate reply IDs are refused before persistence"
+    (Result.is_error (Model.send task ~id:"first" "Different reply"));
+  List.iter
+    (fun id ->
+      check "invalid reply ID length refused"
+        (Result.is_error (Model.send task ~id "Reply")))
+    [ ""; String.make 1025 'i' ];
+  check "fresh reply retains original message chronology"
+    (match Model.send task ~id:"fresh" "New reply" with
+    | Error _ -> false
+    | Ok sent ->
+        List.map (fun (message : Model.message) -> message.id) sent.messages
+        = List.map (fun (message : Model.message) -> message.id) task.messages
+          @ [ "fresh" ]);
   let viewport = Live_confirmation.create () in
   let render task =
     let height = Live_confirmation.required_height ~viewport (Some task) ~width:88 in

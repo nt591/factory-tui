@@ -203,6 +203,10 @@ let send task ~id text =
   if String.trim text = "" then Error "Message is empty."
   else if task.state = Done then Error "Accepted tasks are read-only."
   else if String.length text > 65536 then Error "Message exceeds 64 KiB."
+  else if id = "" || String.length id > 1024 then
+    Error "Message ID must contain 1 to 1024 bytes."
+  else if List.exists (fun (message : message) -> message.id = id) task.messages then
+    Error "Message ID is already recorded."
   else
     Ok
       {

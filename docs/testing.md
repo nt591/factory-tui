@@ -609,3 +609,12 @@ runs only a temporary fake executable/workspace and does not use a model.
 One parallel process-suite attempt in this increment hit the existing callback
 teardown timing assertion; its isolated rerun passed. Deadlines and process code
 were unchanged. A passing rerun does not diagnose the cause.
+
+
+Run-prompt unit checks cover validated capture ordering, acknowledged flags,
+missing/duplicate/empty ID rejection and ambiguous message records. Model.send tests
+reject duplicate and invalid-length reply IDs. The temporary live-runner integration
+corrupts a captured ID before its first poll, verifies that no fixture marker is
+created, checks channel failure and retained queue, and roundtrips its resulting
+snapshot. This tests the in-process guard, not support for loading corrupt snapshots;
+the codec independently rejects invalid captured references.

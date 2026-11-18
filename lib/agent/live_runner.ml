@@ -167,10 +167,12 @@ let poll runner context ~storage =
                 harness = captured.harness;
               }
             in
-            let prompt = Run_prompt.text (Run_prompt.submitted task active.submitted) in
-            match
-              prepare_prompt (with_policy runner.config captured.policy) inspect prompt
-            with
+            let prepared =
+              Result.bind
+                (Run_prompt.captured_text task active.submitted)
+                (prepare_prompt (with_policy runner.config captured.policy) inspect)
+            in
+            match prepared with
             | Error error ->
                 context.receive
                   { task_id = task.id; run_id = active.id; event = Failed error };

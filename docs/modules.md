@@ -368,3 +368,11 @@ Live_runner.prepare_prompt is the private common invocation/preflight boundary.
 Public prepare supplies queued text; poll supplies captured submitted text. Both
 retain the same state, workspace, harness, model, sandbox and prompt-size checks,
 without letting later queued replies affect an earlier confirmed prompt.
+
+
+Run_prompt.captured_text is the fail-closed execution entry point. It resolves each
+unique submitted ID to exactly one current message before returning assembled
+text. The submitted helper is still a permissive selection query, not an execution
+validator. Live_runner uses captured_text and reports invalid captures through the
+normal failed-run reducer. Model.send enforces unique bounded reply identity at
+the append boundary, before persistence validates the snapshot.

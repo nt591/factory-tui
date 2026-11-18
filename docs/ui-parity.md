@@ -599,3 +599,12 @@ prompt while it waits for checkpoint/spawn. Next-run aggregate limits still appl
 Temporary live-runner tests cover acknowledged capture, an oversized future queue,
 exact earlier stdin, Ready completion and retained queued replies. This preserves
 the UI contract that replies during work queue for the next turn.
+
+
+Invalid captured-message references cannot silently shorten a confirmed prompt.
+The attempted run fails before spawn and reports the issue in chat, retaining its
+queued instructions for recovery. Reply append rejects duplicate/invalid-length
+identities before persistence. Pure and temporary live-runner checks verify exact
+resolution, missing/duplicate refusal, no executable side effect, channel feedback
+and valid failed-run snapshot encoding. Normal valid capture/queue behavior is
+unchanged.

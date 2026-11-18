@@ -269,6 +269,49 @@ printf '%s\n' '{"type":"turn.completed"}'
               check "resume mismatch preserves recorded thread"
                 ((Option.get (Controller.selected controller)).thread_id
                = Some "fixture-thread");
+              let invalid_marker =
+                Filename.concat
+                  (Workspace.destination workspace)
+                  "invalid-capture-started"
+              in
+              write "touch invalid-capture-started\ncat >/dev/null\n";
+              let retained_queue =
+                Run_prompt.queued (Option.get (Controller.selected controller))
+              in
+              Controller.act controller Controller.Start;
+              ignore (Ui.render controller ~width:120 ~height:36);
+              Controller.act controller Controller.Confirm_live;
+              controller.tasks <-
+                List.map
+                  (fun (task : task) ->
+                    {
+                      task with
+                      active =
+                        Option.map
+                          (fun (active : run) ->
+                            {
+                              active with
+                              submitted = "missing-captured-message" :: active.submitted;
+                            })
+                          task.active;
+                    })
+                  controller.tasks;
+              Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
+              check "missing captured instruction refuses spawn"
+                ((not (Sys.file_exists invalid_marker))
+                && (Option.get (Controller.selected controller)).state = Needs_you
+                && (Option.get (Controller.selected controller)).active = None);
+              check "capture failure retains queued instructions for recovery"
+                (Run_prompt.queued (Option.get (Controller.selected controller))
+                = retained_queue);
+              check "capture failure leaves a valid recoverable snapshot"
+                (Result.is_ok
+                   (Snapshot.decode (Snapshot.encode (Controller.snapshot controller))));
+              check "capture failure is disclosed in task channel"
+                (List.exists
+                   (fun (message : message) ->
+                     Controller.contains message.text "Captured instruction IDs")
+                   (Option.get (Controller.selected controller)).messages);
               write "cat >/dev/null\nsleep 10\n";
               Controller.act controller Controller.Start;
               ignore (Ui.render controller ~width:120 ~height:36);

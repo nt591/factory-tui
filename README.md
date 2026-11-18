@@ -846,3 +846,9 @@ Replies queued after confirmation do not alter or block that captured run's prom
 The current queue can exceed a future run's combined limit without invalidating
 an earlier confirmed run that is waiting to start. Next-run preflight still checks
 its full queued prompt; captured instructions remain selected after acknowledgement.
+
+
+A captured prompt must resolve every submitted message ID exactly once. Missing or
+duplicate IDs stop that run before spawn instead of sending a partial prompt, and
+the failure appears in its channel with queued instructions retained. Reply IDs
+must be unique and contain 1–1024 bytes; invalid insertion is rejected before storage.

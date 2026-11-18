@@ -180,3 +180,10 @@ with acknowledged instructions and an oversized future queue. Earlier exact stdi
 and completion remain independent of next-turn queue limits. An intermittent
 process callback-teardown timing assertion still has no diagnosed cause; no deadline
 or cleanup code was changed to pass it.
+
+
+Capture integrity has pure ID-resolution tests and a temporary live-runner guard
+check: missing references fail before spawn, retain queued instructions, report a
+channel failure and leave a valid snapshot. Reply identity validation precedes
+append/persistence. This is not permission to load or repair corrupt stored data;
+codec constraints remain independent.
