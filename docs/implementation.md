@@ -322,3 +322,10 @@ in the report; it is not an OxCaml migration. The first unmodified bootstrap
 failed at caml_unix_pipe; the workaround reconstruction passed without changing
 locked versions or disabling the opam build sandbox. Evidence and limits are in
 `docs/verification/fresh-switch-macos.json` and `docs/distribution.md`.
+
+Cards and repository sidebar labels use shortest distinguishing path suffixes
+computed across all current tasks, not just the filtered board. Duplicate basenames
+include parent components; normalized collisions fall back to original strings.
+`Repository_labels.ml/.mli` performs no path lookup or workspace operation. Exact
+filter actions, task data, and full Activity paths remain unchanged. Unit and
+sidebar PTY tests cover same-named repositories, filtering, and persisted identity.

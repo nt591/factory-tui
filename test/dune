@@ -222,3 +222,8 @@
  (name test_confirmation_layout)
  (modules test_confirmation_layout)
  (libraries factory_tui notty))
+
+(test
+ (name test_repository_labels)
+ (modules test_repository_labels)
+ (libraries factory_tui notty))

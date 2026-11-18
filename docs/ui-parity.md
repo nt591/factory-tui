@@ -311,3 +311,12 @@ and replacement records conservatively rebuild even if their values compare equa
 The single task/width cache remains abstract and transient. Tests cover row/anchor
 identity reuse, changed text/author/delivery, removal/reappearance, and reordering;
 full terminal and installed-agent loopback checks cover streaming integration.
+
+Repository paths use short distinguishing suffixes in cards/sidebar instead of
+showing a shared clipped home-directory prefix. Unique basenames stay short;
+colliding names include enough parent components to distinguish current tasks.
+Labels are computed across all repositories so filtering does not rename the
+same visible entry. Full path strings still drive filters and workspace identity,
+and Activity retains the complete path. `Repository_labels` is pure with an
+explicit interface. Unit and sidebar PTY tests check ambiguous names and retained
+stored identity; unusually long distinguishing labels can still be ellipsized.

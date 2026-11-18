@@ -97,6 +97,8 @@ let render t ~width:cols ~height:rows =
   paint 0 0 (line cols A.(fg accent ++ bg background ++ st bold) header);
   let sidebar_width = if cols >= 145 && not t.zoom then 22 else 0 in
   let main_width = cols - sidebar_width in
+  let repository_labels = Repository_labels.create (repositories t) in
+  let repository_label = Repository_labels.label repository_labels in
   let board_tasks = visible t in
   let states = if t.archive then [ Done ] else columns in
   let meter_width = max 1 (main_width / List.length states) in
@@ -433,7 +435,10 @@ let render t ~width:cols ~height:rows =
                   I.vcat
                     [
                       title_image;
-                      line (w - 6) (attr muted) task.repository;
+                      line (w - 6) (attr muted)
+                        (Text_layout.ellipsize
+                           (max 1 (w - 6))
+                           (clean ~newlines:false (repository_label task.repository)));
                       line (w - 6) (attr muted)
                         (if pending = 0 then
                            Printf.sprintf "%d messages" (List.length task.messages)
@@ -483,7 +488,9 @@ let render t ~width:cols ~height:rows =
     in
     let repositories =
       ("All repositories", Repository None)
-      :: List.map (fun repo -> (repo, Repository (Some repo))) (repositories t)
+      :: List.map
+           (fun repo -> (repository_label repo, Repository (Some repo)))
+           (repositories t)
     in
     let selected =
       let rec find index = function

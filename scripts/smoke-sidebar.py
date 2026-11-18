@@ -84,6 +84,41 @@ def main():
             tui.wait_exit()
             tui.check("overflow sidebar exits cleanly", tui.process.returncode == 0)
 
+        with sqlite3.connect(database) as db:
+            stored = json.loads(
+                db.execute("SELECT payload FROM snapshot").fetchone()[0]
+            )
+            stored["tasks"] = tasks[:2]
+            stored["tasks"][0]["repository"] = "/fixture/alpha/service"
+            stored["tasks"][1]["repository"] = "/fixture/beta/service"
+            stored["selected"] = stored["tasks"][0]["id"]
+            db.execute("UPDATE snapshot SET payload=?", (json.dumps(stored),))
+        with Terminal(command, os.environ, columns=180, rows=50) as tui:
+            tui.ready()
+            tui.check(
+                "colliding repository names show distinguishing suffixes",
+                "alpha/service" in tui.text() and "beta/service" in tui.text(),
+            )
+            tui.send(b"R" * 2)
+            tui.wait(
+                "exact-path filter", lambda: " /fixture/beta/service  |" in tui.text()
+            )
+            tui.check(
+                "short labels retain exact-path filtering and selected chat",
+                "Queued 1" in tui.text() and "Repository task 00" in tui.text(),
+            )
+            if args.preview:
+                tui.preview(args.preview.with_stem(args.preview.stem + "-labels"))
+            tui.send(b"q")
+            tui.wait_exit()
+            tui.check(
+                "repository label fixture exits cleanly", tui.process.returncode == 0
+            )
+        with sqlite3.connect(database) as db:
+            final = json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
+            assert final["tasks"] == stored["tasks"]
+            print("PASS: display labels leave stored repository paths unchanged")
+
 
 if __name__ == "__main__":
     main()

@@ -87,6 +87,9 @@ against these interfaces during the normal Dune build.
   private. This is not yet an abstract controller with a read-only view model.
   The renderer supplies transient board list/column mode so navigation follows
   the displayed task order; this mode is not a persisted task preference.
+- `Repository_labels`: pure shortest distinguishing path suffixes for cards/sidebar.
+  A reversed-component index disambiguates duplicate basenames without path I/O.
+  Filter actions, persistence, and Activity retain original repository strings.
 - `Sidebar_window`: pinned navigation and bounded repository rows with a reserved
   overflow cue. The frame supplies the visible repository scroll region; hidden
   entries create no click targets. Filter changes restore selection-follow mode.

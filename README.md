@@ -629,6 +629,9 @@ run. Accepted tasks cannot open the model editor or change harness. Page Up/Down
 the top. Wheel input scrolls only menu content, not tabs or the background.
 `?` or Escape closes the menu without changing tasks or drafts.
 
+Cards and sidebar show short distinguishing repository-path suffixes. Full paths
+remain in Activity and continue to define filters and saved workspace identity.
+
 The wide repository sidebar keeps navigation pinned and scrolls repository rows
 with the mouse wheel. It shows an overflow range; `R` brings the current filter
 into view, and `b` returns to all repositories. Hidden entries are not clickable.
