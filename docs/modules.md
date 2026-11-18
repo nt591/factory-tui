@@ -48,7 +48,8 @@ against these interfaces during the normal Dune build.
 - `Changes`: abstract background diff ownership for one task/workspace, with
   explicit refresh, poll, and join. Results never mutate another task.
 - `Review`: abstract changes-pane state, executable editing, and scrolling.
-- `Review_view`: diff display and modal hitboxes; no process or task mutations.
+- `Review_view`: diff display, modal hitboxes, and visible patch scroll geometry;
+  no process or task mutations. Path editing exposes no patch wheel target.
 - `Diff_display`: abstract prepared sanitized patch lines and maximum terminal-cell
   width. Review builds it per loaded patch; rendering slices only visible rows and
   resizing reuses the width. The raw document remains separate and unchanged.
@@ -136,7 +137,8 @@ against these interfaces during the normal Dune build.
   Bounded row previews reserve a grapheme-safe ellipsis for hidden title content.
 - `Ui`: frame/hitbox data, render, mouse dispatch, and tested text wrapping.
   Separate visible scroll rectangles prevent footer/composer/sidebar-heading wheel
-  input from affecting keyboard-focused panes. Theme, borders, image composition, and pane rendering helpers stay private. Activity
+  input from affecting keyboard-focused panes. Modal content has a separate
+  wheel region; overlay controls and background never scroll hidden content. Theme, borders, image composition, and pane rendering helpers stay private. Activity
   expansion preserves the previous task layout and exposes full-width output.
 - `Demo.Runner`: abstract ownership of fixture runs with poll/close. Its fixed
   script, running handles, and checkpoint details remain private. It receives a

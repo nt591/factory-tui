@@ -84,7 +84,7 @@ let () =
   let modal, _ = render 180 20 in
   let before = controller.sidebar_scroll in
   Ui.mouse controller modal ~now:3. (`Press (`Scroll `Down), (r.x, r.y), []);
-  check "menu owns wheel input over sidebar"
-    (controller.sidebar_scroll = before && controller.menu_scroll = 3);
+  check "menu blocks sidebar wheel without scrolling hidden menu content"
+    (controller.sidebar_scroll = before && controller.menu_scroll = 0);
   Printf.printf
     "Passed sidebar clipping, scroll, selection and modal checks. Pure rendering only.\n"

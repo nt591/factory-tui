@@ -248,3 +248,9 @@ keyboard focus. Chat, Activity, compact lists, columns, and repository rows reta
 their own targets; composer/footer/pinned-sidebar surfaces do not move another
 pane. Frame/mouse tests verify boundaries and snapshot isolation, and the PTY
 smoke checks that footer wheel input leaves the board window unchanged.
+
+Modal wheel input is limited to the rendered content region. Help/Settings tabs,
+borders, position row, and background do not move menu content or the board.
+Review titles, executable fields, and buttons do not scroll the patch; executable
+editing removes its wheel target. Pure frame/input and PTY tests cover the content
+boundary while preserving existing modal ownership and confirmation blocking.

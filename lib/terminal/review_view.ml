@@ -2,7 +2,8 @@ open Notty
 
 type action = Refresh | Edit_executable | Close | Next_file | Previous_file
 type hit = { x : int; y : int; width : int; action : action }
-type t = { image : Notty.image; hits : hit list }
+type scroll_region = { x : int; y : int; width : int; height : int }
+type t = { image : Notty.image; hits : hit list; scroll_region : scroll_region option }
 
 let clean text =
   let buffer = Buffer.create (String.length text) in
@@ -144,5 +145,8 @@ let render review ~width:cols ~height:rows =
       I.(
         image |> hsnap cols |> vsnap ~align:`Top rows
         </> char (attr A.white) ' ' cols rows);
-    hits = List.filter (fun hit -> hit.width > 0) !hits;
+    hits = List.filter (fun (hit : hit) -> hit.width > 0) !hits;
+    scroll_region =
+      (if capacity = 0 || Review.editing review then None
+       else Some { x = 0; y = 3; width = cols; height = capacity });
   }

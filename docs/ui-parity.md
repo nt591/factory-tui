@@ -243,3 +243,11 @@ retain their dedicated routing. The composer, footer, header, and pinned sidebar
 controls do not scroll another pane. Modal ownership remains unchanged. Unit
 boundary checks and a footer-wheel PTY check cover this behavior without altering
 saved tasks or drafts.
+
+Help/Settings and changes review register only their visible content as a wheel
+target. Scrolling over menu tabs/status/borders or outside the overlay is ignored,
+without passing through to the board. Review titles, path fields, and buttons do
+not scroll the patch; the patch target is absent while the path is being edited.
+`Review_view` exports its content geometry, and the UI maps it into the terminal
+frame. Boundary/resize/input tests and PTY checks cover both ignored and accepted
+wheel input without changing saved state or execution gates.

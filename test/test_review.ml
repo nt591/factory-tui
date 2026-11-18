@@ -282,6 +282,33 @@ let () =
       check "file buttons align with their visible labels"
         (String.sub button_row next_file_hit.rect.x 11 = "[Next file]"
         && String.sub button_row previous_file_hit.rect.x 11 = "[Prev file]");
+      let patch_region = Option.get frame.modal_scroll in
+      check "review scroll region excludes title path and buttons"
+        (patch_region.y = 4 && patch_region.h = 29);
+      let before_scroll = Review.scroll review
+      and before_horizontal = Review.horizontal review in
+      List.iter
+        (fun point ->
+          Ui.mouse controller frame ~now:3.2 (`Press (`Scroll `Down), point, []);
+          Ui.mouse controller frame ~now:3.3 (`Press (`Scroll `Down), point, [ `Ctrl ]);
+          check "review non-content surfaces do not scroll patch"
+            (Review.scroll review = before_scroll
+            && Review.horizontal review = before_horizontal))
+        [
+          (10, 0);
+          (10, 1);
+          (10, 2);
+          (10, 3);
+          (10, 33);
+          (10, 34);
+          (10, 35);
+          (-1, 10);
+          (120, 10);
+        ];
+      Ui.mouse controller frame ~now:3.4 (`Press (`Scroll `Down), (10, 5), []);
+      check "review body still receives vertical wheel"
+        (Review.scroll review = before_scroll + 3);
+      Review.set_scroll review before_scroll;
       let parser = Notty.Unescape.create () in
       let bytes = Bytes.of_string "\027[<81;10;10M" in
       Notty.Unescape.input parser bytes 0 (Bytes.length bytes);
@@ -296,6 +323,9 @@ let () =
       Ui.mouse controller frame ~now:6. (`Press (`Scroll `Up), (10, 10), [ `Ctrl ]);
       check "Ctrl-wheel returns left" (Review.horizontal review = 0);
       Review.edit_executable review;
+      let editing_frame = Ui.render controller ~width:120 ~height:36 in
+      check "editing review path removes patch wheel target"
+        (editing_frame.modal_scroll = None);
       Ui.mouse controller frame ~now:7. (`Press (`Scroll `Down), (10, 10), [ `Ctrl ]);
       check "wheel does not move diff while editing path" (Review.horizontal review = 0);
       Review.key review (`Enter, []);

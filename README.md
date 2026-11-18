@@ -560,7 +560,8 @@ returns to chat. `]`/`[` jump to next/previous files; multi-file patches also ha
 clickable Prev/Next buttons. The footer shows file position, and jumps reset the
 horizontal offset. Page keys move by the visible patch height. Empty and failed
 diffs are explicit states, not sample patches.
-Review does not accept, merge, push, or delete. `h/l` or Left/Right scroll long
+Review does not accept, merge, push, or delete. Wheel input over its path field,
+header, or buttons does not scroll the patch. `h/l` or Left/Right scroll long
 diff lines horizontally; `0` returns to their start. Ctrl-wheel also scrolls
 horizontally. Offsets use terminal cells, preserving UTF-8 text. Display rows and
 maximum width are prepared per refresh, so redraw/resize does not scan the full
@@ -590,7 +591,8 @@ below. Its instructions reflect simulation, fake-process, replay, or live mode;
 live mode names Codex-only execution and the per-run confirmation. Live `H`
 keeps Codex (or explicitly selects it for an imported Claude task); it starts no
 run. Accepted tasks cannot open the model editor or change harness. Page Up/Down moves by the current menu height; switching tabs returns to
-the top. `?` or Escape closes the menu without changing tasks or drafts.
+the top. Wheel input scrolls only menu content, not tabs or the background.
+`?` or Escape closes the menu without changing tasks or drafts.
 
 The wide repository sidebar keeps navigation pinned and scrolls repository rows
 with the mouse wheel. It shows an overflow range; `R` brings the current filter

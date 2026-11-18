@@ -210,6 +210,11 @@ try:
           for label in ("s start", "x stop", "a accept", "i reply", "m model", "H harness")))
     send(b"?")
     check("help opens", "Help / Settings" in text())
+    menu_rows = screen.display[2:33]
+    send(b"\x1b[<65;1;10M\x1b[<65;20;4M")
+    check("Help ignores wheel outside content and over tabs", screen.display[2:33] == menu_rows)
+    send(b"\x1b[<65;20;8M")
+    check("Help content still scrolls with wheel", screen.display[2:33] != menu_rows)
     send(b"\t")
     check("settings opens with memory status", "STORAGE" in text() and "In memory" in text())
     send(b"\x1b")
@@ -468,6 +473,9 @@ try:
         check("real workspace patch appears in TUI", "+A real workspace addition" in text()
               and "review.txt" in text())
         check("review file position starts at the first file", "file 1/2: review.txt" in text())
+        review_rows = screen.display[1:]
+        send(b"\x1b[<65;10;35M\x1b[<81;10;35M")
+        check("review buttons do not scroll the patch", screen.display[1:] == review_rows)
         send(b"]")
         check("next file key opens final file", "file 2/2: z-final.txt" in text()
               and "+Final file sentinel" in text()

@@ -11,6 +11,7 @@ type frame = {
   sidebar : (rect * int) option;
   columns : (rect * Model.state * int * int) list;
   panes : (rect * Controller.focus) list;
+  modal_scroll : rect option;
 }
 
 let color_rgb r g b = A.rgb_888 ~r ~g ~b
@@ -78,6 +79,7 @@ let render t ~width:cols ~height:rows =
       hits := { rect = { x; y; w; h }; action } :: !hits
   in
   let sidebar = ref None and column_regions = ref [] and panes = ref [] in
+  let modal_scroll = ref None in
   let header =
     Printf.sprintf " FACTORY / terminal     %s  %s"
       (if t.live_config <> None then
@@ -609,6 +611,8 @@ let render t ~width:cols ~height:rows =
     let window = Menu_window.make ~height:h ~scroll:t.menu_scroll menu_rows in
     t.menu_scroll <- window.scroll;
     t.menu_page_rows <- max 1 window.capacity;
+    if w > 2 && window.capacity > 0 then
+      modal_scroll := Some { x = x + 1; y = y + 3; w = w - 2; h = window.capacity };
     let tab title tab =
       line 18 (if t.menu_tab = tab then emphasis accent else attr muted) title
     in
@@ -633,6 +637,7 @@ let render t ~width:cols ~height:rows =
   (match t.workspace_form with
   | None -> ()
   | Some form ->
+      modal_scroll := None;
       let width = min 92 cols and height = min 26 rows in
       let x = (cols - width) / 2 and y = (rows - height) / 2 in
       let dialog =
@@ -656,6 +661,11 @@ let render t ~width:cols ~height:rows =
   | None -> ()
   | Some review ->
       let view = Review_view.render review ~width:cols ~height:(max 1 (rows - 1)) in
+      modal_scroll :=
+        Option.map
+          (fun (region : Review_view.scroll_region) ->
+            { x = region.x; y = region.y + 1; w = region.width; h = region.height })
+          view.scroll_region;
       paint 0 1 view.image;
       hits := [];
       List.iter
@@ -673,6 +683,7 @@ let render t ~width:cols ~height:rows =
   (match t.live_confirmation with
   | None -> ()
   | Some id ->
+      modal_scroll := None;
       let width = min 88 cols and height = min 13 rows in
       let x = (cols - width) / 2 and y = (rows - height) / 2 in
       let task = List.find_opt (fun (task : task) -> task.id = id) t.tasks in
@@ -701,6 +712,7 @@ let render t ~width:cols ~height:rows =
     sidebar = !sidebar;
     columns = !column_regions;
     panes = !panes;
+    modal_scroll = !modal_scroll;
   }
 
 let mouse t frame ~now = function
@@ -724,19 +736,25 @@ let mouse t frame ~now = function
             act t action
         | None -> t.last_click <- None)
   | `Press (`Scroll direction), (x, y), mods ->
-      if t.live_confirmation <> None then ()
-      else if t.help then
-        t.menu_scroll <-
-          max 0 (min 10000 (t.menu_scroll + if direction = `Up then -3 else 3))
+      let over_modal_content =
+        match frame.modal_scroll with
+        | Some r -> x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h
+        | None -> false
+      in
+      if t.live_confirmation <> None || t.workspace_form <> None then ()
       else if t.review <> None then (
         let review = Option.get t.review in
-        if not (Review.editing review) then
+        if over_modal_content && not (Review.editing review) then
           if List.mem `Ctrl mods then
             Review.set_horizontal review
               (Review.horizontal review + if direction = `Up then -4 else 4)
           else
             Review.set_scroll review
               (Review.scroll review + if direction = `Up then -3 else 3))
+      else if t.help then (
+        if over_modal_content then
+          t.menu_scroll <-
+            max 0 (min 10000 (t.menu_scroll + if direction = `Up then -3 else 3)))
       else if t.input = Normal && t.workspace_form = None then (
         reset_keys t;
         let delta = if direction = `Up then -1 else 1 in
