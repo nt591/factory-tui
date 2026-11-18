@@ -261,3 +261,9 @@ offset, and returning to chat restores its history position, including updates
 received while Activity had focus. Explicit task selection resets both positions;
 keyboard pane cycling retains its fresh-position behavior. Pure frame/input and
 streaming PTY tests verify this; position memory is abstract and never serialized.
+
+Activity keeps its remembered visible window when chat receives mouse focus.
+Rendering clamps that offset to the current geometry and creates images only for
+visible Activity rows. Zero-height panes do not replace remembered positions.
+The logical tool/history content stays complete; unit and streaming PTY checks
+cover focus switching, resize, retained history, and unchanged snapshots.

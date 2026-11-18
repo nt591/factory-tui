@@ -653,7 +653,11 @@ printf '%s\\n' '{"type":"turn.completed"}'
         def replay_event(item, text):
             return json.dumps({"task_id":"T-102", "run_id":"demo-102", "type":"message",
                                "item_id":item, "text":text}) + "\n"
-        replay.write_text("".join(replay_event(f"history-{i}", f"History item {i:02d}") for i in range(24)))
+        tool_payload = json.dumps({"type":"command_execution", "command":"fixture only", "status":"completed",
+                                   "aggregated_output":"\n".join(f"Tool history {i:02d}" for i in range(60))})
+        tool_event = json.dumps({"task_id":"T-102", "run_id":"demo-102", "type":"tool",
+                                 "item_id":"history-tool", "text":tool_payload}) + "\n"
+        replay.write_text(tool_event + "".join(replay_event(f"history-{i}", f"History item {i:02d}") for i in range(24)))
         screen.reset()
         process = subprocess.Popen([str(binary), "--no-config", "--events", str(replay)],
                                    stdin=slave, stdout=slave, stderr=slave, env=env)
@@ -667,9 +671,14 @@ printf '%s\\n' '{"type":"turn.completed"}'
             return screen.display[5].split("│")[1].strip()
         check("scroll reveals older message", top_chat_line() == "History item 01")
         check("paused history is disclosed", "reading history" in text())
+        send(b"t")
         send(b"\x1b[<65;95;8M")
         check("Activity wheel does not borrow chat history offset", top_chat_line() == "History item 01"
               and "next: Codex" in text())
+        def top_activity_line():
+            return screen.display[4][82:118].strip()
+        check("Activity wheel reaches its own metadata row", top_activity_line().startswith("run: demo-102"))
+        activity_top = top_activity_line()
         with replay.open("a") as output:
             output.write(replay_event("later", "New output while reading history"))
         pump(0.3)
@@ -681,6 +690,8 @@ printf '%s\\n' '{"type":"turn.completed"}'
         check("earlier stream growth keeps anchored message visible", top_chat_line() == "History item 01")
         send(b"\x1b[<0;10;10M\x1b[<0;10;10m")
         check("returning from Activity restores chat history position", top_chat_line() == "History item 01")
+        check("unfocused Activity retains its visible window", top_activity_line() == activity_top)
+
         if args.preview:
             preview(args.preview.with_stem(args.preview.stem + "-history-anchor"))
         send(b"\x1b[F")

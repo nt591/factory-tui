@@ -54,12 +54,42 @@ let () =
   Ui.mouse controller frame ~now:2. (`Press (`Scroll `Down), (chat.x + 2, chat.y + 2), []);
   check "returning chat applies wheel to its saved history offset"
     (controller.scroll = distance - 3);
-  ignore (render ());
+  let frame = render () in
+  let buffer = Buffer.create 8192 in
+  Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (120, 36) frame.image;
+  let rows = String.split_on_char '\n' (Buffer.contents buffer) in
+  check "unfocused Activity retains its visible starting row"
+    (Controller.contains (List.nth rows (activity.y + 1)) "run: idle");
+  check "unfocused Activity retains its remembered offset"
+    (Pane_scroll.position controller.pane_scroll Activity = 3);
   Controller.act controller (Controller.Focus Controller.Activity);
   check "activity restores its last offset" (controller.scroll = 3);
   Controller.act controller (Controller.Focus Controller.Conversation);
   check "direct focus restores chat history" (controller.scroll = distance - 3);
   check "pane positions are not persisted" (Controller.snapshot controller = saved);
+  Controller.act controller (Controller.Focus Controller.Activity);
+  Controller.key controller (`ASCII 'G', []);
+  ignore (render ());
+  let bottom = controller.scroll in
+  check "tool history reaches its final visible window" (bottom > 3);
+  Controller.act controller (Controller.Focus Controller.Conversation);
+  ignore (render ());
+  check "reading chat does not reset visible tool history"
+    (Pane_scroll.position controller.pane_scroll Activity = bottom);
+  let smaller = Ui.render controller ~width:120 ~height:24 in
+  check "resize clamps background Activity without rewriting snapshots"
+    (Pane_scroll.position controller.pane_scroll Activity >= 0
+    && Controller.snapshot controller = saved
+    && Notty.I.height smaller.image = 24);
+
+  Controller.act controller (Controller.Focus Controller.Activity);
+  controller.activity_expanded <- true;
+  let remembered = Pane_scroll.position controller.pane_scroll Activity in
+  ignore (Ui.render controller ~width:120 ~height:8);
+  check "zero-height Activity content does not discard remembered position"
+    (Pane_scroll.position controller.pane_scroll Activity = remembered
+    && controller.scroll = remembered);
+  controller.activity_expanded <- false;
   Controller.act controller (Controller.Select task.id);
   check "explicit task selection clears detail offsets"
     (controller.scroll = 0

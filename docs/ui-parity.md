@@ -259,3 +259,10 @@ while Activity has focus still preserve the chat anchor. Explicit task selection
 resets both positions; keyboard pane cycling still starts at a fresh position.
 `Pane_scroll.ml/.mli` stores only transient offsets. Unit and PTY tests verify
 independence, history retention during stream growth, and unchanged snapshots.
+
+Unfocused Activity keeps its last visible position rather than displaying the first
+metadata row again. Its remembered offset clamps on resize, and only visible rows
+become Notty images. This does not cache tool parsing or discard logical history.
+A zero-height pane does not replace its remembered position. Unit/frame checks and
+a streaming PTY fixture with long tool output verify that chat focus and new output
+preserve the displayed tool window. Snapshots contain neither pane offset.

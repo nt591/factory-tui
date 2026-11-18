@@ -271,16 +271,20 @@ let render t ~width:cols ~height:rows =
         task
       |> List.concat_map (wrap inner)
     in
-    if t.focus = Activity then (
-      t.page_rows <- max 1 (r.h - 2);
-      t.scroll <- min t.scroll (max 0 (List.length rows - max 0 (r.h - 2))));
-    let offset =
-      if t.focus = Activity then min t.scroll (max 0 (List.length rows - max 0 (r.h - 2)))
-      else 0
+    let capacity = max 0 (r.h - 2) in
+    let requested =
+      if t.focus = Activity then t.scroll else Pane_scroll.position t.pane_scroll Activity
     in
+    let offset = max 0 (min requested (max 0 (List.length rows - capacity))) in
+    if capacity > 0 then (
+      Pane_scroll.remember t.pane_scroll Activity offset;
+      if t.focus = Activity then (
+        t.page_rows <- max 1 capacity;
+        t.scroll <- offset));
+    let window : Chat_viewport.view = { offset; distance = 0; following = false } in
     let content =
       I.vcat
-        (List.filteri (fun i _ -> i >= offset) rows
+        (Chat_viewport.visible_rows window ~height:capacity rows
         |> List.map (fun row -> I.hpad 1 1 (line inner (attr muted) row)))
     in
     paint r.x r.y
