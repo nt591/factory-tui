@@ -10,7 +10,7 @@ accessible help/settings. The staged native-app implementation remains the guide
 | Requirement | Current implementation and verification | Result |
 | --- | --- | --- |
 | Live first-run UX | New live databases begin empty with workspace/chat/run/review guidance; live n/W creates a workspace task. Existing snapshots are preserved; demo launches retain samples. Unit and PTY verify creation and restart without reseeding. | Implemented |
-| Four self-updating columns | `Model.apply` derives Queued/Working/Needs you/Ready. Factory and PTY tests verify automatic movement from both timer and supervised process events. | Implemented |
+| Four self-updating columns | `Model.apply` derives Queued/Working/Needs you/Ready. Factory and PTY tests verify automatic movement from both timer and supervised process events; installed-agent PTY checks Working/Ready against SQLite and rendered card identity. Selected-run status updates offer review/retry; stale/background events cannot overwrite another task's status. | Implemented |
 | Open and explore a task | Controller/Ui selection, split chat/activity, Enter/e and double-click task expansion, full-width focused Activity expansion; PTY verifies click, expansion, Escape, and selected identity after movement. | Implemented |
 | Reading position | Transient task/message/row viewport preserves history position on append and earlier stream growth; End follows updates. Unit/PTY verify reading anchors and no saved mutations from layout. | Implemented; approximate wrapped-row retention on width reflow |
 | Transcript search | Contextual / or S, literal matching by text/author, n/N cycling, stable message identity, visible counts/highlighting, no saved-draft mutations. Unit and PTY checks. | Implemented |
@@ -25,10 +25,10 @@ accessible help/settings. The staged native-app implementation remains the guide
 | Installed sandbox cases | Opt-in loopback fixed-tool sentinel probe on Codex 0.166.0/macOS: read-only deny, task/temp writes allow, ordinary sibling deny, never-escalation refuse. No real credentials or model. | Exact cases verified; not a security audit |
 | Stop/retry ownership | Live runner serializes task/canonical workspace ownership through checkpoint, cancellation, drain and join; independent directories run concurrently. Temporary alias/checkpoint tests detect overlap and waiting-run shutdown. | Implemented within one runner; not global process containment |
 | Supervision | Bounded stdout/stderr/lines/events, monotonic timeout, cancellation/process-group cleanup, checkpoint-before-spawn, bounded queue/separate outcome. Fake-process tests plus confirmed live-mode PTY path. | Implemented within documented process-group limits |
-| Codex/provider/resume | Pure preview, explicit headless execution and live UI; exact thread ownership/mismatch checks. Installed Codex 0.166.0 execution/resume passed an isolated loopback Responses fixture. | Implemented; real gateway/UI provider behavior not verified |
+| Codex/provider/resume | Pure preview, explicit headless execution and live UI; exact thread ownership/mismatch checks. Installed Codex 0.166.0 headless and confirmed TUI execution/resume pass isolated loopback Responses fixtures. The TUI path edits a file, reviews its actual patch, accepts, and reopens archived chat. | Implemented; real provider behavior not verified |
 | Isolated workspaces | Explicit W form, existing jj source, new outside-source task workspace, exact base, no automatic conversion/fetch, disclosure of source snapshot. Temporary jj tests and PTY create/save/reopen. | Implemented |
 | Real changes review | Task-bound abstract background diff job, explicit refresh, actual patch/empty/loading/error states, vertical/horizontal scrolling and return to chat. PTY reads a real added file in a temporary workspace. | Implemented |
-| Acceptance is separate | Only Ready can be accepted; no merge/push/delete in acceptance. Controller/review tests verify retained read-only chat and blocked background shortcuts. | Implemented |
+| Acceptance is separate | Only Ready can be accepted; no merge/push/delete in acceptance. Controller/review tests verify retained read-only chat and blocked background shortcuts; installed-agent PTY verifies acceptance preserves source commit/workspace base/file and archived-chat restart. | Implemented |
 | Modularity and formatting | Every library `.ml` has a matching `.mli`. Subsystem folders and Demo namespace; abstract resource handles and native scoped let-bindings. `scripts/format.sh --check` and Dune compilation enforce formatting/interfaces. | Implemented; one Dune library and exposed controller state remain |
 | Editor | Project-switch LSP/Conform configuration, pinned editor tools, `.ml`/`.mli` attachment and formatting checks in actual Neovim config. | Verified locally |
 | Local distribution | Standalone binary, explicit refusal-to-overwrite install, repeatable archive metadata, transitive opam lock, temporary package/install tests. Extracted binary runs with opam absent from PATH and passes the full PTY smoke. | Implemented for local macOS arm64 |
@@ -92,6 +92,7 @@ Optional installed-agent loopback integration (dummy credentials only):
 ```sh
 python3 scripts/smoke-codex-local.py --codex /absolute/path/to/codex
 python3 scripts/smoke-codex-sandbox.py --codex /absolute/path/to/codex
+uv run --with pyte python scripts/smoke-codex-ui.py --codex /absolute/path/to/codex
 ```
 
 For a packaged binary pass `--binary` to the PTY smoke. Package/installation

@@ -74,6 +74,29 @@ printf '%s\n' '{"type":"turn.completed"}'
              ~directory:(Workspace.destination workspace)
              ~model:"fixture-model" ~thread_id)
       in
+      check "headless invocation retains Git repository check"
+        (not (List.mem "--skip-git-repo-check" invocation.arguments));
+      let prepared, _ = ok (Live_runner.prepare config { task with thread_id }) in
+      check "recorded jj task bypasses only Git directory check"
+        (List.mem "--skip-git-repo-check" prepared.arguments
+        && List.mem {|approval_policy="never"|} prepared.arguments
+        && List.mem {|sandbox_mode="workspace-write"|} prepared.arguments);
+      let prepared_readonly, _ =
+        ok (Live_runner.prepare readonly { task with thread_id })
+      in
+      check "jj repository exception does not weaken default sandbox policy"
+        (List.mem "--skip-git-repo-check" prepared_readonly.arguments
+        && List.mem {|sandbox_mode="read-only"|} prepared_readonly.arguments
+        && List.mem {|approval_policy="never"|} prepared_readonly.arguments
+        && not (List.mem {|sandbox_mode="workspace-write"|} prepared_readonly.arguments));
+      check "jj adaptation preserves new and resume argument shapes"
+        (match (thread_id, prepared.arguments) with
+        | None, "exec" :: "--skip-git-repo-check" :: _ -> true
+        | Some _, "exec" :: "resume" :: "--skip-git-repo-check" :: _ -> true
+        | _ -> false);
+      check "jj adaptation is idempotent and prompt stays on stdin"
+        ((Codex.with_jj_workspace prepared).arguments = prepared.arguments
+        && List.hd (List.rev prepared.arguments) = "-");
       let write = Codex.with_policy invocation Workspace_write in
       check "write override replaces rather than stacks read-only policy"
         (List.mem {|sandbox_mode="workspace-write"|} write.arguments

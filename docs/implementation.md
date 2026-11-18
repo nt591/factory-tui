@@ -54,7 +54,11 @@ Acceptance does not merge, push, or delete a workspace.
    resume identity, cancellation, malformed output, and checkpoint refusal.
    Installed Codex 0.166.0 execution and resume pass an isolated loopback fixture.
    Confirmed live UI integration passes fake-process tests and the PTY smoke.
-   `--live-ui --workspace-write` explicitly selects task-directory write policy,
+   An installed-Codex PTY loopback check also verifies task creation, confirmed
+   file editing, card movement/chat, actual jj review, same-thread resume, acceptance,
+   and archived-chat restart. Recorded jj workspaces skip only Codex's Git-directory
+   check; headless invocation retains it. New and resumed argument shapes are tested.
+   `--live-ui --workspace-write` explicitly selects workspace-write policy,
    shown in confirmation and captured per run. Fixture editing/review is tested.
    An installed-Codex loopback sentinel probe verifies read-only/write boundaries
    and never-approval escalation refusal on this Mac, including permitted TMPDIR
@@ -157,3 +161,12 @@ until the previous handle's output/outcome and join complete. Confirmed replacem
 remain queued, independent directories can run concurrently, and shutdown interrupts
 waiting runs without spawning them. Temporary checkpoint/alias tests verify this;
 coordination is local to the runner, not a global workspace lock.
+
+The installed-agent workflow probe is opt-in (`scripts/smoke-codex-ui.py`) and uses
+only temporary repositories, isolated runtime/auth directories, dummy credentials,
+and fixed loopback Responses events. Shared PTY control and preview rendering live
+in `scripts/fixtures/terminal.py`; pure unit tests still start no agent or server.
+Archive entry selects a visible accepted task when the saved selection is absent.
+Selected-run lifecycle events replace stale checkpoint text with run/review/retry
+guidance; acceptance shows retained read-only chat. Stale/background events do not
+replace another task's status.

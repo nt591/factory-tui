@@ -60,7 +60,9 @@ let prepare config (task : task) =
           with
           | Error error -> Error error
           | Ok invocation ->
-              let invocation = Codex.with_policy invocation config.policy in
+              let invocation =
+                Codex.with_policy (Codex.with_jj_workspace invocation) config.policy
+              in
               Ok
                 ( (match config.gateway with
                   | None -> invocation

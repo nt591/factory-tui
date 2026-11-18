@@ -108,6 +108,55 @@ let () =
   check "existing interrupted tasks recover safely"
     (List.for_all (fun (task : Model.task) -> task.active = None) restored.tasks
     && restored.schedules = []);
+  let accepted =
+    {
+      (Model.make ~id:"accepted" ~title:"Retained accepted task" ~repository:"fixture") with
+      state = Model.Done;
+      messages =
+        [
+          {
+            Model.id = "answer";
+            author = "Codex";
+            text = "Retained answer";
+            queued = false;
+          };
+        ];
+    }
+  in
+  let archived = Controller.create () in
+  archived.tasks <- [ accepted ];
+  archived.selected <- accepted.id;
+  let saved_archive = Controller.snapshot archived in
+  let reopened = Controller.create () in
+  ok (Controller.initialize_board reopened ~saved:(Some saved_archive) ~live:None);
+  check "active restart does not select an archived task"
+    (reopened.selected = "" && not reopened.archive);
+  Controller.key reopened (`ASCII 'd', []);
+  check "opening archive selects the retained task" (reopened.selected = accepted.id);
+  Controller.key reopened (`ASCII 'e', []);
+  check "archived task can open directly after restart" reopened.zoom;
+  let frame = Ui.render reopened ~width:120 ~height:36 in
+  let buffer = Buffer.create 8192 in
+  Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (120, 36) frame.image;
+  check "reopened archive zoom renders the retained answer"
+    (Controller.contains (Buffer.contents buffer) "Retained answer");
+  Controller.act reopened Controller.Begin_compose;
+  check "reopened accepted task stays read-only" (reopened.input = Controller.Normal);
+  Controller.act reopened Controller.Archive_view;
+  check "repeated archive action preserves selected identity"
+    (reopened.selected = accepted.id);
+  reopened.selected <- "";
+  Controller.act reopened Controller.Archive_view;
+  check "sidebar archive action repairs an empty selection"
+    (reopened.selected = accepted.id);
+  reopened.query <- "not-visible";
+  Controller.act reopened Controller.Archive_view;
+  check "archive selection respects task filters"
+    (reopened.selected = "" && Controller.visible reopened = []);
+  reopened.query <- "";
+  Controller.act reopened Controller.Archive_view;
+  check "archive action restores selection when filter clears"
+    (reopened.selected = accepted.id);
   let old_empty = Controller.create () in
   ok (Controller.initialize_board old_empty ~saved:(Some saved) ~live:None);
   check "persisted empty board stays empty in later demo launch" (old_empty.tasks = []);

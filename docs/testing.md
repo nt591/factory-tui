@@ -58,9 +58,18 @@ that failure rather than silently retrying or declaring success.
 - `scripts/smoke-terminal.py`: PTY input, rendering, lifecycle, persistence,
   workspaces, review, and confirmed live-mode behavior using fake executables.
 - `scripts/smoke-package.py`: archives and install/refusal in temporary prefixes.
-- `scripts/smoke-codex-local.py` and `scripts/smoke-codex-sandbox.py`: explicit
-  opt-in installed-Codex loopback checks with dummy credentials. Never part of
-  normal tests or a real-provider/model approval.
+- `scripts/smoke-codex-local.py`, `scripts/smoke-codex-sandbox.py`, and
+  `scripts/smoke-codex-ui.py`: explicit opt-in installed-Codex loopback checks with
+  dummy credentials. The UI probe links workspace creation, confirmation, editing,
+  review, resume, acceptance, and archived-chat restart. Its bounded PTY helper is
+  in `scripts/fixtures/terminal.py`. These checks are never part of normal tests
+  or a real-provider/model approval.
 
 All fixture output is evidence of fixture behavior only. A simulated completion
 must not be represented as a real source-code or model verification result.
+
+Pure `test_run_status` covers selected-run start/completion/failure/interruption
+text, acceptance guidance, and stale/background-event isolation. The stop/retry checkpoint test also
+rejects any unexpected error callback while the replacement runs, then requires
+completion guidance instead of stale waiting text. Archive first-run tests cover
+selection repair, direct zoom, filtering, and retained read-only chat.

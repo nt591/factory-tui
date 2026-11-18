@@ -1,9 +1,10 @@
 # Harness supervision
 
 This layer is implemented in OCaml and is independent of the Rust app. It is
-connected to the UI only through explicit `--fake-harness` mode. Default Start
-uses demo timers.
-No Codex invocation, gateway credentials, or real workspace access occurs here.
+connected through explicit `--fake-harness` and `--live-ui` modes. Default Start
+uses demo timers. Fake mode uses local shell fixtures; live mode requires an
+explicit executable, workspace task, SQLite, and per-run confirmation. Live Codex
+can access authentication and incur model usage. Setup alone starts no process.
 
 ## Event decoder
 
@@ -58,7 +59,7 @@ A checkpoint callback must return success before spawning. Tests verify that a
 refused checkpoint prevents any executable side effect. UI storage integration
 must submit and acknowledge the Working snapshot in that callback before a live
 run starts. The fake UI path submits and acknowledges this checkpoint before spawn.
-A live Codex workflow has not been implemented.
+The confirmed live UI uses the same checkpoint-before-spawn boundary.
 
 ## Validation
 
@@ -89,8 +90,8 @@ process modes cannot be combined.
 
 Controller/runner tests and the PTY smoke verify this path, including SQLite
 checkpoint refusal, output replacement, cancellation, shutdown, and saved events.
-Next add Codex invocation, resume identity, and gateway validation in separate
-increments; fake tests do not prove live compatibility.
+Codex invocation, resume identity, and gateway validation are also implemented.
+Fake tests alone do not prove installed-agent or real-provider compatibility.
 
 ## Codex invocation builder
 
@@ -104,8 +105,9 @@ runs. Model/thread IDs reject option-like and control-character values.
 
 Argument forms were inspected against the installed Codex help on November 17,
 2026. Pure tests validate the constructed arguments. No live compatibility or
-native resume claim follows from those checks. The TUI still exposes fake runs
-only; gateway configuration and loopback integration remain the next steps.
+native resume claim follows from those checks. Separate installed-Codex loopback
+checks exercise headless and confirmed TUI execution/resume. Real-provider checks
+remain pending.
 
 ## Invocation preview
 
@@ -154,10 +156,10 @@ shell credentials or create a gateway key.
 The command requires explicit executable, workspace, model, database, and a
 nonempty stdin prompt capped at 64 KiB. It does not read the default startup TOML.
 Prompts remain on stdin, not process arguments. The workspace must already exist;
-this increment does not create isolated jj workspaces. Read-only sandbox and
+this headless command does not create isolated jj workspaces. Read-only sandbox and
 never-approval settings are requested; there is no interactive approval channel.
-Do not treat this as a production execution workflow until the installed-Codex
-loopback and gateway compatibility checks are complete.
+Installed-Codex loopback checks pass; broader sandbox and real-provider checks
+remain incomplete. Do not infer production readiness from the local fixture.
 
 Execution acknowledges its Working snapshot in SQLite before spawning. It applies
 streamed events through the same task reducer, preserves ordered known events,
@@ -376,3 +378,44 @@ shutdown of both running and waiting tasks. All commands use fake executables an
 temporary workspaces. Disabling the workspace-slot guard causes the alias test to
 fail, confirming that the test detects the overlap regression rather than merely
 checking the final task states.
+
+## Installed Codex through the terminal workflow
+
+Explicit opt-in; not part of normal tests:
+
+```sh
+uv run --with pyte python scripts/smoke-codex-ui.py \
+  --codex /absolute/path/to/codex --jj /absolute/path/to/jj
+# Optional macOS PNG captures:
+uv run --with pyte --with pillow python scripts/smoke-codex-ui.py \
+  --codex /absolute/path/to/codex --preview /tmp/factory-codex-ui.png
+```
+
+Verified on November 18, 2026, macOS 26.7.1 arm64, codex-cli 0.166.0. The script
+creates temporary jj source/task workspaces and a real SQLite board. HOME,
+CODEX_HOME, and TMPDIR are isolated, and the only key supplied is a dummy loopback
+key. The server returns a fixed shell call that writes one task-workspace sentinel,
+then a fixed answer. No real model or gateway is contacted.
+
+The probe drives terminal input, not controller shortcuts: empty startup → workspace
+form → Queued → write disclosure → confirmation → Working → file and answer →
+Ready → task zoom → actual jj patch → queued follow-up → confirmed saved-thread
+resume → acceptance → archive → shutdown/restart → accepted chat. It checks both
+rendered UI and SQLite state. A response gate holds the first loopback response
+until Working is visible and saved; the test does not assume a minimum agent delay.
+The source checkout commit and task base remain unchanged, and the workspace/file
+remain after acceptance. The selected-run footer offers review/acceptance rather
+than continuing to claim that a completed run is waiting for a checkpoint.
+
+Codex's Git-directory gate rejects jj task workspaces because they have `.jj` but
+no `.git`. `Live_runner.prepare` adapts only workspace-backed tasks with recorded
+identity and existing jj metadata, using `--skip-git-repo-check`. This bypasses
+neither sandbox restrictions nor never-approval policy. The headless invocation
+builder retains the Git-directory gate. Both new and explicit-resume forms are
+covered by pure policy tests and the installed-agent terminal probe.
+
+The PTY helper is separate from response/tool fixtures and has bounded waits,
+shutdown draining, and cleanup. Existing fake-terminal coverage remains separate.
+This probe proves this installed executable's local workflow only; provider tool
+selection, billing, network behavior, broad sandbox security, interactive approvals,
+and public release portability remain outside its scope.

@@ -107,3 +107,8 @@
  (name test_command)
  (modules test_command)
  (libraries factory_tui unix threads))
+
+(test
+ (name test_run_status)
+ (modules test_run_status)
+ (libraries factory_tui))

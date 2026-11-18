@@ -201,17 +201,26 @@ esac
           (Filename.concat (Workspace.destination workspace) "started-retry")));
   check "waiting poll preserves confirmed run identity"
     ((Option.get (task controller first.id).active).id = replacement_id
-    && Controller.snapshot controller = paused);
+    && Controller.snapshot controller = paused
+    && controller.status = replacement_status);
   sql observer "ROLLBACK";
+  let context = Controller.live_context controller in
+  let context =
+    {
+      context with
+      report_error =
+        (fun _ -> failwith "old prelaunch cancellation must not report an error");
+    }
+  in
   await (fun () ->
-      poll runner controller storage;
+      Live_runner.poll runner context ~storage;
       (task controller first.id).state = Ready);
   check "retry runs after cancelled checkpoint is joined"
     (Sys.file_exists (Filename.concat (Workspace.destination workspace) "started-retry"));
   check "old cancellation does not terminate replacement"
     ((List.hd (List.rev (task controller first.id).runs)).status = Completed);
-  check "old prelaunch cancellation error cannot replace retry status"
-    (controller.status = replacement_status);
+  check "replacement completion replaces waiting status with success guidance"
+    (Controller.contains controller.status "Run complete.");
 
   set_task controller
     (ok (Model.send (task controller first.id) ~id:"closing-message" "hold"));

@@ -379,8 +379,9 @@ selections are simulated labels, not executable selection. No live Codex is run.
 See [docs/harness.md](docs/harness.md) for limits and lifecycle guarantees. This
 runner is not a security sandbox and does not contain descendants that escape
 the process group. The fake UI path is verified. A pure Codex invocation builder validates explicit
-resume identity and read-only arguments without launching anything. Explicit headless execution is tested with fake executables; installed Codex
-and gateway compatibility remain unverified.
+resume identity and read-only arguments without launching anything. Explicit headless
+execution is tested with fake executables and an opt-in installed-Codex loopback
+fixture. Real provider compatibility remains unverified.
 
 ## Explicit live UI mode
 
@@ -413,8 +414,11 @@ explicit workspace-write is described below. Interactive approvals and real
 broader code-writing sandbox validation remain pending. Specific local sentinel
 cases are verified as documented below.
 
-The UI integration is verified using fake executables, not a real gateway. The
-installed-Codex loopback execution/resume check covers the headless path separately.
+The UI integration is verified with fake executables and an opt-in installed-Codex
+loopback fixture: workspace creation, confirmed write, card movement, chat, actual
+jj diff, same-thread resume, acceptance, and archived-chat restart. Recorded jj
+workspaces skip Codex's Git-directory check but retain sandbox and approval policy.
+Arbitrary headless directories do not get that exception. No real provider is used.
 See [docs/harness.md](docs/harness.md) for limits and persistence semantics.
 
 Live Stop/retry keeps the task workspace occupied until the old process has
@@ -562,9 +566,10 @@ intended boundaries and a scope example.
 Follow [docs/implementation.md](docs/implementation.md), adapted from the native
 Factory app. The terminal shell and simulated session steps are complete.
 Composition, next-run harness/model selection, and run history are implemented
-for simulation. Opt-in SQLite and TOML startup configuration are implemented.
-Next are bounded supervision, gateway setup, isolated jj
-workspaces/review, and distribution.
+for simulation and explicit Codex execution. SQLite/TOML configuration, bounded
+supervision, gateway validation, isolated jj workspaces/review, and local packaging
+are implemented. Broader sandbox/approval support, real-provider checks, and
+fresh-machine release validation remain pending.
 
 Use tested increments and move local `main` to each completed jj commit.
 No remote is configured and nothing is pushed without an explicit request.
@@ -587,11 +592,14 @@ sentinel paths, not a real gateway or model:
 ```sh
 python3 scripts/test-responses.py
 python3 scripts/smoke-codex-sandbox.py --codex /absolute/path/to/codex
+uv run --with pyte python scripts/smoke-codex-ui.py --codex /absolute/path/to/codex
 ```
 
 The local probe verifies denial of read-only writes, workspace + temporary-directory
 access in write mode, denial of ordinary sibling writes, and never-approval
-escalation refusal. See `docs/harness.md` for the tested scope and exclusions.
+escalation refusal. The UI probe exercises the complete task workflow with a fixed
+shell call in a temporary workspace. It also checks the completion footer and
+opening accepted chat after restart. See `docs/harness.md` for scope and exclusions.
 
 Test boundaries and the native command-fixture investigation are documented in
 [docs/testing.md](docs/testing.md). Normal tests keep parallel scheduling and

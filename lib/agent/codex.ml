@@ -76,3 +76,15 @@ let with_policy config policy =
           else arg)
         config.Process.arguments;
   }
+
+let with_jj_workspace config =
+  (* Task workspaces use jj metadata, so the Git-directory check cannot apply. *)
+  if List.mem "--skip-git-repo-check" config.Process.arguments then config
+  else
+    let arguments =
+      match config.Process.arguments with
+      | "exec" :: "resume" :: rest -> [ "exec"; "resume"; "--skip-git-repo-check" ] @ rest
+      | "exec" :: rest -> "exec" :: "--skip-git-repo-check" :: rest
+      | rest -> rest
+    in
+    { config with Process.arguments }

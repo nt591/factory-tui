@@ -189,8 +189,6 @@ let next_id t prefix =
 let replace t (task : task) =
   t.tasks <- List.map (fun (old : task) -> if old.id = task.id then task else old) t.tasks
 
-let result t = function Ok task -> replace t task | Error error -> t.status <- error
-
 let reset_keys t =
   t.prefix <- No_prefix;
   t.count <- 0
@@ -208,9 +206,19 @@ let repair_selection t =
 
 let receive t event =
   let tasks = reduce t.tasks event in
-  if tasks <> t.tasks && t.retain_events then
-    t.storage_events <- t.storage_events @ [ event ];
-  t.tasks <- tasks
+  let changed = tasks <> t.tasks in
+  if changed && t.retain_events then t.storage_events <- t.storage_events @ [ event ];
+  t.tasks <- tasks;
+  if changed && event.task_id = t.selected then
+    match (event.event, selected t) with
+    | Turn_started, Some _ ->
+        t.status <- "Run started. x stops; replies queue for the next turn."
+    | Exited _, Some task when task.state = Ready ->
+        t.status <- "Run complete. v reviews changes; a accepts without merging."
+    | Exited _, Some task when task.state = Needs_you ->
+        t.status <- "Run needs attention. Inspect the chat; i queues a reply."
+    | Interrupted, Some _ -> t.status <- "Run stopped. i queues a reply; s retries."
+    | _ -> ()
 
 let snapshot t : Snapshot.t =
   { tasks = t.tasks; drafts = t.drafts; selected = t.selected; serial = t.serial }
@@ -283,6 +291,7 @@ let rec act t action =
   | Archive_view ->
       t.archive <- true;
       t.board_scroll <- 0;
+      repair_selection t;
       focus_pane t Board
   | Session_board ->
       t.query <- "";
@@ -472,7 +481,8 @@ let rec act t action =
               t.schedules)
   | Toggle_archive ->
       t.archive <- not t.archive;
-      t.board_scroll <- 0
+      t.board_scroll <- 0;
+      if t.archive then repair_selection t
   | Start -> (
       if t.live_config <> None then
         match selected t with
@@ -511,7 +521,17 @@ let rec act t action =
                "Live cancellation requested. Stale updates are ignored."
              else "Simulated run interrupted. Stale updates are ignored.")
       | _ -> t.status <- "There is no active run to stop.")
-  | Accept -> ( match selected t with Some task -> result t (accept task) | None -> ())
+  | Accept -> (
+      match selected t with
+      | None -> ()
+      | Some task -> (
+          match accept task with
+          | Error error -> t.status <- error
+          | Ok task ->
+              replace t task;
+              t.status <-
+                "Task accepted. Chat is read-only. No merge, push, or workspace deletion."
+          ))
 
 let append_utf8 buffer uchar = Uutf.Buffer.add_utf_8 buffer uchar
 
