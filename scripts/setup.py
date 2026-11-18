@@ -232,7 +232,13 @@ def main():
         "Factory TUI setup — no agent launches. Optional discovery contacts your gateway."
     )
     print("Enter environment VARIABLE NAMES only. Do not paste an API key.")
-    codex = ask("Codex executable", shutil.which("codex") or "", executable)
+    codex = shutil.which("codex")
+    if codex:
+        print("Codex found on PATH; no executable path needs to be configured.")
+    else:
+        print(
+            "Codex was not found on PATH. Install it before running tasks, or configure codex.executable later."
+        )
     url_name = ask("Gateway URL environment variable", "LITELLM_BASE_URL", variable)
     key_name = ask("Gateway key environment variable", "LITELLM_API_KEY", variable)
     gateway = f"base_url_environment = {json.dumps(url_name)}\nkey_environment = {json.dumps(key_name)}\n"
@@ -259,7 +265,7 @@ def main():
             )
         )
     )
-    codex_fields = {"executable": str(path(codex)), "gateway": str(files[1])}
+    codex_fields = {"gateway": str(files[1])}
     if effort != "default":
         codex_fields["reasoning_effort"] = effort
     config = toml(
@@ -278,12 +284,8 @@ def main():
         return
     install({files[0]: config, files[1]: gateway}, binary, home)
     print("Saved private config files (0600). No API key value was saved.")
-    print("Read-only launch; each run still needs confirmation:")
-    print(
-        shlex.join(
-            [str(ROOT / "scripts/run.sh"), "--live-ui", "--config", str(files[0])]
-        )
-    )
+    print("Read-only launch; Enter sends work:")
+    print(shlex.join([str(ROOT / "scripts/run.sh"), "--config", str(files[0])]))
     print(
         "Launch from the directory you want to work in. Add --workspace-write for edits; the starting directory is not an isolated checkout."
     )

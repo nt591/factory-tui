@@ -536,3 +536,20 @@ remain compatible. Discovery CLI (31), setup CLI (37), invocation (26), fake
 execution (19) and temporary package (19) checks passed separately. Only dummy
 credentials/loopback were used; no real gateway was contacted. Acceptance/archive
 behavior is unchanged and remains a separately requested discussion.
+
+Default-real/direct-send/PATH/demo cleanup verification passed format/build/unit
+gates and all 22 fixture UI cases with 64 previews. Evidence:
+`/tmp/factory-direct-send-demo-path-ship-ui-20261118/report.json`. Direct-send and
+compact Archive-return previews were inspected. Enter creates/runs and resumes
+idle replies without confirmation; replies during work preserve captured IDs.
+Startup/restart executes nothing. Default real mode refuses simulated run history;
+explicit demo reopens it. Codex and new-task jj resolution use PATH with explicit
+config override precedence. Obsolete confirmation runtime/UI/module/tests are
+removed, while queue/capture/checkpoint/policy and cancellation checks remain.
+Setup uses an isolated fake executable on PATH without asking for its location.
+Footer key/action styling remains bounded with exact action targets. Separate
+loopback discovery (31), setup CLI (37), invocation (26), fake execution (19) and
+package (19) checks passed. E2E perf smoke passed and hashes match the exact UI
+binary; `/tmp/factory-path-send-demo-perf-20261118.json`. No paid calls or private
+provider evidence were used. Acceptance/archive removal semantics are unchanged
+in this increment; navigation now exits expansion and offers a pinned return.

@@ -46,9 +46,7 @@ let () =
     && (List.hd restored.runs).status = Stopped);
   check "restored footer matches pre-recovery snapshot" (controller.status = text);
   check "recovery retains draft and never schedules a process"
-    (Controller.draft controller = "Kept draft"
-    && controller.schedules = []
-    && controller.live_confirmation = None);
+    (Controller.draft controller = "Kept draft" && controller.schedules = []);
   Controller.act controller Controller.Begin_compose;
   check "restored draft remains editable" (Text_edit.text controller.editor = "Kept draft");
   Controller.key controller (`Escape, []);

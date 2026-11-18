@@ -44,8 +44,6 @@ type action =
   | Follow_chat
   | Begin_search
   | Begin_compose
-  | Confirm_live
-  | Cancel_live
   | Open_review
   | Refresh_review
   | Edit_review_executable
@@ -54,6 +52,7 @@ type action =
   | Previous_review_file
   | Begin_workspace
   | Submit_workspace
+  | Send_workspace
   | Cancel_workspace
   | Workspace_field of Workspace_form.field
   | Begin_new
@@ -64,15 +63,13 @@ type t = {
   model_picker : Model_picker.t;
   mutable model_target : model_target option;
   mutable live_config : Live_runner.config option;
-  mutable live_confirmation : string option;
   mutable live_waiting_tasks : string list;
-  mutable confirmation_readable : bool;
-  confirmation_viewport : Live_confirmation.t;
   mutable review : Review.t option;
   mutable jj_executable : string;
   mutable workspace_defaults : Workspace_defaults.t;
   mutable workspace_form : Workspace_form.t option;
   mutable creation_job : Task_creation.job option;
+  mutable creation_send : bool;
   mutable creation_request : Task_creation.request option;
   mutable tasks : task list;
   task_updates : Task_updates.t;

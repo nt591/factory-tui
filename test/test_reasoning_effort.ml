@@ -41,28 +41,4 @@ let () =
   check "default preserves unspecified effort" (Live_runner.reasoning config = None);
   check "explicit setting stays on launch config"
     (Live_runner.reasoning (Live_runner.with_reasoning config Low) = Some Low);
-  let task = Model.make ~id:"fixture" ~title:"Question" ~repository:"fixture" in
-  let viewport = Live_confirmation.create () in
-  let original = Live_confirmation.render ~viewport (Some task) ~width:100 ~height:50 in
-  check "default confirmation readable" original.readable;
-  check "reviewed default accepts exact details"
-    (Live_confirmation.can_confirm viewport ~policy:Read_only (Some task));
-  check "changing effort invalidates previous confirmation"
-    (not
-       (Live_confirmation.can_confirm ~reasoning:Low viewport ~policy:Read_only
-          (Some task)));
-  let explicit =
-    Live_confirmation.render ~reasoning:Low ~viewport (Some task) ~width:100 ~height:50
-  in
-  let buffer = Buffer.create 2048 in
-  Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (100, 50) explicit.image;
-  check "confirmation discloses requested effort and history limitation"
-    (Controller.contains (Buffer.contents buffer) "Requested reasoning effort: low"
-    && Controller.contains (Buffer.contents buffer) "not saved in run history");
-  check "reviewed effort accepts only matching details"
-    (Live_confirmation.can_confirm ~reasoning:Low viewport ~policy:Read_only (Some task)
-    && not
-         (Live_confirmation.can_confirm ~reasoning:High viewport ~policy:Read_only
-            (Some task)));
-  Printf.printf "Passed %d reasoning-effort checks. Pure invocation/confirmation only.\n"
-    !checks
+  Printf.printf "Passed %d reasoning-effort checks. Pure invocation only.\n" !checks

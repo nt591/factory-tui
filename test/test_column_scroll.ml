@@ -84,13 +84,13 @@ let () =
   check "explicit top wheel position does not snap back to selected card"
     (offset = 0 && Column_scroll.position controller.column_scroll Ready = Some 0);
   Controller.act controller (Controller.Select active.id);
-  controller.live_confirmation <- Some active.id;
+  controller.help <- true;
   let frame = render 120 36 in
   let before = Column_scroll.offset controller.column_scroll Ready in
   Ui.mouse controller frame ~now:2. (`Press (`Scroll `Down), (95, 8), []);
-  check "run confirmation blocks column wheel"
+  check "Help overlay blocks column wheel"
     (Column_scroll.offset controller.column_scroll Ready = before);
-  controller.live_confirmation <- None;
+  controller.help <- false;
   Column_scroll.set controller.column_scroll Working 3;
   Controller.act controller (Controller.Select "queued-00");
   Controller.act controller Controller.Start;

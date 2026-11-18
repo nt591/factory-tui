@@ -9,9 +9,9 @@ let snapshot ~size t =
     invalid_arg "Snapshot dimensions must be between 1 and 1000.";
   Notty_unix.output_image (Ui.render t ~width ~height).image
 
-let interactive ?(projects = []) ?(fake_harness = false) ?live
-    ?(workspace_defaults = Workspace_defaults.empty) ?(layout = Pane_layout.automatic)
-    ~events ~database () =
+let interactive ?(allow_demo_history = true) ?(projects = []) ?(fake_harness = false)
+    ?live ?(workspace_defaults = Workspace_defaults.empty)
+    ?(layout = Pane_layout.automatic) ~events ~database () =
   if live <> None && (fake_harness || events <> "" || database = "") then
     Error "Live UI needs SQLite and cannot use replay or fake mode."
   else if fake_harness && events <> "" then
@@ -31,7 +31,25 @@ let interactive ?(projects = []) ?(fake_harness = false) ?live
         | Error error -> Error error
         | Ok (worker, loaded) -> (
             t.retain_events <- true;
-            match Controller.initialize_board t ~saved:loaded ~live with
+            let initialized =
+              if
+                live <> None && (not allow_demo_history)
+                && Option.fold ~none:false
+                     ~some:(fun saved ->
+                       List.exists
+                         (fun (task : Model.task) ->
+                           List.exists
+                             (fun (run : Model.run_record) -> run.simulated)
+                             task.runs)
+                         saved.Snapshot.tasks)
+                     loaded
+              then
+                Error
+                  "This database contains demo run history. Open with --demo or choose a \
+                   separate real database."
+              else Controller.initialize_board t ~saved:loaded ~live
+            in
+            match initialized with
             | Error error ->
                 ignore (Persistence.close worker);
                 Error error

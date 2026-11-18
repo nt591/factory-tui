@@ -4,8 +4,8 @@ let text ~width ~mode ~paused =
     | Menu_content.Simulation -> ("SIMULATION", "SIMULATION")
     | Fake -> ("FAKE HARNESS / NO MODEL CALLS", "FAKE / NO MODEL")
     | Replay -> ("FIXTURE REPLAY", "REPLAY")
-    | Live Model.Read_only -> ("LIVE ENABLED / CONFIRMED CALLS", "LIVE READ")
-    | Live Model.Workspace_write -> ("LIVE WRITE / CONFIRMED CALLS", "LIVE WRITE")
+    | Live Model.Read_only -> ("LIVE ENABLED / SEND TO RUN", "LIVE READ")
+    | Live Model.Workspace_write -> ("LIVE WRITE / SEND TO RUN", "LIVE WRITE")
   in
   let updates = if paused then "[PAUSED]" else "[UPDATING]" in
   (* Mode takes priority over the app title when the terminal cannot show both. *)

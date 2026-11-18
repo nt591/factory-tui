@@ -26,6 +26,7 @@ def main():
         database = Path(temporary) / "board.sqlite"
         command = [
             str(binary),
+            "--demo",
             "--no-config",
             "--database",
             str(database),

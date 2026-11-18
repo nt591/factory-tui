@@ -145,12 +145,8 @@ let () =
           Workspace_form.key current (`Tab, []);
           check "folder tab order ignores unused repository fields"
             (Workspace_form.current current = Source));
-      let view = Live_confirmation.render (Some task) ~width:100 ~height:50 in
-      Buffer.clear buffer;
-      Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (100, 50) view.image;
-      check "confirmation distinguishes root from sandbox"
-        (Controller.contains (Buffer.contents buffer) "Session root:"
-        && Controller.contains (Buffer.contents buffer) "no isolated checkout"));
+      check "root creation runs only on explicit send"
+        (controller.creation_request <> None));
   Printf.printf
     "Passed %d session-root checks. Temporary empty folder; no network/agent/repository.\n"
     !checks

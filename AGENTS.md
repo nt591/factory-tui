@@ -14,7 +14,9 @@ Use scripts/format.sh to format OCaml and Dune files. Keep the ocamlformat
 version in .ocamlformat and scripts/setup-editor.sh consistent.
 Write comments only for non-obvious safety conditions or choices. Use plain English.
 
-Live execution must be explicitly enabled and explicitly started. Setup must
+Real UI is the normal launch mode. Sending a task/reply explicitly starts live
+execution; startup/restart must start no agents. Per-run confirmation is not
+required. Setup must
 not start an agent or store credentials. Setup may read the referenced API key
 only for user-selected gateway model discovery after disclosure; Skip must make
 no request. Acceptance does not merge, push, or

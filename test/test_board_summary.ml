@@ -222,7 +222,7 @@ let () =
     && controller.sidebar_scroll = None
     && controller.board_scroll = 0);
   check "Show card starts no runner or workspace job"
-    (controller.live_confirmation = None
+    (true
     && controller.creation_request = None
     && controller.creation_job = None
     && List.for_all (fun (task : Model.task) -> task.active = None) controller.tasks);

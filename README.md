@@ -3,17 +3,17 @@
 An independent OCaml terminal prototype for a software factory.
 No companion application or checkout is required.
 
-The interface borrows bottom's dashboard structure: bordered panes, visible
+The interface borrows dashboard structure: bordered panes, visible
 focus, compact status widgets, mouse selection, search, and pane expansion.
 Session rules are adapted from Factory's Rust session and event reducers, not
-linked through FFI. Startup defaults to simulation. Explicit Codex live execution supports confirmed
-runs in session roots or isolated workspaces; headless execution is also available.
+linked through FFI. Normal startup opens the real configured board without starting agents. Explicit
+--demo opens simulation. Codex live execution supports sent runs in session roots or isolated workspaces; headless execution is also available.
 
 ## Interactive setup
 
 ```sh
 ./scripts/setup.sh
-./scripts/run.sh --live-ui
+./scripts/run.sh
 ```
 
 Setup writes non-secret config after confirmation and prints the launch command.
@@ -68,7 +68,7 @@ cd /path/to/factory-tui
 ./scripts/run.sh
 ```
 
-Default launches use simulated tasks and timed fixture updates. The Working
+Launch with `--demo` for simulated tasks and timed fixture updates. The Working
 card moves to Ready after about eight seconds without manual column movement.
 Selection follows the task's ID as it moves. Without a database flag or a stored
 config, tasks and drafts live in memory and quitting discards them. A configured
@@ -408,7 +408,7 @@ Override or bypass configuration explicitly:
 ```sh
 ./scripts/run.sh --config /path/to/config.toml
 ./scripts/run.sh --database /tmp/another-board.sqlite
-./scripts/run.sh --no-config
+./scripts/run.sh --demo --no-config
 ```
 
 CLI `--database` overrides the config path. CLI relative paths use the current
@@ -526,7 +526,7 @@ fixture. Real provider compatibility remains unverified.
 ## Explicit live UI mode
 
 ```sh
-./scripts/run.sh --live-ui --codex-executable /absolute/path/to/codex
+./scripts/run.sh --codex-executable /absolute/path/to/codex
 ```
 
 A new live database starts with an empty real board, not sample cards. The
@@ -576,7 +576,7 @@ them. See `docs/harness.md` for the coordination boundary.
 ## Explicit code-editing mode
 
 ```sh
-./scripts/run.sh --live-ui --workspace-write --codex-executable /absolute/path/to/codex
+./scripts/run.sh --workspace-write --codex-executable /absolute/path/to/codex
 ```
 
 Read-only is still the default. `--workspace-write` must be explicit for live UI
@@ -630,12 +630,13 @@ events and final state are persisted. Ctrl-C/SIGTERM cancels the process group.
 Use `--gateway PATH` for explicit provider settings and `--resume ID` for a thread
 already recorded in this database/workspace. Read-only sandbox settings are
 requested. The CLI returns only a small summary; open the database in the TUI to
-inspect the chat. TUI Start uses simulation unless `--live-ui` is explicitly selected; live mode
-adds per-run confirmation and requires isolated task workspaces.
+inspect the chat. Normal TUI launch uses the real configured board; --demo is explicit. Enter
+sends work without a per-run confirmation. Use a starting folder or an isolated
+repository workspace according to the task.
 
-Only fake-executable execution has been verified. Installed-Codex/gateway
+Fixture tests verify the runtime boundaries. Installed-Codex/gateway
 compatibility, interactive approvals, real provider UI checks remain
-pending. Confirmed live UI execution is implemented and tested with fake processes. Isolated workspace task creation is available separately via `W`. See [docs/harness.md](docs/harness.md) for the full safety boundary.
+pending. Direct-send live UI execution is implemented and tested with fake processes. Isolated workspace task creation is available separately via `W`. See [docs/harness.md](docs/harness.md) for the full safety boundary.
 `python3 scripts/smoke-execution.py` runs fake CLI execution checks only.
 
 ## Gateway configuration validation

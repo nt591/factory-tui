@@ -25,7 +25,7 @@ let () =
   in
   let attached = { task with workspace = Some workspace } in
   check "live queued task requires confirmation"
-    (has (text ~live:true attached) "s opens live confirmation");
+    (has (text ~live:true attached) "s sends them");
   check "unsupported live harness offers explicit repair"
     (has (text ~live:true { attached with harness = Claude }) "H selects Codex");
   check "empty queue requires new instruction"

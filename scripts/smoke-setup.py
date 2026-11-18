@@ -33,10 +33,12 @@ def main():
         codex = directory / "fake-codex"
         codex.write_text(f"#!/bin/sh\ntouch '{marker}'\nexit 2\n")
         codex.chmod(0o700)
+        (directory / "codex").symlink_to(codex)
         env = {
             name: os.environ[name] for name in ("PATH", "LANG") if name in os.environ
         }
         env.update(HOME=str(home), XDG_CONFIG_HOME=str(home), TMPDIR=str(directory))
+        env["PATH"] = str(directory) + os.pathsep + env.get("PATH", os.defpath)
         config_dir = directory / "config"
         command = [
             str(root / "scripts/setup.sh"),
@@ -46,7 +48,6 @@ def main():
             str(config_dir),
         ]
         answers = [
-            str(codex),
             "",
             "",
             "manual",
@@ -193,7 +194,6 @@ def main():
                 )
                 discovered = directory / "discovered"
                 answers = [
-                    str(codex),
                     "",
                     "",
                     "fetch",
@@ -223,7 +223,7 @@ def main():
                     "dummy-wizard-key" not in (discovered / "gateway.toml").read_text()
                 )
                 skipped = directory / "skipped"
-                answers = [str(codex), "", "", "skip", "", "", "yes"]
+                answers = ["", "", "skip", "", "", "yes"]
                 result = subprocess.run(
                     [*command[:-1], str(skipped)],
                     input="\n".join(answers) + "\n",

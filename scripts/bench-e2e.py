@@ -253,14 +253,14 @@ def run(args, report):
                         (
                             "composer_open",
                             b"i",
-                            lambda: "INSERT / Enter queues" in tui.screen.display[-1],
+                            lambda: "INSERT / Enter sends" in tui.screen.display[-1],
                         ),
                         (
                             "paste",
                             b"\x1b[200~" + marker.encode() + b"\x1b[201~",
                             lambda marker=marker: (
                                 marker in tui.text()
-                                and "INSERT / Enter queues" in tui.screen.display[-1]
+                                and "INSERT / Enter sends" in tui.screen.display[-1]
                             ),
                         ),
                         (

@@ -219,11 +219,6 @@
  (libraries factory_tui notty))
 
 (test
- (name test_confirmation_layout)
- (modules test_confirmation_layout)
- (libraries factory_tui notty))
-
-(test
  (name test_repository_labels)
  (modules test_repository_labels)
  (libraries factory_tui notty))
@@ -339,11 +334,6 @@
  (libraries factory_tui notty))
 
 (test
- (name test_confirmation_cache)
- (modules test_confirmation_cache)
- (libraries factory_tui notty unix))
-
-(test
  (name test_run_prompt)
  (modules test_run_prompt)
  (libraries factory_tui notty))
@@ -447,3 +437,18 @@
  (name test_session_root)
  (modules test_session_root)
  (libraries factory_tui notty unix))
+
+(test
+ (name test_send_flow)
+ (modules test_send_flow)
+ (libraries factory_tui unix notty))
+
+(test
+ (name test_hotkey_bar)
+ (modules test_hotkey_bar)
+ (libraries factory_tui notty))
+
+(test
+ (name test_executable_path)
+ (modules test_executable_path)
+ (libraries factory_tui unix))

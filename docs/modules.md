@@ -42,7 +42,7 @@ against these interfaces during the normal Dune build.
 - `Gateway_models`: validated, bounded explicit catalogue discovery through curl.
   Authorization uses stdin; response bodies and client stderr stay out of errors.
 - `Reasoning_effort`: validated launch-only low/medium/high choices for Codex
-  invocation and confirmation. It does not infer model support or change snapshots.
+  invocation. It does not infer model support or change snapshots.
 - `Project`: validated optional named repository defaults; no filesystem access.
 - `Project_picker`: transient literal-filter selection tied to the exact creation
   form; choosing does not initialize or open a project.
@@ -60,8 +60,6 @@ against these interfaces during the normal Dune build.
   Its explicit policy is captured on each run; configuration defaults to read-only.
   Canonical workspace slots retain ownership through cancellation/checkpoint/join;
   waiting task IDs are exposed, not process or mutex internals.
-- `Live_confirmation`: task-specific usage/auth disclosure rendering and hitboxes;
-  small terminals cannot authorize a hidden confirmation.
 - `Changes`: abstract background diff ownership for one task/workspace, with
   explicit refresh, poll, and join. Results never mutate another task.
 - `Review`: abstract changes-pane state, executable editing, and scrolling.
@@ -174,7 +172,7 @@ against these interfaces during the normal Dune build.
   controller uses the resulting capacity for page navigation.
 - `Action_bar`: contextual labels/actions from task state and session-mode flags.
   It does not run preflight, read paths, change tasks, or grant execution permission.
-  Keyboard dispatch and live confirmation retain their own validation.
+  Keyboard dispatch and live send validation retain their own validation.
 - `Pane_scroll`: abstract transient chat/Activity offset memory. Mouse focus
   switches restore the target offset; selecting a task clears both. Board-focused
   redraws use remembered chat distance. Explicit chat resets clear distance and
@@ -250,15 +248,6 @@ answer/resume and sandbox-sentinel integration entry points. The sandbox fixture
 uses only supplied temporary command paths and never chooses a real provider.
 Pure fixture tests run under `scripts/check.sh` without a server or subprocess;
 installed-agent execution remains a separate explicit opt-in command.
-
-`Live_confirmation` owns an abstract transient viewport and renders sanitized,
-grapheme-wrapped identity/disclosure rows. It records shown intervals, not just the
-furthest offset: jumping to End cannot skip unseen rows. Changed content or
-width/height resets coverage. `can_confirm` rechecks the current disclosure against
-that layout. Run/Cancel and a visible row range stay below the scrollable body;
-terminals below 64x13 remain non-authorizing. `Controller` dispatches keys and
-`Ui` routes wheel input only to the reported body. The module starts no process
-and performs no workspace operation.
 
 
 `Chat_position` produces lower-border wrapped-row ranges and an optional complete
@@ -363,21 +352,10 @@ but wheel dispatch uses inset boundaries. Border clicks still focus panes; borde
 wheel events do not scroll or focus. Modal/sidebar regions retain their own rules.
 
 
-Live_confirmation's abstract viewport owns a single prepared row array keyed by
-raw disclosure values and width. required_height can share it through the optional
-viewport argument; Ui passes the same viewport to height selection and render.
-Row-width validation is prepared once, and visible rows are sliced directly.
-Coverage remains separate, resets with dimensions/details, and is not granted by
-preparation. Public reset drops both retained rows and authorization coverage.
-
-
 Run_prompt selects queued or captured-ID messages and assembles exact prompt text
 in transcript order. Its byte_length accessor avoids constructing a prompt for
-confirmation counters. Live_runner uses it in preflight and submission; immutable
-run submitted IDs exclude future replies. Live_confirmation uses tagged single-line
-metadata and multiline instruction blocks. Its prepared cache/coverage key includes
-raw queued text and IDs, so a title-only confirmation cannot authorize changed
-instructions. It does not include unsubmitted history or editor drafts.
+queue summaries. Live_runner uses it in preflight and submission; immutable
+run submitted IDs exclude future replies.
 
 Live_runner.prepare_prompt is the private common invocation/preflight boundary.
 Public prepare supplies queued text; poll supplies captured submitted text. Both
@@ -451,3 +429,7 @@ Acceptance_summary is a pure queued-count/draft-presence view shared by acceptan
 status and the read-only detail border. It neither sends nor removes pending data.
 Queue_summary remains the editable next-turn view; accepted tasks use distinct
 retention copy. Controller preserves messages/drafts and storage-error priority.
+
+- `Executable_path`: discovers runnable regular files in PATH without executing
+  a shell. Explicit configured paths still take precedence.
+- `Hotkey_bar`: grouped terminal key/action rendering with distinct key styling.

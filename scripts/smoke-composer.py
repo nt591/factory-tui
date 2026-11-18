@@ -54,12 +54,12 @@ def main():
                     "draft rows 14-18/18" in tui.text()
                     and "Draft line 17" in tui.text()
                     and "Reply (queued):" in tui.text()
-                    and "Enter queues" in tui.text()
+                    and "Enter sends" in tui.text()
                 ),
             )
             tui.check(
                 "long pasted draft stays editable and unsubmitted",
-                "Reply (queued):" in tui.text() and "Enter queues" in tui.text(),
+                "Reply (queued):" in tui.text() and "Enter sends" in tui.text(),
             )
             if args.preview:
                 tui.preview(args.preview.with_stem(args.preview.stem + "-bottom"))
@@ -140,7 +140,7 @@ def main():
             for message in task["messages"]
         )
         assert task["runs"] == reopened_runs and not dict(final["drafts"]).get(task_id)
-        print("PASS: Enter queues exact retained text without starting another run")
+        print("PASS: Enter sends exact retained text without starting another run")
         assert list(home.iterdir()) == []
     print("Temporary replay and SQLite only. No agent, credential or workspace access.")
 

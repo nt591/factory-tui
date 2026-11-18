@@ -1,4 +1,5 @@
 val items :
+  archive:bool ->
   task:Model.task option ->
   live:bool ->
   replay:bool ->

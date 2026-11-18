@@ -44,8 +44,6 @@ type action =
   | Follow_chat
   | Begin_search
   | Begin_compose
-  | Confirm_live
-  | Cancel_live
   | Open_review
   | Refresh_review
   | Edit_review_executable
@@ -54,6 +52,7 @@ type action =
   | Previous_review_file
   | Begin_workspace
   | Submit_workspace
+  | Send_workspace
   | Cancel_workspace
   | Workspace_field of Workspace_form.field
   | Begin_new
@@ -64,15 +63,13 @@ type t = {
   model_picker : Model_picker.t;
   mutable model_target : model_target option;
   mutable live_config : Live_runner.config option;
-  mutable live_confirmation : string option;
   mutable live_waiting_tasks : string list;
-  mutable confirmation_readable : bool;
-  confirmation_viewport : Live_confirmation.t;
   mutable review : Review.t option;
   mutable jj_executable : string;
   mutable workspace_defaults : Workspace_defaults.t;
   mutable workspace_form : Workspace_form.t option;
   mutable creation_job : Task_creation.job option;
+  mutable creation_send : bool;
   mutable creation_request : Task_creation.request option;
   mutable tasks : task list;
   task_updates : Task_updates.t;
@@ -131,16 +128,14 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     model_picker = Model_picker.create ();
     model_target = None;
     live_config = None;
-    live_confirmation = None;
     live_waiting_tasks = [];
-    confirmation_readable = false;
-    confirmation_viewport = Live_confirmation.create ();
     review = None;
     jj_executable = "";
     workspace_defaults = Workspace_defaults.empty;
     workspace_form = None;
     creation_job = None;
     creation_request = None;
+    creation_send = false;
     task_updates = Task_updates.create ();
     tasks =
       (if fake_harness then
@@ -398,7 +393,8 @@ let rec act t action =
       t.archive <- true;
       t.board_scroll <- 0;
       ensure_selection t;
-      focus_pane t Board
+      focus_pane t Board;
+      t.zoom <- false
   | Session_board ->
       t.sidebar_scroll <- None;
       t.query <- "";
@@ -406,7 +402,8 @@ let rec act t action =
       t.repository <- None;
       t.board_scroll <- 0;
       Column_scroll.clear t.column_scroll;
-      focus_pane t Board
+      focus_pane t Board;
+      t.zoom <- false
   | Reveal_selected -> (
       match selected t with
       | None -> ()
@@ -522,7 +519,7 @@ let rec act t action =
               t.project_picker <- None
           | None -> ())
       | _ -> ())
-  | Open_models when t.live_confirmation <> None || t.review <> None -> ()
+  | Open_models when t.review <> None -> ()
   | Open_models ->
       (match t.workspace_form with
       | Some form when t.creation_job = None && t.creation_request = None ->
@@ -588,40 +585,6 @@ let rec act t action =
               | Error error -> t.status <- error)
           | None -> ())
       | _ -> ())
-  | Cancel_live -> t.live_confirmation <- None
-  | Confirm_live when not t.confirmation_readable ->
-      t.status <-
-        "Review all run details in a terminal of at least 64 columns and 13 rows."
-  | Confirm_live -> (
-      match (t.live_confirmation, t.live_config) with
-      | Some id, Some config ->
-          let task = List.find_opt (fun (task : task) -> task.id = id) t.tasks in
-          if
-            not
-              (Live_confirmation.can_confirm
-                 ?reasoning:(Live_runner.reasoning config)
-                 t.confirmation_viewport ~policy:(Live_runner.policy config) task)
-          then (
-            t.confirmation_readable <- false;
-            t.status <- "Run details changed. Review the confirmation again.")
-          else (
-            t.live_confirmation <- None;
-            match task with
-            | None -> t.status <- "Confirmed task no longer exists."
-            | Some task -> (
-                match Live_runner.prepare config task with
-                | Error error -> t.status <- error
-                | Ok _ -> (
-                    match
-                      Model.start ~simulated:false ~policy:(Live_runner.policy config)
-                        task (next_id t "live-run")
-                    with
-                    | Error error -> t.status <- error
-                    | Ok task ->
-                        replace t task;
-                        t.status <-
-                          "Live Codex run queued. Waiting for the durable checkpoint.")))
-      | _ -> ())
   | Open_review -> (
       match selected t with
       | None -> t.status <- "Select a workspace task to review."
@@ -675,7 +638,10 @@ let rec act t action =
         and model = Option.value ~default:model defaults.model in
         let jj =
           if t.jj_executable <> "" then t.jj_executable
-          else Option.value ~default:"" defaults.jj
+          else
+            Option.value
+              ~default:(Option.value ~default:"" (Executable_path.resolve "jj"))
+              defaults.jj
         in
         t.workspace_form <-
           Some (Workspace_form.create ~jj ~source ~parent ~revision ~model ());
@@ -697,9 +663,13 @@ let rec act t action =
       else
         report_creation t
           "Creation is in progress. Wait for its bounded completion before closing."
-  | Submit_workspace -> (
+  | Send_workspace ->
+      act t Submit_workspace;
+      t.creation_send <- t.creation_request <> None
+  | Submit_workspace ->
       if t.creation_request <> None || t.creation_job <> None then ()
-      else
+      else (
+        t.creation_send <- false;
         match t.workspace_form with
         | None -> ()
         | Some form -> (
@@ -741,10 +711,7 @@ let rec act t action =
             List.mapi
               (fun i (_, e) -> (Unix.gettimeofday () +. (float_of_int i *. 0.5), e))
               t.schedules)
-  | Toggle_archive ->
-      t.archive <- not t.archive;
-      t.board_scroll <- 0;
-      if t.archive then ensure_selection t
+  | Toggle_archive -> if t.archive then act t Session_board else act t Archive_view
   | Start -> (
       if t.live_config <> None then
         match selected t with
@@ -752,10 +719,16 @@ let rec act t action =
         | Some task -> (
             match Live_runner.prepare (Option.get t.live_config) task with
             | Error error -> t.status <- error
-            | Ok _ ->
-                Live_confirmation.reset t.confirmation_viewport;
-                t.confirmation_readable <- false;
-                t.live_confirmation <- Some task.id)
+            | Ok _ -> (
+                match
+                  Model.start ~simulated:false
+                    ~policy:(Live_runner.policy (Option.get t.live_config))
+                    task (next_id t "live-run")
+                with
+                | Error error -> t.status <- error
+                | Ok task ->
+                    replace t task;
+                    t.status <- "Sending to Codex. Waiting for the durable checkpoint."))
       else if t.external_events then
         t.status <- "Replay mode cannot start runs. Use a fixture run ID."
       else
@@ -871,7 +844,6 @@ let paste_key t (key, mods) =
         Uutf.Buffer.add_utf_8 buffer char;
         Model_picker.insert t.model_picker (Buffer.contents buffer)
     | _ -> ()
-  else if t.live_confirmation <> None then ()
   else if t.review <> None then Review.paste_key (Option.get t.review) (key, mods)
   else if t.workspace_form <> None then (
     if t.creation_job = None && t.creation_request = None then
@@ -911,8 +883,13 @@ let submit t =
               act t Follow_chat;
               submission_success t
                 (if t.live_config <> None then
-                   "Reply queued for the next confirmed turn; active run is unchanged."
-                 else "Reply queued for the next run. No live agent receives it.")))
+                   "Reply sent. It waits for the next turn while the current run is \
+                    active."
+                 else "Reply queued for the next run. No live agent receives it.");
+              if
+                t.live_config <> None && task.state <> Working
+                && not (String.starts_with ~prefix:"Storage error:" t.status)
+              then act t Start))
   | Edit_model -> (
       match selected t with
       | None -> t.input <- Normal
@@ -1087,7 +1064,7 @@ let normal_key t (key, mods) =
               t.scroll <- 0)
             else (
               t.query <- "";
-              ensure_selection t))
+              if t.archive then act t Session_board else ensure_selection t))
     | `ASCII '/' ->
         command (fun () ->
             act t (if t.focus = Conversation then Begin_chat_search else Begin_search))
@@ -1155,12 +1132,6 @@ let key t (key, mods) =
           (Model_picker.selected t.model_picker)
     | `ASCII 'r' when List.mem `Ctrl mods -> act t Refresh_models
     | _ -> Model_picker.key t.model_picker (key, mods))
-  else if t.live_confirmation <> None then (
-    reset_keys t;
-    match key with
-    | `Escape | `ASCII 'n' -> act t Cancel_live
-    | (`Enter | `ASCII 'y') when mods = [] -> act t Confirm_live
-    | _ -> Live_confirmation.key t.confirmation_viewport (key, mods))
   else if t.review <> None then (
     reset_keys t;
     match key with
@@ -1176,6 +1147,7 @@ let key t (key, mods) =
       | `ASCII 'n' when List.mem `Ctrl mods -> act t Toggle_greenfield
       | `ASCII 'p' when List.mem `Ctrl mods -> act t Open_projects
       | `ASCII 'g' when List.mem `Ctrl mods -> act t Open_models
+      | `Enter when mods = [] -> act t Send_workspace
       | `ASCII 's' when List.mem `Ctrl mods -> act t Submit_workspace
       | _ -> Workspace_form.key (Option.get t.workspace_form) (key, mods))
   else if t.help then (
@@ -1258,7 +1230,9 @@ let poll_creation t ~storage =
           Task_creation.close job;
           t.creation_job <- None;
           match result with
-          | Error error -> report_creation t error
+          | Error error ->
+              t.creation_send <- false;
+              report_creation t error
           | Ok task ->
               t.tasks <- t.tasks @ [ task ];
               select t task.id;
@@ -1268,8 +1242,11 @@ let poll_creation t ~storage =
               t.workspace_form <- None;
               focus_pane t Conversation;
               t.status <-
-                "Workspace task created / Queued. No agent starts. Saving conversation \
-                 metadata."))
+                "Workspace task created / Queued (not started). Press s to review and \
+                 start the run.";
+              let send = t.creation_send in
+              t.creation_send <- false;
+              if send && (not t.quit) && t.live_config <> None then act t Start))
 
 let finish_creation t ~storage =
   t.creation_request <- None;
@@ -1284,8 +1261,7 @@ let enable_live t config =
     t.live_config <- Some config;
     t.schedules <- [];
     t.tasks <- (Snapshot.recover (snapshot t)).tasks;
-    t.status <-
-      "Live UI enabled / no process started. s asks for confirmation on workspace tasks.";
+    t.status <- "Live UI enabled / no process started. Enter sends work; x stops.";
     Ok ())
 
 let live_context t : Live_runner.context =

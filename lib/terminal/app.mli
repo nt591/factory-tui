@@ -1,6 +1,7 @@
 val snapshot : size:string -> Controller.t -> unit
 
 val interactive :
+  ?allow_demo_history:bool ->
   ?projects:Project.t list ->
   ?fake_harness:bool ->
   ?live:Live_runner.config ->

@@ -1,3 +1,13 @@
+# Current live entry points
+
+Codex is discovered on PATH unless an executable override is supplied. Normal
+interactive launch opens the real configured board, --demo selects simulation,
+and Enter sends a task/idle reply directly. No agent starts at app startup or
+restart; replies during an active run stay pending. Per-run confirmation UI is
+removed. Read-only is the default requested policy; --workspace-write opts into
+writes. Historical verification sections below retain their original scopes and
+may describe the removed confirmation UI.
+
 # Harness supervision
 
 This layer is implemented in OCaml and is independent of the Rust app. It is

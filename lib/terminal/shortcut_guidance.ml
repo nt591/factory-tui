@@ -4,7 +4,7 @@ let text ~width ~input ~focus ~expanded ~searching ~prefix =
   let expansion = if expanded then "e: return" else "e: expand" in
   let hint =
     match input with
-    | Compose -> "INSERT / Enter queues · Esc keeps draft · Ctrl-L newline · arrows edit"
+    | Compose -> "INSERT / Enter sends · Esc keeps draft · Ctrl-L newline · arrows edit"
     | Edit_model -> "MODEL / Enter applies · Esc cancels · arrows edit · Home/End"
     | New_task -> "NEW TASK / Enter creates · Esc cancels · arrows edit · Home/End"
     | Search -> "BOARD SEARCH / Enter finishes · Esc closes · arrows edit"

@@ -52,12 +52,11 @@ let () =
   ignore (Ui.render controller ~width:120 ~height:36);
   check "obscured detail does not acknowledge updates"
     (Task_updates.count controller.task_updates "second" = 1);
-  controller.live_confirmation <- Some "second";
-  controller.help <- false;
+  controller.help <- true;
   ignore (Ui.render controller ~width:120 ~height:36);
-  check "run confirmation does not mark underlying detail seen"
+  check "Help overlay does not mark underlying detail seen"
     (Task_updates.count controller.task_updates "second" = 1);
-  controller.live_confirmation <- None;
+  controller.help <- false;
   controller.help <- false;
   Controller.act controller (Controller.Focus Board);
   ignore (Ui.render controller ~width:60 ~height:14);

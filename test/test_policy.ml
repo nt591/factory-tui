@@ -137,20 +137,13 @@ printf '%s\n' '{"type":"turn.completed"}'
   Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
   check "enabling write starts no process" (not (Sys.file_exists marker));
   Controller.act controller Controller.Start;
-  let view =
-    Live_confirmation.render ~policy:Workspace_write (Some task) ~width:88 ~height:24
-  in
-  let buffer = Buffer.create 4096 in
-  Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (88, 24) view.image;
-  check "write permission is visible before confirming"
-    (Controller.contains (Buffer.contents buffer)
-       "WRITE ACCESS: workspace + temp directories");
   Controller.paste_key controller (`ASCII 'y', []);
-  check "paste cannot approve writes"
-    ((Option.get (Controller.selected controller)).active = None
+  check "paste cannot start an additional write run"
+    ((Option.get (Controller.selected controller)).active <> None
+    && List.length (Option.get (Controller.selected controller)).runs = 1
     && not (Sys.file_exists marker));
   ignore (Ui.render controller ~width:120 ~height:36);
-  Controller.act controller Controller.Confirm_live;
+
   let captured = List.hd (Option.get (Controller.selected controller)).runs in
   check "run captures write policy"
     (captured.policy = Workspace_write && not captured.simulated);

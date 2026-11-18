@@ -39,7 +39,7 @@ def main():
         config.write_bytes(configured)
         env = {key: os.environ[key] for key in ("PATH", "LANG") if key in os.environ}
         env.update(HOME=str(home), XDG_CONFIG_HOME=str(xdg), TMPDIR=str(directory))
-        command = [str(binary)]
+        command = [str(binary), "--demo"]
         with Terminal(command, env) as tui:
             tui.ready()
             tui.wait("default layout config discovered", lambda: chat_row(tui) == 15)
@@ -122,7 +122,7 @@ def main():
         executable.chmod(0o700)
         database = directory / "live.sqlite"
         with Terminal(
-            command
+            [str(binary)]
             + [
                 "--config",
                 str(explicit),

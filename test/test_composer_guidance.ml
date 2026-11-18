@@ -28,7 +28,7 @@ let () =
         Composer_guidance.text ~mode:(Menu_content.Live policy) ~editing:true task
       in
       check "editing uses queue instructions not steer/send-now claims"
-        (Controller.contains editing "Enter queues"
+        (Controller.contains editing "Enter sends"
         && Controller.contains editing "Ctrl-L newline"))
     [ Read_only; Workspace_write ];
   List.iter
@@ -48,7 +48,7 @@ let () =
         Composer_guidance.text ~width ~mode:(Live Read_only) ~editing:true long
       in
       check "long model cannot hide queue instructions"
-        (String.starts_with ~prefix:"Enter queues" editing);
+        (String.starts_with ~prefix:"Enter sends" editing);
       check "bounded composer hints fit terminal cells"
         (Notty.I.width (Notty.I.string Notty.A.empty editing) <= width);
       let idle =
@@ -96,13 +96,12 @@ let () =
   check "actual live composer renders supported controls"
     (Controller.contains (render ()) "m model / live Codex only"
     && not (Controller.contains (render ()) "H harness"));
-  check "guidance starts no additional run or confirmation"
-    (Controller.snapshot controller = saved && controller.live_confirmation = None);
+  check "guidance leaves run state unchanged" (Controller.snapshot controller = saved);
   Controller.act controller Controller.Begin_compose;
   Controller.set_input controller "Follow-up for the next turn";
   controller.tasks <- [ { working with model = long.model } ];
   check "rendered long-model composer keeps queue and newline hints visible"
-    (Controller.contains (render ()) "Enter queues / Ctrl-L newline / Esc keeps draft");
+    (Controller.contains (render ()) "Enter sends / Ctrl-L newline / Esc keeps draft");
   let visible = render () in
   let occurrences text needle =
     let rec loop offset count =
@@ -125,14 +124,12 @@ let () =
   controller.tasks <- [ working ];
 
   check "working composer still displays explicit queue instruction"
-    (Controller.contains (render ()) "Enter queues");
+    (Controller.contains (render ()) "Enter sends");
   Controller.key controller (`Enter, []);
   let updated = Option.get (Controller.selected controller) in
   check "reply during work stays queued under same active run"
     ((List.hd (List.rev updated.messages)).queued
     && updated.active = working.active
     && updated.runs = working.runs && updated.state = Working);
-  check "submission does not trigger live confirmation"
-    (controller.live_confirmation = None);
   Printf.printf "Passed %d mode-aware composer checks. Pure copy/controller only.\n"
     !checks

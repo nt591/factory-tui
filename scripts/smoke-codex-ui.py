@@ -195,23 +195,6 @@ def main():
                     "live harness boundary", lambda: "supports Codex only" in tui.text()
                 )
                 tui.send(b"s")
-                tui.wait("run confirmation", lambda: "Confirm live run" in tui.text())
-                tui.check(
-                    "write confirmation discloses temp access and starts nothing",
-                    "workspace + temp directories" in tui.text()
-                    and "no approvals" in tui.text()
-                    and UiGateway.requests == 0,
-                )
-                disclosure = "".join(
-                    row[17:103].strip()
-                    for row in tui.screen.display
-                    if row[16:17] == "│" and row[103:104] == "│"
-                )
-                tui.check(
-                    "confirmation shows the complete workspace and selected model",
-                    str(workspace) in disclosure and "Model: gpt-4.1" in disclosure,
-                )
-                tui.send(b"y")
                 tui.wait(
                     "Working card and checkpoint",
                     lambda: (
@@ -224,7 +207,7 @@ def main():
                 tui.send(b"i")
                 tui.check(
                     "active live composer explicitly queues replies",
-                    "Enter queues" in tui.text(),
+                    "Enter sends" in tui.text(),
                 )
                 tui.send(b"\x1b")
                 UiGateway.release.set()
@@ -276,15 +259,6 @@ def main():
                 tui.send(b"i")
                 tui.send(b"Continue this same local conversation")
                 tui.send(b"\r")
-                tui.send(b"s")
-                tui.wait(
-                    "resume confirmation", lambda: "Confirm live run" in tui.text()
-                )
-                tui.check(
-                    "queued reply does not automatically resume",
-                    UiGateway.requests == previous_requests,
-                )
-                tui.send(b"y")
                 tui.wait(
                     "same-thread completion",
                     lambda: (

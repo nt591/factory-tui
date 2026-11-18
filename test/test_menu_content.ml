@@ -38,8 +38,7 @@ let () =
         (contains help "Live execution supports Codex only");
       check "live help does not advertise simulated harness cycling"
         (not (contains help "H cycles"));
-      check "live help requires explicit confirmation"
-        (contains help "s asks for live confirmation");
+      check "live help describes direct sends" (contains help "Enter sends a task/reply");
       check "live help does not advertise demo pause" (not (contains help "f pauses"));
       check "live settings edits model without claiming harness support"
         (contains content "m edits model / live Codex only"
@@ -100,11 +99,11 @@ let () =
   check "actual live settings omits misleading cycle guidance"
     (Controller.contains content "live Codex only"
     && not (Controller.contains content "H changes harness"));
-  check "menu content creates no live confirmation"
-    (controller.live_confirmation = None && Controller.snapshot controller = before);
+  check "menu content leaves task state unchanged"
+    (Controller.snapshot controller = before);
   Controller.key controller (`ASCII 'H', []);
   check "live Settings shortcut cannot select unsupported harness"
-    (Controller.snapshot controller = before && controller.live_confirmation = None);
+    (Controller.snapshot controller = before);
   Controller.key controller (`Escape, []);
   Controller.key controller (`ASCII 'H', []);
   check "normal live shortcut preserves Codex and captured settings"
@@ -114,8 +113,7 @@ let () =
   Controller.key controller (`ASCII 'H', []);
   check "explicit live shortcut can repair imported simulated harness"
     ((Option.get (Controller.selected controller)).harness = Codex
-    && (Option.get (Controller.selected controller)).runs = []
-    && controller.live_confirmation = None);
+    && (Option.get (Controller.selected controller)).runs = []);
   controller.tasks <- [ accepted ];
   let accepted_snapshot = Controller.snapshot controller in
   Controller.key controller (`ASCII 'm', []);

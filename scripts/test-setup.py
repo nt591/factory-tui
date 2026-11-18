@@ -92,7 +92,6 @@ class Tests(unittest.TestCase):
             binary.chmod(0o700)
             output = root / "config"
             answers = [
-                str(binary),
                 "",
                 "",
                 "manual",
@@ -133,7 +132,6 @@ class Tests(unittest.TestCase):
             binary.chmod(0o700)
             output = root / "config"
             answers = [
-                str(binary),
                 "",
                 "",
                 "manual",
@@ -163,7 +161,7 @@ class Tests(unittest.TestCase):
             binary.write_text("fixture")
             binary.chmod(0o700)
             output = root / "config"
-            answers = [str(binary), "", "", "skip", "default", "", "yes"]
+            answers = ["", "", "skip", "default", "", "yes"]
             with (
                 mock.patch.object(
                     sys,

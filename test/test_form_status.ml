@@ -27,7 +27,7 @@ let () =
     { task_id = task.id; run_id = "run"; event = Turn_started };
   check "run updates leave form setup guidance intact"
     (Workspace_form.status form
-   = "Fill the fields; Ctrl-S creates a queued task. No agent starts.");
+   = "Enter sends the task. Tab moves fields. Ctrl-S saves without running.");
   Controller.act controller Controller.Submit_workspace;
   let validation = Workspace_form.status form in
   check "form owns its validation error" (Controller.contains validation "absolute paths");

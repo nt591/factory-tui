@@ -46,7 +46,7 @@ let () =
             (text = hint ~input width))
         [ -1; 0; 1; 20; 40; 60; 120 ])
     [
-      (Compose, "INSERT", "Enter queues", "Esc keeps draft");
+      (Compose, "INSERT", "Enter sends", "Esc keeps draft");
       (Edit_model, "MODEL", "Enter applies", "Esc cancels");
       (New_task, "NEW TASK", "Enter creates", "Esc cancels");
       (Search, "BOARD SEARCH", "Enter finishes", "Esc closes");
@@ -64,7 +64,7 @@ let () =
     (Controller.contains (render ()) "cards");
   Controller.act controller Begin_compose;
   check "rendered composer footer shows insert controls"
-    (Controller.contains (render ()) "INSERT / Enter queues");
+    (Controller.contains (render ()) "INSERT / Enter sends");
   check "rendered hints cannot change persisted data"
     (Controller.snapshot controller = saved);
   Controller.submit controller;
@@ -87,8 +87,6 @@ let () =
     (Controller.contains (render ()) "End: latest"
     && not (Controller.contains (render ()) "n/N: matches"));
   check "hints and focus changes start no process"
-    (controller.live_confirmation = None
-    && controller.creation_request = None
-    && controller.creation_job = None);
+    (controller.creation_request = None && controller.creation_job = None);
   Printf.printf "Passed %d contextual shortcut checks. Pure input/rendering only.\n"
     !checks

@@ -16,7 +16,7 @@ let help ~mode =
     "Ctrl-U/D: half-page. Ctrl-B/F: full-page. Tab/Shift-Tab: cycle.";
     "Mouse wheel and Page Up/Down scroll. Home/End: first/last.";
     "Paused chat: click Latest on its border, or End, to follow output.";
-    "i composes a reply. Enter queues; Ctrl-L/Alt-Enter adds a line.";
+    "i composes a reply. Enter sends; Ctrl-L/Alt-Enter adds a line.";
     "Arrows edit; Home/End move within a line; Escape keeps the draft.";
     (match mode with
     | Live _ -> "n/W creates a workspace task. Setup starts no agent."
@@ -25,7 +25,7 @@ let help ~mode =
     | Live _ -> "m edits next-run model. Live execution supports Codex only."
     | _ -> "m edits next-run model. H cycles simulated Codex / Claude.");
     (match mode with
-    | Live _ -> "s asks for live confirmation; x stops; a accepts Ready tasks."
+    | Live _ -> "Enter sends a task/reply; s retries pending work; x stops; a accepts."
     | Replay -> "Replay supplies updates. s cannot start a run; a accepts Ready."
     | Fake -> "s starts a local process fixture; x stops; a accepts Ready."
     | Simulation -> "s starts a simulated run; x stops; a accepts Ready tasks.");
@@ -60,12 +60,12 @@ let settings ~mode ~database ~task ~layout =
         ^ (match policy with
           | Model.Read_only -> "Read-only"
           | Workspace_write -> "Workspace-write")
-        ^ " / confirmation required"
+        ^ " / send to run"
     | Fake -> "local process fixtures"
     | Replay -> "fixture replay"
     | Simulation -> "simulated agents");
     (match mode with
-    | Live _ -> "Setup never starts an agent. Live runs require confirmation."
+    | Live _ -> "Startup starts no agent. Sending work starts a run under this policy."
     | Replay -> "Replay supplies updates; no process can start from this mode."
     | Fake -> "Only explicit Start runs the local process fixture. No model calls."
     | Simulation -> "Demo runs are simulated; no model or agent process starts.");

@@ -41,7 +41,7 @@ def main():
             tui.send(b"ei")
             tui.wait(
                 "reply insert guidance",
-                lambda: "INSERT / Enter queues" in tui.screen.display[-1],
+                lambda: "INSERT / Enter sends" in tui.screen.display[-1],
             )
             tui.check(
                 "reply hint names draft-preserving Escape and newline",
@@ -63,16 +63,16 @@ def main():
             tui.send(b"Recovered reply")
             tui.wait(
                 "feedback clears on edit",
-                lambda: "INSERT / Enter queues" in tui.screen.display[-1],
+                lambda: "INSERT / Enter sends" in tui.screen.display[-1],
             )
             click_control("[Newline / Ctrl-L]")
             tui.send(b"Second line")
             tui.check(
                 "reply editor shows only usable input controls",
-                "[Queue reply / Enter]" in tui.screen.display[-2]
+                "[Send reply / Enter]" in tui.screen.display[-2]
                 and "i reply" not in tui.screen.display[-2],
             )
-            click_control("[Queue reply / Enter]")
+            click_control("[Send reply / Enter]")
             tui.wait(
                 "valid reply queued",
                 lambda: (

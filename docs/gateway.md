@@ -31,7 +31,7 @@ environment-key reference, Responses wire protocol, and no OpenAI authentication
 requirement. It never reads the referenced variable. Explicit resume remains on
 the same exact thread ID, and prompts remain on stdin. Tests cover both new and
 resume forms. The provider is available to explicit `--run-codex` and `--live-ui` paths.
-Live UI setup alone starts nothing; per-run confirmation is required.
+Startup alone starts nothing; sending starts the run.
 
 The installed-Codex headless integration passes a loopback fixture; it uses
 isolated temporary CODEX_HOME/workspace and a dummy key. No real gateway call
@@ -86,17 +86,15 @@ entry remains available through `m`; `M` opens the TUI catalogue picker.
 ## Read-only live test after discovery
 
 ```sh
-./scripts/run.sh --live-ui --no-config \
+./scripts/run.sh --no-config \
   --database "$HOME/factory-live-test.sqlite" \
-  --codex-executable /opt/homebrew/bin/codex \
   --gateway examples/litellm.toml
 ```
 
 Use a new database, `W` to create a task in an isolated jj workspace, and enter an
 exact discovered model ID in the form. Start with an instruction to inspect the
-workspace without changing files. `s` opens confirmation; inspect all rows before
-confirming. `x` stops. A follow-up is queued with `i` and requires another explicit
-confirmation. This launch is read-only; restart with `--workspace-write` only when
+workspace without changing files. Enter sends the task/reply directly. `s` retries
+pending work; `x` stops. This launch is read-only; restart with --workspace-write when
 you deliberately want edits. Real calls can consume tokens and use your key.
 Provider/model protocol compatibility still needs this live verification.
 
@@ -144,17 +142,15 @@ a single live completion does not establish tool, write or resume compatibility.
 Live UI launch can explicitly request reasoning effort without an executable wrapper:
 
 ```sh
-./scripts/run.sh --live-ui --no-config \
+./scripts/run.sh --no-config \
   --database "$HOME/factory-live-test.sqlite" \
-  --codex-executable /opt/homebrew/bin/codex \
   --gateway examples/litellm.toml \
   --reasoning-effort low
 ```
 
 Supported choices are `low`, `medium` and `high`. Omitting the option leaves
 Codex's default unchanged. This option applies to every new/resumed run in this
-launch and is shown in confirmation. Changed effort invalidates previously
-reviewed confirmation details. It supplies `model_reasoning_effort` to Codex;
+launch and is passed into new and resumed invocations. It supplies `model_reasoning_effort` to Codex;
 model/provider support is not inferred from the model catalogue. It is currently
 a launch option only, not a task setting or stored run-history field. Restart
 must repeat the desired option; old run records do not claim an effort value.

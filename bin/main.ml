@@ -14,6 +14,7 @@ let () =
   and dry_run = ref false
   and run_codex = ref false
   and live_ui = ref false
+  and demo = ref false
   and workspace_write = ref false
   and reasoning = ref None
   and executable = ref None
@@ -28,16 +29,17 @@ let () =
         "EFFORT Request low, medium or high reasoning for live UI runs" );
       ( "--workspace-write",
         Arg.Set workspace_write,
-        " Explicit write access in live UI task workspaces; confirmation required" );
+        " Explicit write access for real runs" );
       ( "--version",
         Arg.Unit
           (fun () ->
             print_endline "factory-tui 0.1.0";
             exit 0),
         " Print version without reading config or starting anything" );
+      ("--demo", Arg.Set demo, " Open simulated tasks explicitly; no model calls");
       ( "--live-ui",
         Arg.Set live_ui,
-        " Enable explicit confirmed Codex runs on workspace tasks; SQLite required" );
+        " Compatibility flag: real UI is the default; SQLite required" );
       ( "--run-codex",
         Arg.Set run_codex,
         " Execute a read-only agent explicitly; stdin prompt and --database required" );
@@ -78,7 +80,7 @@ let () =
         "PATH Read fixture JSONL from a file or FIFO instead of demo timers" );
       ( "--database",
         Arg.String (fun value -> database := Some value),
-        "PATH Persist simulated conversations in an explicit SQLite database" );
+        "PATH Persist conversations in an explicit SQLite database" );
       ( "--config",
         Arg.String (fun value -> config := Some value),
         "PATH Load explicit TOML config" );
@@ -89,7 +91,19 @@ let () =
     (fun _ -> raise (Arg.Bad "Unexpected positional argument."))
     "factory-tui [--config PATH | --no-config] [--database PATH]\n\
      See --help for snapshot, fixture, preview, and explicit live execution modes.";
+  let default_live =
+    not
+      (!demo || !live_ui || !run_codex || !dry_run || !snapshot || !fake_harness
+     || !events <> "" || !list_models || !check_config <> None || !check_gateway <> None)
+  in
+  if default_live then live_ui := true;
   try
+    if
+      !demo
+      && (!live_ui || !run_codex || !dry_run || !snapshot || !fake_harness
+        || !events <> "" || !list_models || !check_config <> None
+        || !check_gateway <> None)
+    then invalid_arg "--demo cannot be combined with other execution or check modes.";
     let reasoning =
       match !reasoning with
       | None -> None
@@ -229,14 +243,20 @@ let () =
             ~config:!config ~no_config:!no_config ~database:!database
         with
         | Ok ({ database = Some _; _ } as settings) -> settings
-        | Ok _ -> invalid_arg "Live UI requires SQLite via TOML or --database."
+        | Ok _ ->
+            invalid_arg
+              "No real-board storage configured. Run ./scripts/setup.sh, or use --demo."
         | Error error -> invalid_arg error
       in
       let executable =
         match (!executable, settings.codex.executable) with
         | Some path, _ | None, Some path -> path
-        | None, None ->
-            invalid_arg "Live UI requires codex.executable in TOML or --codex-executable."
+        | None, None -> (
+            match Executable_path.resolve "codex" with
+            | Some path -> path
+            | None ->
+                invalid_arg
+                  "Codex was not found on PATH. Install it or set codex.executable.")
       in
       let gateway_file =
         match !gateway_file with
@@ -257,8 +277,8 @@ let () =
         | Error error -> invalid_arg error
       in
       match
-        App.interactive ~projects:settings.projects ~live
-          ~workspace_defaults:settings.workspace ~layout:settings.layout ~events:""
+        App.interactive ~allow_demo_history:(not default_live) ~projects:settings.projects
+          ~live ~workspace_defaults:settings.workspace ~layout:settings.layout ~events:""
           ~database:(Option.get settings.database)
           ()
       with

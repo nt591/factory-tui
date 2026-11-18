@@ -214,6 +214,10 @@ so fixture implementation does not depend on the terminal controller.
 
 ## Current audit
 
+Earlier sections preserve implementation evidence. Per-run confirmation has been
+removed in favor of explicit Enter/Send actions. See the latest direct-send and
+PATH cleanup sections for current behavior.
+
 `docs/audit.md` maps the original UI/product requirements to inspected source,
 tests, terminal behavior, and packaged execution. Read-only execution, real gateway
 compatibility, and fresh-machine release validation are not claimed complete.
@@ -1049,3 +1053,27 @@ mode configs retain their behavior. Each task persists its canonical root and do
 not move on restart from another cwd. Fixture tests create two tasks from two
 launch folders using one config and verify exact separate persisted roots without
 agent starts or workspace creation. Existing/greenfield modes remain opt-in.
+
+Normal interactive launch now selects the real configured board; --demo explicitly
+selects simulation. Unconfigured launch reports the setup command instead of
+silently seeding demo tasks. Default real launch refuses stored simulated run
+history rather than converting it; --live-ui remains a compatibility override.
+Startup/restart starts no agents. Enter sends a creation form directly and begins
+the run after its task exists; idle live replies send immediately. Working replies
+retain pending delivery for a later turn. Per-run confirmation is removed from
+the normal live path; filesystem policy remains a launch option and Working
+checkpoints are still acknowledged before spawn. Ctrl-S saves a task without
+running as a secondary action. Archive/Session board navigation exits zoom and
+focuses the board; Archive has a pinned return action and Escape returns from its
+board. The footer uses contrasted key labels and subdued action groups inspired
+by mode-oriented terminal status bars, without changing the supported keys.
+
+Executable paths are no longer required in setup or normal/new-task workflows.
+Codex is resolved from PATH at real launch; jj is resolved for new repository tasks.
+Configured paths remain overrides. Folder tasks do not require jj. The obsolete
+per-run confirmation module and its UI-specific tests/fixture are removed; prompt
+capture, checkpoint, policy, process ownership and typed reasoning tests remain.
+Demo cleanup makes simulation explicit in each fixture, moves live default/restart
+coverage to direct-send/default-mode checks, and preserves Demo namespace isolation.
+Documentation sections describing earlier confirmation behavior are historical;
+current commands follow the direct-send/default-real behavior described above.

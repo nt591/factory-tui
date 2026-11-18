@@ -22,9 +22,8 @@ let set_task (controller : Controller.t) (updated : Model.task) =
 let confirm controller id =
   Controller.act controller (Controller.Select id);
   Controller.act controller Controller.Start;
-  check "explicit confirmation required" (controller.live_confirmation = Some id);
-  ignore (Ui.render controller ~width:120 ~height:36);
-  Controller.act controller Controller.Confirm_live
+  check "explicit Start creates run without popup" ((task controller id).state = Working);
+  ignore (Ui.render controller ~width:120 ~height:36)
 
 let poll runner controller storage =
   Live_runner.poll runner (Controller.live_context controller) ~storage;

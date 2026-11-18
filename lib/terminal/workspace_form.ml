@@ -26,7 +26,8 @@ let create ?(jj = "") ~source ~parent ~revision ~model () =
     greenfield = false;
     folder_root = false;
     rejected = None;
-    status = Guidance "Fill the fields; Ctrl-S creates a queued task. No agent starts.";
+    status =
+      Guidance "Enter sends the task. Tab moves fields. Ctrl-S saves without running.";
     values =
       [
         (Jj, Text_edit.create jj);
@@ -82,7 +83,9 @@ let change t fn =
     if t.rejected = Some t.current then t.rejected <- None;
     match t.status with
     | Validation (field, _) when field = t.current ->
-        t.status <- Guidance "Field edited. Ctrl-S checks all fields before creating."
+        t.status <-
+          Guidance
+            "Field edited. Enter on the instruction checks all fields before creating."
     | _ -> ());
   t.values <- (t.current, updated) :: List.remove_assoc t.current t.values
 

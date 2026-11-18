@@ -77,7 +77,7 @@ let render_body form ~busy ~status ~width:cols ~height:rows =
   let buttons =
     if busy then " Creating workspace… please wait. No agent starts."
     else
-      " [Create queued / Ctrl-S]   [Cancel / Esc]  [Models / Ctrl-G] [Projects / Ctrl-P]"
+      " [Create task / Enter]      [Cancel / Esc]  [Models / Ctrl-G] [Projects / Ctrl-P]"
   in
   if (not busy) && rows >= 7 && cols > 2 then (
     hits := { x = 1; y = rows - 2; width = min 25 (cols - 1); action = Create } :: !hits;
@@ -107,7 +107,8 @@ let render_body form ~busy ~status ~width:cols ~height:rows =
         row normal "";
         row warning status;
         row accent buttons;
-        row normal " Ctrl-E: folder root · Ctrl-N: greenfield · Ctrl-S: create";
+        row normal
+          " Ctrl-E: folder root · Ctrl-N: greenfield · Enter: create from instruction";
       ]
   in
   {

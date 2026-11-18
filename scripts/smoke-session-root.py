@@ -69,7 +69,6 @@ for event in [
         env.update(HOME=str(home), XDG_CONFIG_HOME=str(home), TMPDIR=str(directory))
         command = [
             str(binary),
-            "--live-ui",
             "--workspace-write",
             "--config",
             str(config),
@@ -78,21 +77,10 @@ for event in [
             tui.ready()
             tui.send(b"n")
             tui.wait("folder root mode", lambda: "FOLDER ROOT" in tui.text())
-            tui.send(b"Work across these services and create a new one\x13")
-            tui.wait("session created", lambda: "Workspace task created" in tui.text())
+            tui.send(b"Work across these services and create a new one\r")
             tui.check(
-                "session root needs no jj initialization",
-                not (root / ".jj").exists() and not marker.exists(),
+                "session root needs no jj initialization", not (root / ".jj").exists()
             )
-            tui.send(b"s")
-            tui.wait(
-                "root disclosure",
-                lambda: (
-                    "Session root:" in tui.text()
-                    and "no isolated checkout" in tui.text()
-                ),
-            )
-            tui.send(b"\x1b[6~" * 20 + b"y")
             tui.wait(
                 "folder run completes", lambda: "/ Ready / conversation" in tui.text()
             )

@@ -597,7 +597,7 @@ let render t ~width:cols ~height:rows =
              { x = sidebar_width; y = body_y + top; w = main_width; h = body_h - top });
   if
     !detail_visible && t.model_target = None && (not t.help) && t.review = None
-    && t.workspace_form = None && t.live_confirmation = None
+    && t.workspace_form = None
   then Task_updates.clear t.task_updates t.selected;
   let pending_keys =
     (if t.count = 0 then "" else string_of_int t.count)
@@ -620,7 +620,7 @@ let render t ~width:cols ~height:rows =
         Input_line.render ~width:cols ~label:" Search: "
           ~hint:"  [Enter finish / Esc close]" t.editor
     | Compose when !composer_editor_visible ->
-        " Reply (queued): editing above · Enter queues / Esc keeps draft"
+        " Reply (queued): editing above · Enter sends / Esc keeps draft"
     | Compose ->
         Input_line.render ~width:cols ~label:" Reply (queued): "
           ~hint:"  [Enter send / Esc keep draft]" t.editor
@@ -639,14 +639,15 @@ let render t ~width:cols ~height:rows =
   let button title on_hit =
     let w = String.length title + 2 in
     if !x + w <= cols then (
-      paint !x (rows - 2) (line w (emphasis accent) (" " ^ title ^ " "));
+      paint !x (rows - 2) (Hotkey_bar.action title);
       on_hit { x = !x; y = rows - 2; w; h = 1 };
       x := !x + w)
   in
   if rows >= 4 then
     if t.input = Normal then
-      Action_bar.items ~task ~live:(t.live_config <> None) ~replay:t.external_events
-        ~fake:t.fake_harness ~storage:(t.database_path <> None) ~expanded:t.zoom
+      Action_bar.items ~archive:t.archive ~task ~live:(t.live_config <> None)
+        ~replay:t.external_events ~fake:t.fake_harness ~storage:(t.database_path <> None)
+        ~expanded:t.zoom
       |> List.iter (fun (title, action) ->
           button title (fun r -> hit r.x r.y r.w r.h action))
     else
@@ -657,8 +658,7 @@ let render t ~width:cols ~height:rows =
                 { rect; input = t.input; action = item.action } :: !input_controls));
   if rows >= 4 then
     paint 0 (rows - 1)
-      (line cols
-         A.(fg muted ++ bg background)
+      (Hotkey_bar.hints ~width:cols
          (match t.input_limit with
          | Some limit when t.input <> Normal ->
              Printf.sprintf
@@ -731,7 +731,7 @@ let render t ~width:cols ~height:rows =
           let action =
             match item.action with
             | Workspace_dialog.Field field -> Workspace_field field
-            | Workspace_dialog.Create -> Submit_workspace
+            | Workspace_dialog.Create -> Send_workspace
             | Workspace_dialog.Cancel -> Cancel_workspace
             | Workspace_dialog.Models -> Open_models
             | Workspace_dialog.Projects -> Open_projects
@@ -763,43 +763,6 @@ let render t ~width:cols ~height:rows =
           in
           hit item.x (item.y + 1) item.width 1 action)
         view.hits);
-  (match t.live_confirmation with
-  | None -> ()
-  | Some id ->
-      modal_scroll := None;
-      let width = min 88 cols in
-      let task = List.find_opt (fun (task : task) -> task.id = id) t.tasks in
-      let policy =
-        match t.live_config with
-        | None -> Model.Read_only
-        | Some config -> Live_runner.policy config
-      in
-      let reasoning = Option.bind t.live_config Live_runner.reasoning in
-      let height =
-        min rows
-          (Live_confirmation.required_height ?reasoning ~policy
-             ~viewport:t.confirmation_viewport task ~width)
-      in
-      let x = (cols - width) / 2 and y = (rows - height) / 2 in
-      let view =
-        Live_confirmation.render ?reasoning ~policy ~viewport:t.confirmation_viewport task
-          ~width ~height
-      in
-      if view.content_rows > 0 then
-        modal_scroll :=
-          Some { x = x + 1; y = y + 1; w = width - 2; h = view.content_rows };
-      t.confirmation_readable <- view.readable;
-      paint x y view.image;
-      hits := [];
-      input_controls := [];
-      List.iter
-        (fun (item : Live_confirmation.hit) ->
-          hit (x + item.x) (y + item.y) item.width 1
-            (match item.action with
-            | Live_confirmation.Run -> Confirm_live
-            | Live_confirmation.Cancel -> Cancel_live))
-        view.hits);
-
   if t.model_target <> None then (
     let w = min 96 cols and h = min 28 rows in
     let x = (cols - w) / 2 and y = (rows - h) / 2 in
@@ -915,10 +878,7 @@ let mouse (t : Controller.t) frame ~now = function
             t.last_click <- None;
             act t action
         | None -> t.last_click <- None)
-      else if
-        (not t.help) && t.live_confirmation = None && t.review = None
-        && t.workspace_form = None
-      then
+      else if (not t.help) && t.review = None && t.workspace_form = None then
         List.find_opt
           (fun (hit : input_hit) ->
             let r = hit.rect in
@@ -933,11 +893,7 @@ let mouse (t : Controller.t) frame ~now = function
         | Some r -> x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h
         | None -> false
       in
-      if t.live_confirmation <> None then (
-        if over_modal_content && mods = [] then
-          Live_confirmation.scroll t.confirmation_viewport
-            (if direction = `Up then -3 else 3))
-      else if t.project_picker <> None then (
+      if t.project_picker <> None then (
         if over_modal_content then
           Project_picker.move (Option.get t.project_picker)
             (if direction = `Up then -3 else 3))

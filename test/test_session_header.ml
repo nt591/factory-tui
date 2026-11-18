@@ -42,7 +42,7 @@ let () =
             (String.starts_with ~prefix:label header
             && Notty.I.height frame.image = height);
           check "header render never changes execution or saved state"
-            (Controller.snapshot controller = saved && controller.live_confirmation = None))
+            (Controller.snapshot controller = saved))
         [ 1; 2; 3; 8; 20 ])
     [
       (Controller.create (), "SIMULATION");
@@ -67,7 +67,7 @@ let () =
             (String.starts_with ~prefix:label header
             && Notty.I.height frame.image = height);
           check "badge rendering cannot authorize execution"
-            (Controller.snapshot controller = saved && controller.live_confirmation = None))
+            (Controller.snapshot controller = saved))
         [ 1; 2; 3; 8; 20 ])
     [ (Model.Read_only, "LIVE READ"); (Model.Workspace_write, "LIVE WRITE") ];
   Printf.printf "Passed %d session-header checks. Pure copy/rendering only.\n" !checks

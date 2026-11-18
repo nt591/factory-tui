@@ -93,62 +93,12 @@ printf '%s\n' '{"type":"turn.completed"}'
               Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
               check "idle poll starts nothing" (not (Sys.file_exists marker));
               Controller.act controller Controller.Start;
-              check "Start asks confirmation without changing task"
-                (controller.live_confirmation = Some task.id
-                && (Option.get (Controller.selected controller)).state = Queued);
+              check "Start records live run directly without confirmation"
+                ((Option.get (Controller.selected controller)).state = Working);
               Controller.paste_key controller (`Enter, []);
-              Controller.paste_key controller (`ASCII 'y', []);
-              check "paste cannot confirm a real run"
-                ((Option.get (Controller.selected controller)).active = None);
-              let frame = Ui.render controller ~width:120 ~height:36 in
-              check "confirmation blocks all background buttons"
-                (List.for_all
-                   (fun (hit : Ui.hit) ->
-                     hit.action = Controller.Confirm_live
-                     || hit.action = Controller.Cancel_live)
-                   frame.hits);
-              List.iter
-                (fun (width, height) ->
-                  let frame = Ui.render controller ~width ~height in
-                  check "confirmation frame bounds"
-                    (Notty.I.width frame.image = width
-                    && Notty.I.height frame.image = height);
-                  List.iter
-                    (fun (hit : Ui.hit) ->
-                      let r = hit.rect in
-                      check "confirmation hit bounds"
-                        (r.x >= 0 && r.y >= 0 && r.x + r.w <= width && r.y + r.h <= height))
-                    frame.hits)
-                [ (1, 1); (20, 8); (60, 20); (120, 36); (180, 50) ];
-              ignore (Ui.render controller ~width:60 ~height:20);
-              Controller.key controller (`Enter, []);
-              check "small terminal cannot confirm usage"
-                (controller.live_confirmation <> None
-                && (Option.get (Controller.selected controller)).active = None);
-              ignore (Ui.render controller ~width:120 ~height:36);
-              let view =
-                Live_confirmation.render
-                  (Controller.selected controller)
-                  ~width:88 ~height:24
-              in
-              let hit =
-                List.find
-                  (fun (hit : Live_confirmation.hit) ->
-                    hit.action = Live_confirmation.Run)
-                  view.hits
-              in
-              let buffer = Buffer.create 4096 in
-              Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (88, 24) view.image;
-              check "confirmation click aligns with visible Run button"
-                (Controller.contains
-                   (List.nth (String.split_on_char '\n' (Buffer.contents buffer)) hit.y)
-                   "Run / Enter");
-              Controller.key controller (`Escape, []);
-              check "Escape cancels confirmation"
-                (controller.live_confirmation = None && not (Sys.file_exists marker));
-              Controller.act controller Controller.Start;
-              ignore (Ui.render controller ~width:120 ~height:36);
-              Controller.key controller (`Enter, []);
+              check "paste does not create an additional run"
+                (List.length (Option.get (Controller.selected controller)).runs = 1
+                && not (Sys.file_exists marker));
               check "confirmed task records live origin"
                 (not
                    (List.hd (Option.get (Controller.selected controller)).runs).simulated);
@@ -263,7 +213,7 @@ printf '%s\n' '{"type":"turn.completed"}'
                  sleep 1\n";
               Controller.act controller Controller.Start;
               ignore (Ui.render controller ~width:120 ~height:36);
-              Controller.act controller Controller.Confirm_live;
+
               await runner controller worker (fun () ->
                   (Option.get (Controller.selected controller)).state = Needs_you);
               check "resume mismatch preserves recorded thread"
@@ -280,7 +230,7 @@ printf '%s\n' '{"type":"turn.completed"}'
               in
               Controller.act controller Controller.Start;
               ignore (Ui.render controller ~width:120 ~height:36);
-              Controller.act controller Controller.Confirm_live;
+
               controller.tasks <-
                 List.map
                   (fun (task : task) ->
@@ -315,7 +265,7 @@ printf '%s\n' '{"type":"turn.completed"}'
               write "cat >/dev/null\nsleep 10\n";
               Controller.act controller Controller.Start;
               ignore (Ui.render controller ~width:120 ~height:36);
-              Controller.act controller Controller.Confirm_live;
+
               Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
               Controller.act controller Controller.Stop;
               Live_runner.close runner (Controller.live_context controller);
@@ -323,7 +273,7 @@ printf '%s\n' '{"type":"turn.completed"}'
                 ((Option.get (Controller.selected controller)).state = Needs_you);
               Controller.act controller Controller.Start;
               ignore (Ui.render controller ~width:120 ~height:36);
-              Controller.act controller Controller.Confirm_live;
+
               Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
               Live_runner.close runner (Controller.live_context controller);
               check "shutdown records interruption"
@@ -339,7 +289,7 @@ printf '%s\n' '{"type":"turn.completed"}'
               ok (Persistence.close worker);
               Controller.act controller Controller.Start;
               ignore (Ui.render controller ~width:120 ~height:36);
-              Controller.act controller Controller.Confirm_live;
+
               Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
               await runner controller worker (fun () ->
                   (Option.get (Controller.selected controller)).state = Needs_you);

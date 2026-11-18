@@ -11,7 +11,7 @@ let selection ~live ~replay (task : task) =
     | Working ->
         if replay then
           "Replay updates are active. i queues a reply; no process can start."
-        else "Run in progress. i queues a reply for the next turn; x stops."
+        else "Run in progress. i sends a reply for the next turn; x stops."
     | (Queued | Needs_you) when replay ->
         "Replay controls updates. Inspect chat; no process can start."
     | (Queued | Needs_you) when live && task.workspace = None && task.session_root = None
@@ -22,8 +22,7 @@ let selection ~live ~replay (task : task) =
     | Queued | Needs_you ->
         if not (List.exists (fun (message : message) -> message.queued) task.messages)
         then "Inspect the conversation. i queues an instruction before another run."
-        else if live then
-          "Instructions queued. s opens live confirmation; nothing runs automatically."
+        else if live then "Pending instructions. s sends them; Enter sends a reply."
         else "Instructions queued. s starts a simulated or local fixture run."
   in
   task.id ^ " / " ^ guidance

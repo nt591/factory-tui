@@ -135,27 +135,7 @@ for event in [
             )
             tui.send(b"API\r")
             tui.wait("project selected", lambda: "Project selected" in tui.text())
-            tui.send(b"Implement the fixture task\x13")
-            tui.wait(
-                "workspace task created", lambda: "Workspace task created" in tui.text()
-            )
-            tui.check("creation does not execute the runner", not marker.exists())
-            tui.send(b"s")
-            tui.wait("run confirmation", lambda: "Confirm live run" in tui.text())
-            tui.check(
-                "confirmation names write policy and queued instruction",
-                "WRITE ACCESS" in tui.text()
-                and "Requested reasoning effort: low" in tui.text()
-                and "Implement the fixture task" in tui.text()
-                and not marker.exists(),
-            )
-            if args.preview:
-                tui.preview(args.preview.with_stem(args.preview.stem + "-confirmation"))
-            tui.send(b"\x1b")
-            tui.check("cancelling confirmation starts nothing", not marker.exists())
-            tui.send(b"s")
-            tui.send(b"\x1b[6~" * 20)
-            tui.send(b"y")
+            tui.send(b"Implement the fixture task\r")
             tui.wait(
                 "confirmed fixture completes",
                 lambda: "/ Ready / conversation" in tui.text(),
@@ -199,19 +179,6 @@ for event in [
             tui.send(b"m\x1b[H")
             tui.send(b"\x1b[200~followup-\x1b[201~\r")
             tui.send(b"iAdd the follow-up file\r")
-            tui.check(
-                "queueing a follow-up and changing model do not start a run",
-                len(marker.read_text().splitlines()) == 1,
-            )
-            tui.send(b"s")
-            tui.wait("follow-up confirmation", lambda: "Confirm live run" in tui.text())
-            tui.check(
-                "follow-up confirmation discloses resume and new model",
-                "workflow-thread" in tui.text()
-                and "followup-fixture-model" in tui.text()
-                and "Add the follow-up file" in tui.text(),
-            )
-            tui.send(b"\x1b[6~" * 20 + b"y")
             tui.wait(
                 "follow-up run is Working",
                 lambda: (

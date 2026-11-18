@@ -29,11 +29,11 @@ let empty ~live ~has_tasks ~archived ~filtered =
       title = (if has_tasks then "No active tasks" else "Your factory starts here");
       lines =
         [
-          "1. Create a task in an isolated jj workspace.";
-          "2. Open its chat and queue an instruction.";
-          "3. Press s and inspect the run confirmation.";
+          "1. Describe a task in the current folder or an isolated workspace.";
+          "2. Enter sends the task and starts its agent.";
+          "3. Reply with i then Enter; x stops a run.";
           "4. Review changes with v; accept Ready work with a.";
-          "Nothing runs until you explicitly confirm.";
+          "Enter sends work; startup starts no agent.";
           "? opens help and settings. Workspace defaults live in TOML.";
         ];
       button = "[Create workspace task / W or n]";

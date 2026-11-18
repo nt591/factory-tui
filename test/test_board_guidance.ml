@@ -17,8 +17,7 @@ let () =
     (controller.tasks = [] && controller.selected = "");
   check "new live board has no scheduler or drafts"
     (controller.schedules = [] && controller.drafts = []);
-  check "new live board is enabled without pending run"
-    (controller.live_config <> None && controller.live_confirmation = None);
+  check "new live board is enabled without pending run" (controller.live_config <> None);
   let saved = Controller.snapshot controller in
   check "empty board codec works" (ok (Snapshot.decode (Snapshot.encode saved)) = saved);
   let render width height =
@@ -32,7 +31,7 @@ let () =
     (Controller.contains text "Your factory starts here"
     && Controller.contains text "Create workspace task");
   check "workflow includes execution and review"
-    (Controller.contains text "confirmation" && Controller.contains text "Review changes");
+    (Controller.contains text "Enter sends" && Controller.contains text "Review changes");
   check "empty live board has no sample card names"
     ((not (Controller.contains text "T-101"))
     && not (Controller.contains text "Mouse hit-testing"));
@@ -57,8 +56,7 @@ let () =
     (controller.workspace_form <> None && controller.tasks = []);
   Controller.act controller Controller.Cancel_workspace;
   Controller.key controller (`ASCII 's', []);
-  check "empty board cannot queue execution"
-    (controller.live_confirmation = None && controller.tasks = []);
+  check "empty board cannot queue execution" (controller.tasks = []);
   List.iter
     (fun (width, height) ->
       let frame, _ = render width height in

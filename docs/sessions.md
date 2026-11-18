@@ -25,7 +25,7 @@ Open the creation form with `n` in live mode or `W` with SQLite configured.
 
 Ctrl-E/Ctrl-N toggles the respective mode; selecting a registered project returns
 to existing-project mode. Other field values remain editable and are retained
-when switching. Ctrl-S is always the separate explicit creation action. Model
+when switching. Enter sends and starts the task; Ctrl-S saves without starting it. Model
 selection uses **Models / Ctrl-G** and performs no creation or execution.
 
 A folder-rooted task can start in a project or a multi-service working folder:
@@ -69,7 +69,7 @@ parent, model and other fields remain unchanged. Manual paths still work.
 ## Execution and review boundaries
 
 A working root is not a security sandbox. Live runs remain explicit and show the
-actual root and requested filesystem policy in confirmation. Read-only is the
+actual root in Activity and filesystem policy in the launch banner. Read-only is the
 default; `--workspace-write` deliberately permits writes according to Codex's
 policy, including its permitted temporary directories. This policy is not a
 claim of complete process containment, and roots can overlap. Avoid concurrent

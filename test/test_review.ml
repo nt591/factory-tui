@@ -401,12 +401,12 @@ let () =
       check "plain wheel scrolls only the queued column"
         (Column_scroll.offset controller.column_scroll Model.Queued = 0
         && controller.board_scroll = 0);
-      controller.live_confirmation <- Some task.id;
+      controller.help <- true;
       Ui.mouse controller board_frame ~now:9. (`Press (`Scroll `Down), (10, 10), []);
-      check "confirmation blocks wheel behind modal"
+      check "Help overlay blocks wheel behind modal"
         (Column_scroll.offset controller.column_scroll Model.Queued = 0
         && controller.board_scroll = 0);
-      controller.live_confirmation <- None;
+      controller.help <- false;
       let review = ok (Review.create task ~jj:"/absent/jj") in
       Review.refresh review;
       await review;

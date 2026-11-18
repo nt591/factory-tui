@@ -8,6 +8,9 @@ let check name condition =
 
 let fill form field text =
   Workspace_form.focus form field;
+  for _ = 1 to String.length (Workspace_form.value form field) do
+    Workspace_form.key form (`Backspace, [])
+  done;
   String.iter (fun char -> Workspace_form.key form (`ASCII char, [])) text
 
 let () =
@@ -45,6 +48,7 @@ let () =
   controller.database_path <- Some "/fixture/db";
   Controller.act controller Controller.Begin_workspace;
   let form = Option.get controller.workspace_form in
+  fill form Workspace_form.Jj "";
   Workspace_form.focus form Workspace_form.Task;
   let saved = Controller.snapshot controller in
   Controller.key controller (`ASCII 's', [ `Ctrl ]);
@@ -75,7 +79,7 @@ let () =
   Workspace_form.paste_key form (`ASCII '/', []);
   check "actual edit clears only the obsolete failing-field message"
     (Workspace_form.status form
-   = "Field edited. Ctrl-S checks all fields before creating.");
+   = "Field edited. Enter on the instruction checks all fields before creating.");
   check "edited feedback does not imply the whole form is valid"
     (Result.is_error (Workspace_form.validate form));
   Controller.key controller (`ASCII 's', [ `Ctrl ]);

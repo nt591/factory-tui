@@ -343,23 +343,6 @@ cancellation. The marker gates the intended test boundary; it changes no process
 or storage implementation, timeout, or production cancellation policy.
 
 
-## Scrollable confirmation fixture
-
-```sh
-uv run --with pyte --with pillow python scripts/smoke-confirmation.py \
-  --preview /tmp/factory-confirmation.png
-```
-
-This runs the actual TUI against a temporary SQLite snapshot and a fixed shell
-harness. Its recorded workspace has only a temporary `.jj` marker; it is not a
-jj integration test. No installed model executable, credential, provider, or real
-checkout is accessed. Checks cover complete identity tails, skipped-row blocking,
-Vim/paging/wheel controls, button wheel isolation, resize/new-dialog reset,
-mouse cancellation and confirmation, exact retained identity/prompt, and one
-persisted Ready run. Previews show the locked and reviewed views. Pass `--binary`
-to use an already-built executable without rebuilding it. Displayed-row coverage
-is a UI safety gate, not evidence of human comprehension or a sandbox audit.
-
 
 ## Adjustable pane replay fixture
 
@@ -573,59 +556,6 @@ It uses only temporary replay events. Full terminal checks cover existing modal,
 sidebar, column-body and reply interactions with the separated geometry.
 
 
-## Confirmation preparation cache
-
-Normal test_confirmation_cache compares cached and uncached views, raw-detail and
-width invalidation, unchanged scrolling, height-query inactivity, new-dialog reset
-and missing-task refusal. Existing test_confirmation_layout and smoke-confirmation
-exercise shown-row coverage, exact current identity, reflow reset and confirmed
-fake execution. To measure only disclosure height/render work:
-
-```sh
-opam exec --switch=. -- dune exec test/test_confirmation_cache.exe -- --measure
-```
-
-One local run with a 60-KiB title and 20 frames reported 0.77 ms / 5,971,488 allocated
-bytes with reuse versus 209.19 ms / 609,733,312 without reuse, including disclosure
-of both the title and its initial queued instruction. It includes image
-construction, but not full Ui, terminal output or process work. Measurement uses
-no model or workspace. No elapsed-time or allocation ratio is a unit-test gate.
-
-
-The smoke-confirmation PTY now discloses two actual queued replies beside a long
-old title. Sent history is excluded; multiline/Unicode queued content is visible
-across reviewed pages. The fake harness receives exactly the queued texts joined
-by two LF bytes, not the task title or historical instruction. Pure test_run_prompt
-covers queue/captured-ID selection, exact separators/byte length, later-reply
-exclusion, queued text/ID authorization invalidation and unchanged sent-history
-compatibility. Preparation caching retains these checks and avoids prompt assembly
-solely for redraw counters.
-
-The live-runner integration test now acknowledges captured instructions and adds
-17 later 64-KiB replies before the first process poll. Public next-run preflight
-rejects that oversized queue, while the already confirmed fixture sends its exact
-original instruction and reaches Ready. All later replies remain queued. This
-runs only a temporary fake executable/workspace and does not use a model.
-One parallel process-suite attempt in this increment hit the existing callback
-teardown timing assertion; its isolated rerun passed. Deadlines and process code
-were unchanged. A passing rerun does not diagnose the cause.
-
-
-Run-prompt unit checks cover validated capture ordering, acknowledged flags,
-missing/duplicate/empty ID rejection and ambiguous message records. Model.send tests
-reject duplicate and invalid-length reply IDs. The temporary live-runner integration
-corrupts a captured ID before its first poll, verifies that no fixture marker is
-created, checks channel failure and retained queue, and roundtrips its resulting
-snapshot. This tests the in-process guard, not support for loading corrupt snapshots;
-the codec independently rejects invalid captured references.
-
-
-`test_system_messages` checks repeated same-revision notices, collisions with user
-and imported history, stable earlier records, queued prompt retention and 200 unique
-notice IDs. It roundtrips the strict codec, renders restored chat and saves/reopens
-a temporary SQLite database with exact IDs/text. No agents, credentials or real
-workspace operations are used. Existing corrupt snapshots remain rejected rather
-than automatically repaired.
 
 ## Large captured-turn acknowledgement
 
@@ -926,3 +856,17 @@ source-free config, without prompting for working area paths. Both task roots ar
 retained in SQLite and neither run starts. Pure form tests check instruction focus,
 folder-only field order and runtime cwd fallback. Optional/manual/configured model
 selection remains independently verified. Existing source overrides still work.
+
+Current UI tests replace the removed run-confirmation case with direct-send and
+add default-mode coverage. PATH discovery has pure tests and setup uses a fake
+codex found on an isolated PATH. Stored demo-run history is refused by a default
+real launch before conversion; explicit demo reopens it. Prompt/queue/checkpoint/
+policy tests remain even though per-run confirmation layout tests are removed.
+
+The current default/direct-send cleanup removes the obsolete confirmation module
+and its PTY/layout tests. Capture, queue, checkpoint, process cancellation and
+filesystem-policy coverage remain. Simulation launches are explicit --demo,
+while replay/fake fixtures keep their own modes. Default-mode tests verify setup
+guidance and preservation/refusal of demo history. PATH tests verify Codex/jj
+lookup without execution; setup config stores provider/model defaults but no
+mandatory executable location. New tasks discover jj unless an override exists.

@@ -10,6 +10,9 @@ let ok = function Ok value -> value | Error error -> failwith error
 
 let fill form field text =
   Workspace_form.focus form field;
+  for _ = 1 to String.length (Workspace_form.value form field) do
+    Workspace_form.key form (`Backspace, [])
+  done;
   String.iter (fun char -> Workspace_form.key form (`ASCII char, [])) text
 
 let () =
@@ -36,9 +39,8 @@ let () =
   Controller.key controller (`Tab, [ `Shift ]);
   check "Shift-Tab moves backwards" (Workspace_form.current form = Workspace_form.Source);
   Controller.key controller (`Enter, []);
-  check "Enter does not submit workspace"
-    (controller.creation_request = None
-    && Workspace_form.current form = Workspace_form.Parent);
+  check "Enter validates incomplete form instead of advancing"
+    (controller.creation_request = None && controller.workspace_form <> None);
   Controller.key controller (`ASCII 's', [ `Ctrl ]);
   check "invalid form stays open without job"
     (controller.creation_request = None && controller.workspace_form <> None);
@@ -55,8 +57,8 @@ let () =
           check "modal blocks background actions"
             (match hit.action with
             | Controller.Workspace_field _ | Controller.Submit_workspace
-            | Controller.Cancel_workspace | Controller.Open_models
-            | Controller.Open_projects ->
+            | Controller.Send_workspace | Controller.Cancel_workspace
+            | Controller.Open_models | Controller.Open_projects ->
                 true
             | _ -> false))
         frame.hits)
@@ -86,7 +88,7 @@ let () =
   Notty.Render.to_buffer rendered Notty.Cap.dumb (0, 0) (90, 26) dialog.image;
   let rendered = Buffer.contents rendered |> String.split_on_char '\n' in
   check "create hitbox aligns with visible button"
-    (Controller.contains (List.nth rendered click.y) "Create queued");
+    (Controller.contains (List.nth rendered click.y) "Create task");
   Controller.key controller (`Escape, []);
   check "escape cancels form only"
     (controller.workspace_form = None && not controller.quit);

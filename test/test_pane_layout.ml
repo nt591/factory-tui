@@ -165,12 +165,12 @@ let () =
   check "composer keeps resize characters literal" (Controller.draft controller = "+");
   Controller.key controller (`Escape, []);
   let active_before = (Option.get (Controller.selected controller)).active in
-  controller.live_confirmation <- Some controller.selected;
+  controller.help <- true;
   ignore (Ui.render controller ~width:120 ~height:36);
   window controller '+';
-  check "confirmation prefix cannot start a run"
+  check "Help overlay isolates pane prefix"
     ((Option.get (Controller.selected controller)).active = active_before);
-  controller.live_confirmation <- None;
+  controller.help <- false;
   controller.status <- "fixture";
   Pane_layout.set_defaults controller.pane_layout configured;
   ignore (Ui.render controller ~width:120 ~height:36);

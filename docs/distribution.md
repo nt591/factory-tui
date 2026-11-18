@@ -15,10 +15,10 @@ conversation databases and config stay untouched.
 
 The installed executable runs without opam or the checkout. Its startup config
 is still `~/.config/factory-tui/config.toml` (or XDG_CONFIG_HOME), so launch is just
-`factory-tui` after configuration. Default startup never enables live execution.
-`--version` and `--help` read no config. `--no-config` keeps the current memory-only
-behavior. Codex/jj executables are explicit runtime dependencies only for their
-respective features, not ordinary demo navigation.
+`factory-tui` after configuration. Default startup opens the real configured board but starts no agent.
+`--version` and `--help` read no config. `--demo --no-config` opens a memory-only
+simulation. Codex/jj are discovered on PATH for their respective features;
+explicit paths are optional overrides. Demo navigation needs neither.
 
 ## Build a local archive
 

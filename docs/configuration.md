@@ -52,9 +52,10 @@ SQLite database, or that a source revision/model is usable.
 
 ## Explicit live execution
 
-Ordinary launch is simulation. Config does not enable live agents. A real live
-launch separately requires `--live-ui --codex-executable /absolute/path/to/codex`,
-SQLite, an explicitly created workspace task and per-run confirmation. Requested
+Ordinary launch is the real configured board; --demo explicitly opens simulation.
+Startup does not start an agent. A real launch uses configured SQLite and discovers
+Codex on PATH (or uses an explicit override).
+Enter sends the task/reply; no per-run confirmation dialog is used. Requested
 workspace writes additionally require `--workspace-write`. Gateway protocol/model
 compatibility remains a separate integration boundary. Checking settings is not
 permission to start agents or spend tokens.
@@ -74,7 +75,7 @@ gateway = "litellm.toml"
 reasoning_effort = "low"
 ```
 
-Executable and gateway-file paths resolve relative to the config file, with the
+Optional executable overrides and gateway-file paths resolve relative to the config file, with the
 same HOME expansion as workspace paths. Reasoning accepts low, medium or high.
 All three values are optional. CLI executable/gateway/reasoning options override
 these defaults for the current live launch. `--no-config` ignores them.
@@ -85,9 +86,8 @@ Configuration never enables live mode or starts a request/run. Use:
 factory-tui --live-ui --config /path/to/config.toml
 ```
 
-If the config is stored at the default config location, only `--live-ui` is needed.
-SQLite remains required; writes still require separate `--workspace-write` and
-per-run confirmation. A no-flag launch does not enable live execution. Invalid
+If the config is stored at the default location, no flags are needed.
+SQLite remains required; writes require `--workspace-write`. Startup starts nothing. Invalid
 Codex settings fail parsing even in a non-live launch rather than being ignored.
 `--check-config` previews the defaults without opening the executable or gateway
 file and explicitly reports `enables_live_mode: false`.
@@ -110,7 +110,7 @@ From a checkout, run:
 ./scripts/setup.sh
 ```
 
-The wizard asks for the Codex executable, gateway URL/key **environment variable
+The wizard discovers Codex on PATH and asks for gateway URL/key **environment variable
 names**, optional provider-discovered model default, reasoning preference and
 storage path. It validates paths and the generated config,
 then asks before saving. Model discovery is offered after an explicit notice that
@@ -145,7 +145,7 @@ config location this is also:
 ./scripts/run.sh --live-ui
 ```
 
-Each actual run still requires confirmation. Add `--workspace-write` deliberately
+Enter sends work directly. Add `--workspace-write` deliberately
 when needed; folder roots are existing working directories, not isolated copies.
 
 A selected setup model is only the default for future task creation. It does not
@@ -166,3 +166,32 @@ different directory does not move that task. New tasks without an explicit sourc
 override use the new launch directory. Agents may navigate and create subprojects
 with their tools according to the configured execution policy; the TUI does not
 automatically create an isolated workspace or expand write permissions.
+
+## Everyday launch and send
+
+Real interactive mode is now the default:
+
+```sh
+cd /path/to/project
+/path/to/factory-tui/scripts/run.sh
+```
+
+No agent runs at startup. Missing config prints setup guidance. `--demo` explicitly
+opens simulation; `--live-ui` is retained for compatibility. Default real launch
+refuses stored demo-run history: use --demo for that database or a separate real
+board. Existing explicit live fixture/import behavior is not silently changed.
+
+Enter sends a new task or idle reply directly—there is no per-run confirmation.
+Creating a repository/folder task completes before its run starts. An active run
+keeps later replies pending for the next turn; it does not accept stdin injection.
+Ctrl-S saves a task without running it. `s` sends/retries pending instructions.
+Read-only remains the default filesystem policy; opt into --workspace-write for
+writes. Sending through your provider can consume usage. Setup configures provider
+defaults, not permission bypass. Archive navigation uses `d` to toggle, `b` to
+return to a visible session board, or Escape from the archive board.
+
+Codex and jj executable paths are optional overrides. Normal launch discovers
+`codex` on PATH, and new repository tasks discover `jj` on PATH. Setup performs
+this discovery without asking you to locate executables. Folder-root tasks need
+no jj executable. A missing tool produces install/override guidance rather than
+running shell commands or guessing a machine-specific path.

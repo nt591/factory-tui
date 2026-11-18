@@ -12,7 +12,7 @@ let has items action = List.exists (fun (_, actual) -> actual = action) items
 
 let items ?(live = false) ?(replay = false) ?(fake = false) ?(storage = false)
     ?(expanded = false) task =
-  Action_bar.items ~task ~live ~replay ~fake ~storage ~expanded
+  Action_bar.items ~archive:false ~task ~live ~replay ~fake ~storage ~expanded
 
 let task = Model.make ~id:"task" ~title:"Instruction" ~repository:"fixture"
 
@@ -64,7 +64,7 @@ let () =
   let live_items = items ~live:true ~storage:true (Some live_task) in
   check "live workspace offers confirmation and review"
     (has live_items Start && has live_items Open_review
-    && List.mem ("s confirm", Start) live_items);
+    && List.mem ("s send", Start) live_items);
   check "live bar omits unsupported harness cycling and pause"
     ((not (has live_items Next_harness)) && not (has live_items Toggle_pause));
   check "Claude live task cannot offer execution"

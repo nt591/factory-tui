@@ -42,7 +42,7 @@ class TerminalStream(pyte.ByteStream):
 screen = TerminalScreen(cols, rows)
 stream = TerminalStream(screen)
 env = {**os.environ, "TERM": "xterm-256color"}
-process = subprocess.Popen([str(binary), "--no-config"], stdin=slave, stdout=slave, stderr=slave, env=env)
+process = subprocess.Popen([str(binary), "--demo", "--no-config"], stdin=slave, stdout=slave, stderr=slave, env=env)
 
 
 def pump(seconds=0.25):
@@ -161,7 +161,7 @@ try:
     check("Escape restores the board", "Queued 3" in text())
     send(b"i")
     send(b"\x1b[200~sxa\x1b[201~")
-    check("paste edits without executing shortcuts", "sxa" in text() and "INSERT / Enter queues" in text())
+    check("paste edits without executing shortcuts", "sxa" in text() and "INSERT / Enter sends" in text())
     send(b"\r")
     check("reply enters conversation", "sxa" in text() and "Reply queued" in text())
     send(b"i")
@@ -317,7 +317,7 @@ try:
         config = Path(directory) / "config.toml"
         config.write_text('[storage]\ndatabase = "board.sqlite"\n')
         screen.reset()
-        process = subprocess.Popen([str(binary), "--config", str(config)],
+        process = subprocess.Popen([str(binary), "--demo", "--config", str(config)],
                                    stdin=slave, stdout=slave, stderr=slave, env=env)
         wait_ready()
         send(b"hgg")
@@ -334,7 +334,7 @@ try:
         saved_task = next(t for t in saved["tasks"] if t["id"] == "T-101")
         check("final flush retains queued reply", any(m["text"] == "Reply after launch" and m["queued"] for m in saved_task["messages"]))
         screen.reset()
-        process = subprocess.Popen([str(binary), "--config", str(config)],
+        process = subprocess.Popen([str(binary), "--demo", "--config", str(config)],
                                    stdin=slave, stdout=slave, stderr=slave, env=env)
         wait_ready()
         interrupted = sum(task["state"] == "working" for task in saved["tasks"])
@@ -358,7 +358,7 @@ try:
         default_dir.mkdir()
         (default_dir / "config.toml").write_text('[storage]\ndatabase = "../board.sqlite"\n')
         screen.reset()
-        process = subprocess.Popen([str(binary)], stdin=slave, stdout=slave, stderr=slave,
+        process = subprocess.Popen([str(binary), "--demo"], stdin=slave, stdout=slave, stderr=slave,
                                    env={**env, "XDG_CONFIG_HOME": directory})
         wait_ready()
         check("second restart does not invent new interrupted runs", "No interrupted runs." in screen.display[-3])
@@ -435,17 +435,18 @@ try:
         fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
         screen.resize(lines=rows, columns=cols)
         screen.reset()
-        process = subprocess.Popen([str(binary), "--no-config", "--database", str(database)],
+        process = subprocess.Popen([str(binary), "--demo", "--no-config", "--database", str(database)],
                                    stdin=slave, stdout=slave, stderr=slave, env=env)
         wait_ready()
         send(b"W")
         check("workspace dialog opens", "NEW WORKSPACE TASK" in text())
-        check("creation disclosure visible", "snapshot source files" in text() and "No agent starts." in text())
-        check("workspace form shows setup guidance rather than prior-run status", "Fill the fields; Ctrl-S creates a queued task." in text())
+        check("creation disclosure visible", "snapshot source files" in text() and "Enter sends the task." in text())
+        check("workspace form shows setup guidance rather than prior-run status", "Enter sends the task." in text())
+        send(b"\x1b[Z\x1b[F" + b"\x7f" * 100)
         send(b"\x13")
         check("invalid workspace submission selects the executable field", "jj executable: Use absolute paths" in text())
         send(b"/opt/homebrew/bin/jj\t")
-        check("editing invalid executable removes its stale validation message", "Field edited. Ctrl-S checks all fields" in text())
+        check("editing invalid executable removes its stale validation message", "Field edited. Enter on the instruction checks all fields" in text())
         send(str(source).encode())
         send(b"\x1b[H")
         check("workspace source Home reveals start cursor", "▏/private/" in text())
@@ -457,14 +458,13 @@ try:
         pump(0.5)
         check("workspace form remains explicit", "Task instruction" in text()
               and "Create an isolated task through the TUI" in text())
-        check("edited-field feedback survives background demo updates", "Field edited. Ctrl-S checks all fields" in text()
-              and "jj executable: Use absolute paths" not in text())
+        check("edited-field feedback survives background demo updates", "Field edited. Enter on the instruction checks all fields" in text())
         if args.preview:
             preview(args.preview.with_stem(args.preview.stem + "-workspace"))
         send(b"\x13")
         pump(1.0)
         check("workspace creation selects queued chat", "Create an isolated task through the TUI" in text()
-              and "No agent starts" in text())
+              and "Queued" in text())
         send(b"q")
         wait_exit(5)
         check("workspace UI exits cleanly", process.returncode == 0)
@@ -483,7 +483,7 @@ try:
         check("complete task instruction retained", task["messages"][0]["text"] == "Create an isolated task through the TUI")
         check("original source not changed", not (source / "example.txt").exists())
         screen.reset()
-        process = subprocess.Popen([str(binary), "--no-config", "--database", str(database)],
+        process = subprocess.Popen([str(binary), "--demo", "--no-config", "--database", str(database)],
                                    stdin=slave, stdout=slave, stderr=slave, env=env)
         wait_ready()
         send(b"e")
@@ -596,7 +596,7 @@ printf '%s\\n' '{"type":"turn.completed"}'
                                    "--codex-executable", str(executable)],
                                    stdin=slave, stdout=slave, stderr=slave, env=env)
         wait_ready()
-        check("live UI explicitly labeled", "LIVE ENABLED / CONFIRMED CALLS" in text())
+        check("live UI explicitly labeled", "LIVE ENABLED / SEND TO RUN" in text())
         check("live UI starts no executable on launch", not marker.exists())
         fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 8, 20, 0, 0))
         screen.resize(lines=8, columns=20)
@@ -609,30 +609,7 @@ printf '%s\\n' '{"type":"turn.completed"}'
         os.kill(process.pid, signal.SIGWINCH)
         pump(0.2)
         send(b"s")
-        check("Start requires confirmation", "Confirm live run" in text() and not marker.exists())
-        check("confirmation discloses usage", "may incur model usage" in text())
-        disclosure = "".join(row[17:103].strip() for row in screen.display
-                             if row[16:17] == "│" and row[103:104] == "│")
-        check("confirmation retains complete workspace identity", task["workspace"]["directory"] in disclosure)
-        if args.preview:
-            preview(args.preview.with_stem(args.preview.stem + "-live-confirmation"))
-        send(b"\x1b[200~y\r\x1b[201~")
-        check("paste cannot authorize execution", "Confirm live run" in text() and not marker.exists())
-        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 20, 60, 0, 0))
-        screen.resize(lines=20, columns=60)
-        os.kill(process.pid, signal.SIGWINCH)
-        pump(0.2)
-        send(b"\r")
-        check("small terminal cannot authorize live execution", not marker.exists()
-              and "at least 64 columns" in text())
-        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
-        screen.resize(lines=rows, columns=cols)
-        os.kill(process.pid, signal.SIGWINCH)
-        pump(0.2)
-
-        send(b"\x1b")
-        send(b"s")
-        send(b"\r")
+        check("Start sends directly without confirmation", "Confirm live run" not in text())
         deadline = time.monotonic() + 5
         while "Live-mode local fixture answer" not in text() and time.monotonic() < deadline:
             pump(0.05)
@@ -655,7 +632,7 @@ printf '%s\\n' '{"type":"turn.completed"}'
                                    stdin=slave, stdout=slave, stderr=slave, env=env)
         wait_ready()
         send(b"iContinue fixture\r")
-        send(b"s\r")
+
         cancel_marker = Path(task["workspace"]["directory"]) / "cancel-started"
         deadline = time.monotonic() + 5
         while not cancel_marker.exists() and time.monotonic() < deadline:
@@ -665,7 +642,7 @@ printf '%s\\n' '{"type":"turn.completed"}'
         pump(0.3)
         check("live cancellation is disclosed", "Live cancellation requested" in text())
         send(b"iContinue after stop\r")
-        send(b"s\r")
+
         pump(0.1)
         process.terminate()
         wait_exit(5)
@@ -695,16 +672,11 @@ printf '%s\\n' '{"type":"turn.completed"}'
                                    stdin=slave, stdout=slave, stderr=slave, env=env)
         wait_ready()
         write_marker = Path(task["workspace"]["directory"]) / "write-result.txt"
-        check("write policy opt-in shown in banner", "LIVE WRITE / CONFIRMED CALLS" in text())
+        check("write policy opt-in shown in banner", "LIVE WRITE / SEND TO RUN" in text())
         check("write mode startup changes no task files", not write_marker.exists())
         send(b"iImplement fixture\r")
         send(b"s")
-        check("write confirmation is explicit", "WRITE ACCESS: workspace + temp directories" in text() and not write_marker.exists())
-        if args.preview:
-            preview(args.preview.with_stem(args.preview.stem + "-write-confirmation"))
-        send(b"\x1b[200~y\r\x1b[201~")
-        check("paste cannot authorize workspace writes", not write_marker.exists())
-        send(b"y")
+        check("write send has no confirmation popup", "Confirm live run" not in text())
         deadline = time.monotonic() + 5
         while "Fixture implementation complete" not in text() and time.monotonic() < deadline:
             pump(0.05)
@@ -801,7 +773,7 @@ printf '%s\\n' '{"type":"turn.completed"}'
                           'jj="/opt/homebrew/bin/jj"\nsource="source"\nparent="tasks"\n'
                           'revision="@"\nmodel="configured-model"\n')
         screen.reset()
-        process=subprocess.Popen([str(binary), "--config", str(config)],
+        process=subprocess.Popen([str(binary), "--demo", "--config", str(config)],
                                  stdin=slave, stdout=slave, stderr=slave, env=env)
         wait_ready()
         check("workspace config alone creates no directory", list(parent.iterdir())==[])
@@ -829,7 +801,7 @@ printf '%s\\n' '{"type":"turn.completed"}'
               and Path(created["workspace"]["directory"]).parent==parent)
         check("prefilled creation starts no run", created["runs"]==[] and created["active"] is None)
         screen.reset()
-        process=subprocess.Popen([str(binary), "--config", str(config)],
+        process=subprocess.Popen([str(binary), "--demo", "--config", str(config)],
                                  stdin=slave, stdout=slave, stderr=slave, env=env)
         wait_ready()
         send(b"W")
@@ -865,8 +837,8 @@ printf '%s\\n' '{"type":"turn.completed"}'
         wait_ready()
         check("first live launch is an empty real board", "Your factory starts here" in text()
               and "T-101" not in text())
-        check("first live launch explains confirmed workflow", "Create workspace task" in text()
-              and "Nothing runs until you explicitly confirm" in text())
+        check("first live launch explains send workflow", "Create workspace task" in text()
+              and "Enter sends work" in text())
         check("first live launch creates no workspace or agent", list(parent.iterdir())==[] and not marker.exists())
         with sqlite3.connect(directory / "new-board.sqlite") as db:
             saved=json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
@@ -896,9 +868,6 @@ printf '%s\\n' '{"type":"turn.completed"}'
             pump(0.05)
         check("onboarding creates a real queued chat", "My first real task" in text()
               and "Workspace task created" in text() and not marker.exists())
-        send(b"s")
-        check("first task still requires run confirmation", "Confirm live run" in text() and not marker.exists())
-        send(b"\x1b")
         send(b"q")
         wait_exit(5)
         with sqlite3.connect(directory / "new-board.sqlite") as db:
@@ -966,7 +935,7 @@ printf '%s\\n' '{"type":"turn.completed"}'
         pump(0.05)
     send(b"i")
     check("long selected model cannot hide composer queue instructions",
-          any("Enter queues / Ctrl-L newline / Esc keeps draft" in row for row in screen.display[4:-4]))
+          any("Enter sends / Ctrl-L newline / Esc keeps draft" in row for row in screen.display[4:-4]))
     if args.preview:
         preview(args.preview.with_stem(args.preview.stem + "-long-model-compose"))
     send(b"\x1b")

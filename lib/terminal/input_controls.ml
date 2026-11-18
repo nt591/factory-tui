@@ -5,7 +5,7 @@ let items = function
   | Controller.Normal -> []
   | Compose ->
       [
-        { label = "[Queue reply / Enter]"; action = Submit };
+        { label = "[Send reply / Enter]"; action = Submit };
         { label = "[Keep draft / Esc]"; action = Close };
         { label = "[Newline / Ctrl-L]"; action = Newline };
       ]

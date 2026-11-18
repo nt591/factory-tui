@@ -4,8 +4,7 @@ let text ?width:columns ~mode ~editing (task : Model.task) =
   let selection = Model.harness_label task.harness ^ " / " ^ task.model in
   let controls, compact =
     if task.state = Model.Done then ("Accepted / read-only", "Read-only")
-    else if editing then
-      ("Enter queues / Ctrl-L newline / Esc keeps draft", "Enter queues")
+    else if editing then ("Enter sends / Ctrl-L newline / Esc keeps draft", "Enter sends")
     else
       match mode with
       | Menu_content.Live _ when task.harness <> Model.Codex ->

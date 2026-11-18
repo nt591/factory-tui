@@ -1,3 +1,13 @@
+# Current interaction behavior
+
+Normal launch opens the configured real board; --demo is explicit. Enter sends
+new tasks and idle replies without a run-confirmation popup. Replies during work
+remain pending for the next turn. Codex/jj are discovered on PATH, and startup
+never starts agents. The footer separates key labels from action text. Archive
+has a visible b Session board return action; b/d navigation closes zoom and
+focuses the board. The sections below record earlier verification increments;
+references to live run confirmation describe a removed UI, not current behavior.
+
 # Terminal UI target
 
 Use the native Factory mock's structure, not its exact colors or buttons:

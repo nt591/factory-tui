@@ -1,8 +1,9 @@
 open Model
 open Controller
 
-let items ~task ~live ~replay ~fake ~storage ~expanded =
+let items ~archive ~task ~live ~replay ~fake ~storage ~expanded =
   [ ("? menu", Help) ]
+  @ (if archive then [ ("b session board", Session_board) ] else [])
   @ (match task with
     | None -> []
     | Some task ->
@@ -17,7 +18,7 @@ let items ~task ~live ~replay ~fake ~storage ~expanded =
              && ((not live)
                 || (task.workspace <> None || task.session_root <> None)
                    && task.harness = Codex)
-           then [ ((if live then "s confirm" else "s start"), Start) ]
+           then [ ((if live then "s send" else "s start"), Start) ]
            else [])
         @
         if task.state = Done then []
@@ -28,6 +29,6 @@ let items ~task ~live ~replay ~fake ~storage ~expanded =
   @ (if storage then [ ("W workspace", Begin_workspace) ] else [])
   @ (if live then if storage then [ ("n task", Begin_new) ] else []
      else [ ("n demo", Begin_new) ])
-  @ [ ("d archive", Toggle_archive) ]
+  @ (if archive then [] else [ ("d archive", Toggle_archive) ])
   @ (if live || replay || fake then [] else [ ("f pause", Toggle_pause) ])
   @ [ ("q quit", Quit) ]
