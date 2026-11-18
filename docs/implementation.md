@@ -104,6 +104,10 @@ Acceptance does not merge, push, or delete a workspace.
    exist. Short terminal bodies show the focused pane so composing and searching
    do not hide behind the board. A pure `Pane_layout` module selects splits;
    unit/PTY tests cover compact compose/focus cycling without changing drafts.
+   Activity metadata wraps full task titles, repository/workspace paths, next-model
+   IDs, and recorded review bases. Pure `Activity_content` produces logical rows;
+   the renderer applies pane-width wrapping before scrolling. Unit/PTY checks
+   cover complete workspace identity and retained read-only inspection.
    UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,

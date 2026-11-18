@@ -295,63 +295,10 @@ let render t ~width:cols ~height:rows =
   let activity r =
     let inner = max 1 (r.w - 4) in
     let rows =
-      match task with
-      | None -> [ "No task selected." ]
-      | Some task ->
-          [
-            task.title;
-            "repo: " ^ task.repository;
-            ("workspace: "
-            ^
-            match task.workspace with
-            | None -> "not attached"
-            | Some workspace -> workspace.directory);
-            ("run: " ^ match task.active with None -> "idle" | Some run -> run.id);
-            (if List.mem task.id t.live_waiting_tasks then
-               "Waiting for previous workspace process cleanup."
-             else "");
-            "next: " ^ harness_label task.harness ^ " / " ^ task.model;
-            "updates: " ^ string_of_int task.revision;
-            "";
-          ]
-          @ (if task.tools = [] then [ "No tool activity yet." ]
-             else if t.tools_expanded then
-               Printf.sprintf "▾ %d tool items / %s / T toggles raw"
-                 (List.length task.tools)
-                 (if t.raw_tools then "raw" else "readable")
-               :: List.concat_map
-                    (fun (id, payload) ->
-                      let activity = Tool_activity.describe ~id payload in
-                      let details =
-                        if t.raw_tools then Tool_activity.raw payload
-                        else activity.details
-                      in
-                      wrap inner activity.summary
-                      @ List.concat_map (wrap inner) details
-                      @ [ "" ])
-                    task.tools
-             else
-               [ Printf.sprintf "▸ %d tool items / t expands" (List.length task.tools) ])
-          @ [ "" ]
-          @ List.concat_map
-              (fun (record : run_record) ->
-                let status =
-                  match record.status with
-                  | Running -> "running"
-                  | Completed -> "completed"
-                  | Run_failed -> "failed"
-                  | Stopped -> "interrupted"
-                  | Awaiting_input -> "needs input"
-                in
-                wrap inner
-                  ("run " ^ record.run_id ^ ": " ^ harness_label record.harness ^ " / "
-                 ^ record.model ^ " / " ^ status
-                  ^ (if record.simulated then " / simulated" else " / live")
-                  ^
-                  match record.policy with
-                  | Model.Read_only -> " / read-only"
-                  | Model.Workspace_write -> " / workspace-write"))
-              task.runs
+      Activity_content.lines ~expanded:t.tools_expanded ~raw:t.raw_tools
+        ~waiting:(List.mem t.selected t.live_waiting_tasks)
+        task
+      |> List.concat_map (wrap inner)
     in
     if t.focus = Activity then (
       t.page_rows <- max 1 (r.h - 2);

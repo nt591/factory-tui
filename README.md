@@ -556,6 +556,11 @@ In short terminals, the focused pane fills the body: `i` shows the chat/composer
 Tab cycles to Activity and the board, and Ctrl-W moves focus as usual. Drafts and
 selection survive these layout changes; explicit `e` zoom remains separate.
 
+Activity wraps long task titles, repository/workspace paths, and next-model IDs
+rather than clipping them. Workspace tasks show their exact review base. Focus
+Activity and press `e` to inspect full-width metadata, tools, and run history;
+scroll as needed. Inspection does not change the task or its workspace.
+
 ## Module interfaces
 
 All core modules have explicit `.mli` interfaces. Database, persistence worker,

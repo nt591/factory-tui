@@ -413,6 +413,15 @@ try:
         wait_ready()
         send(b"e")
         check("created task chat restores after restart", "Create an isolated task through the TUI" in text())
+        send(b"\x17le")
+        check("workspace Activity expands for inspection", "activity / expanded" in text())
+        metadata = "".join(row.strip().strip("│").strip() for row in screen.display[4:-4])
+        check("Activity retains full recorded workspace paths", task["workspace"]["source"] in metadata
+              and task["workspace"]["directory"] in metadata)
+        check("Activity exposes the exact diff base", task["workspace"]["base"] in metadata)
+        if args.preview:
+            preview(args.preview.with_stem(args.preview.stem + "-workspace-activity"))
+        send(b"e\x17h")
         send(b"v")
         check("changes pane opens on selected task", "CHANGES / " + task["id"] in text())
         check("changes refresh disclosure visible", "Refresh snapshots the workspace" in text())

@@ -83,6 +83,9 @@ against these interfaces during the normal Dune build.
   private. This is not yet an abstract controller with a read-only view model.
 - `Board_guidance`: pure empty-state copy and action selection for live, demo,
   archive, and filtered boards. It starts no jobs and owns no persistence.
+- `Activity_content`: pure logical task metadata, tool groups, and captured-run
+  rows. It has no controller, rendering, process, or storage dependency. The UI
+  wraps each row at the actual pane width before computing scroll bounds.
 - `Tool_activity`: pure summaries of actual harness command, MCP, and file-change
   fields, with raw payload access. It does not execute tools or infer success.
 - `Chat_viewport`: abstract reading anchor keyed by task/message and wrapped row.

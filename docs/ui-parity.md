@@ -102,3 +102,13 @@ Activity or return to the board. This does not enable zoom or alter saved drafts
 `Pane_layout` chooses the split without a controller dependency. Compact input,
 focus cycling, and frame/hit bounds are covered by unit tests and a 60x20 PTY
 compose/focus sequence. Larger stacked/side-by-side layouts keep their thresholds.
+
+Activity metadata wraps at the pane width instead of clipping task titles,
+repository/workspace paths, and next-model IDs. Workspace-backed tasks also show
+the exact base used by changes review. Focus Activity and press `e` for full-width
+inspection; scroll keys reach metadata, tools, and captured run history. Logical
+row construction lives in pure `Activity_content.ml/.mli`, separate from Notty
+rendering and the controller. Tests verify complete content before/after wrapping,
+raw/readable tools, captured policies, and unchanged persisted state. The PTY
+workspace workflow reconstructs and checks the full recorded paths and base from
+the expanded pane.

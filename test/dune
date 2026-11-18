@@ -122,3 +122,8 @@
  (name test_compact_layout)
  (modules test_compact_layout)
  (libraries factory_tui notty))
+
+(test
+ (name test_activity_content)
+ (modules test_activity_content)
+ (libraries factory_tui notty))
