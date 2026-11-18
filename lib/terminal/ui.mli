@@ -7,6 +7,7 @@ type frame = {
   sidebar : (rect * int) option;
   columns : (rect * Model.state * int * int) list;
   panes : (rect * Controller.focus) list;
+  scroll_panes : (rect * Controller.focus) list;
   modal_scroll : rect option;
 }
 

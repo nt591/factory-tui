@@ -339,3 +339,10 @@ validation/operational feedback. Status names the rejected insertion without
 replacing those reports. Actual text changes clear only their own marker; focus,
 cursor motion and another field's edits retain it. No new interface or persisted
 state is exposed, and rejection does not submit a workspace request.
+
+
+Ui.frame.scroll_panes contains positive interior wheel regions separately from
+Ui.frame.panes, which retains full pane geometry for focus and inspection. Chat
+wheel geometry skips its search strip. Columns retain their full range rectangles
+but wheel dispatch uses inset boundaries. Border clicks still focus panes; border
+wheel events do not scroll or focus. Modal/sidebar regions retain their own rules.

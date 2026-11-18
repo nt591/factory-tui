@@ -624,3 +624,13 @@ form API is unchanged. Pure full-field/Unicode/render tests verify atomic reject
 recovery, independent feedback and no task/creation request. Existing terminal
 workspace creation and feedback checks continue to verify normal form integration;
 full-limit rejection itself is verified by supplied-form rendering, not a PTY paste.
+
+
+Ui frames separate full pane focus rectangles from interior scroll rectangles.
+Conversation interiors exclude the search strip; Activity and compact-list interiors
+exclude all four borders. Column wheel matching likewise uses the column interior,
+not its heading/range border. Click focus still uses the full pane and explicit
+Latest targets keep their priority. No page capacity, selection or persistence rule
+changes. Pure perimeter/search-strip/positive-geometry tests and the replay history
+PTY verify title-wheel inactivity, normal body scroll, paused-anchor retention and
+Latest follow. Existing modal/sidebar scroll regions remain unchanged.

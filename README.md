@@ -826,3 +826,9 @@ The workspace form also reports rejected 64-KiB field edits. Its feedback names
 the affected field and retains existing validation or operational messages.
 Cursor movement or editing another field does not dismiss the warning; an actual
 text change in the affected field clears it. Rejection never starts creation.
+
+
+Mouse-wheel scrolling acts on pane interiors, not titles, side borders or row-range
+borders. Those borders remain clickable to focus panes. Chat's search strip also
+ignores wheel input; scrolling below it still navigates the transcript. Column
+headers keep their visible ranges when the pointer is over the header itself.

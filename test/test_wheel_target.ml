@@ -64,6 +64,60 @@ let () =
              r.x >= 0 && r.y >= 0 && r.x + r.w <= width && r.y + r.h <= height)
            frame.panes))
     [ (20, 8); (60, 20); (120, 36); (180, 50) ];
+  Controller.act controller (Controller.Focus Controller.Conversation);
+  let frame = Ui.render controller ~width:120 ~height:36 in
+  let before = state () in
+  let perimeter (r : Ui.rect) =
+    [ (r.x + 2, r.y); (r.x + 2, r.y + r.h - 1); (r.x, r.y + 1); (r.x + r.w - 1, r.y + 1) ]
+  in
+  List.iter
+    (fun (r, _) ->
+      List.iter
+        (fun point ->
+          Ui.mouse controller frame ~now:7. (`Press (`Scroll `Down), point, []);
+          check "pane borders and titles do not scroll or focus" (state () = before))
+        (perimeter r))
+    frame.panes;
+  List.iter
+    (fun (r, _, _, _) ->
+      List.iter
+        (fun point ->
+          Ui.mouse controller frame ~now:7. (`Press (`Scroll `Down), point, []);
+          check "column borders and titles do not scroll or focus" (state () = before))
+        (perimeter r))
+    frame.columns;
+  let activity, _ =
+    List.find (fun (_, focus) -> focus = Controller.Activity) frame.panes
+  in
+  Ui.mouse controller frame ~now:7. (`Press `Left, (activity.x + 2, activity.y), []);
+  check "title remains clickable for focus" (controller.focus = Controller.Activity);
+  Controller.act controller Controller.Begin_chat_search;
+  Controller.set_input controller "message";
+  Controller.submit controller;
+  let frame = Ui.render controller ~width:120 ~height:36 in
+  let chat, _ =
+    List.find (fun (_, focus) -> focus = Controller.Conversation) frame.panes
+  in
+  let before = state () in
+  Ui.mouse controller frame ~now:7. (`Press (`Scroll `Up), (chat.x + 2, chat.y + 1), []);
+  check "chat search strip does not scroll history" (state () = before);
+  check "chat wheel geometry starts below search strip"
+    (let r, _ =
+       List.find (fun (_, focus) -> focus = Controller.Conversation) frame.scroll_panes
+     in
+     r.y = chat.y + 2);
+  List.iter
+    (fun (width, height) ->
+      let frame = Ui.render controller ~width ~height in
+      check "interior scroll rectangles stay positive and bounded"
+        (List.for_all
+           (fun ((r : Ui.rect), _) ->
+             r.w > 0 && r.h > 0 && r.x >= 0 && r.y >= 0
+             && r.x + r.w <= width
+             && r.y + r.h <= height)
+           frame.scroll_panes))
+    [ (1, 1); (2, 2); (20, 8); (60, 20); (120, 36); (180, 50) ];
+  Controller.act controller Controller.Clear_chat_search;
   let saved = Controller.snapshot controller in
   Controller.act controller Controller.Help;
   let modal = Ui.render controller ~width:180 ~height:50 in

@@ -59,6 +59,18 @@ def main():
                 "Home reveals original task instruction",
                 any("Build the event reducer" in row for row in old_chat),
             )
+            tui.send(b"\x1b[<65;5;4M")
+            tui.check(
+                "wheel on column title leaves its card range unchanged",
+                "Queued 3 / 1-2/3" in tui.text(),
+            )
+            tui.send(b"\x1b[<65;10;20M")
+            tui.check("wheel on chat title preserves history", chat_rows() == old_chat)
+            tui.send(b"\x1b[<65;90;20M")
+            tui.check(
+                "wheel on Activity title preserves its range",
+                "rows 1-12/14" in tui.text(),
+            )
             tui.send(b"\x1b[<65;5;8M")
             tui.wait("board scroll frame", lambda: "Queued 3 / 2-3/3" in tui.text())
             tui.check(

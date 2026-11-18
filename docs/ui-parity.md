@@ -569,3 +569,10 @@ instead of silently dropping insertion. Existing reports remain appended; text a
 cursor stay exact. Cursor/focus/other-field changes keep the warning, while an
 actual text change in its field clears it. Pure full-field input/render checks
 verify rejection and recovery; normal form behavior still has terminal coverage.
+
+
+Full pane focus geometry is separate from wheel-scroll interiors. Titles, side and
+range borders no longer scroll content or change focus on wheel input. Chat's search
+strip is excluded too. Borders remain clickable, and body wheel/Latest behavior is
+unchanged. Pure perimeter/search/geometry tests and replay PTY title-wheel checks
+verify this distinction without changing tasks, drafts or viewport capacities.

@@ -563,3 +563,11 @@ the supplied form to verify visible rejection and no creation request. This does
 not simulate pasting 64 KiB through a PTY. Normal workspace creation/feedback remains
 covered by the full terminal regression. No path inspection or subprocess is used
 by this unit test.
+
+
+Wheel-target unit checks cover all pane/column perimeter edges, title clicks,
+search-strip exclusion and positive bounded interior rectangles through small
+terminal sizes. The board-history PTY additionally sends wheel events over column,
+chat and Activity titles before normal body scrolling and mouse Latest follow.
+It uses only temporary replay events. Full terminal checks cover existing modal,
+sidebar, column-body and reply interactions with the separated geometry.

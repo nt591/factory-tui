@@ -11,6 +11,7 @@ type frame = {
   sidebar : (rect * int) option;
   columns : (rect * Model.state * int * int) list;
   panes : (rect * Controller.focus) list;
+  scroll_panes : (rect * Controller.focus) list;
   modal_scroll : rect option;
 }
 
@@ -87,6 +88,14 @@ let render t ~width:cols ~height:rows =
       hits := { rect = { x; y; w; h }; action } :: !hits
   in
   let sidebar = ref None and column_regions = ref [] and panes = ref [] in
+  let scroll_panes = ref [] in
+  let scroll_region (r : rect) focus skipped =
+    let content =
+      { x = r.x + 1; y = r.y + 1 + skipped; w = r.w - 2; h = r.h - 2 - skipped }
+    in
+    if content.w > 0 && content.h > 0 then
+      scroll_panes := (content, focus) :: !scroll_panes
+  in
   let modal_scroll = ref None in
   let mode =
     match t.live_config with
@@ -220,6 +229,7 @@ let render t ~width:cols ~height:rows =
             in
             I.(line (r.w - 2) (emphasis accent) description <-> content)));
     panes := ({ r with h = chat_height }, Conversation) :: !panes;
+    scroll_region { r with h = chat_height } Conversation (if searching then 1 else 0);
     hit r.x r.y r.w chat_height (Focus Conversation);
     Option.iter
       (fun (offset, width) ->
@@ -303,6 +313,7 @@ let render t ~width:cols ~height:rows =
            else " / e expands")
          ~color:accent ~focused:(t.focus = Activity) content);
     panes := (r, Activity) :: !panes;
+    scroll_region r Activity 0;
     hit r.x r.y r.w r.h (Focus Activity)
   in
   let details r =
@@ -319,7 +330,9 @@ let render t ~width:cols ~height:rows =
   in
   let board r =
     t.board_list <- r.w < 88 || t.archive;
-    if t.board_list then panes := (r, Board) :: !panes;
+    if t.board_list then (
+      panes := (r, Board) :: !panes;
+      scroll_region r Board 0);
     let tasks = visible t in
     if tasks = [] then (
       let guidance =
@@ -744,6 +757,7 @@ let render t ~width:cols ~height:rows =
     sidebar = !sidebar;
     columns = !column_regions;
     panes = !panes;
+    scroll_panes = !scroll_panes;
     modal_scroll = !modal_scroll;
   }
 
@@ -804,7 +818,8 @@ let mouse t frame ~now = function
         in
         let column =
           List.find_opt
-            (fun (r, _, _, _) -> x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h)
+            (fun (r, _, _, _) ->
+              x > r.x && x < r.x + r.w - 1 && y > r.y && y < r.y + r.h - 1)
             frame.columns
         in
         if column <> None then (
@@ -817,7 +832,7 @@ let mouse t frame ~now = function
           match
             List.find_opt
               (fun (r, _) -> x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h)
-              frame.panes
+              frame.scroll_panes
           with
           | Some (_, Board) ->
               act t (Focus Board);
