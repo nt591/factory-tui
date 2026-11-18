@@ -716,3 +716,24 @@ with a single result and clearing remove old membership. Tests have no performan
 threshold. The full fixture UI suite retains actual search count/highlight/input
 coverage. One initial parallel process test hit its existing invalid-event cleanup
 one-second assertion; it remains unrelated/undiagnosed, with no deadline changes.
+
+## Error teardown timing: observed phase separation
+
+On November 18, 2026, temporary instrumentation reproduced the parallel
+`invalid event cleanup bounded` failure. Spawn returned in 0.000950 seconds;
+the first malformed-event record was delivered at 2.274373 seconds. Cleanup
+started at 2.274400 and ended at 2.274968 seconds: about 0.568 milliseconds.
+The original assertion timed the entire run, so this failure did not demonstrate
+slow teardown. Another fixture in the same run also delayed first output beyond
+two seconds. The underlying startup delay is still undiagnosed. No general
+macOS/Spawn defect or improvement in runtime launch latency is claimed.
+
+Temporary runtime instrumentation was removed, with Process restored byte-for-byte.
+The invalid-event test emits a valid readiness event immediately before its malformed
+record and times teardown from delivery on the existing monotonic clock. The callback
+exception test times from entry into its failing callback. Both retain the one-second
+cleanup bound and now assert the specific error and direct-child reaping. A fixture
+that deliberately waits 1.1 seconds before readiness proves that startup is not
+counted as teardown. Separate timeout/cancellation and inherited-pipe bounds remain
+unchanged. Shell fixtures remain because JSONL delivery and descendants are the
+boundary under test. These checks do not guarantee arbitrary script startup time.

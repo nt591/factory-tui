@@ -750,3 +750,11 @@ Public interfaces and literal matching are unchanged. Pure 20,000-result travers
 checks cover wraparound, reorder, selected removal, index pruning and clear/single/
 empty cases. Existing full UI/search fixtures verify visible counts and navigation.
 No timing threshold or whole-app speed claim is introduced.
+
+Process error-teardown verification now measures from readiness/event delivery,
+not whole-run script startup. A reproduced failure had first delivery at 2.274373s
+and cleanup lasting only 0.568ms, exposing a misattributed timing assertion. Tests
+retain the one-second teardown bound, assert exact error outcomes/direct-child
+reaping and include intentionally delayed readiness. Timeout, cancellation and
+pipe-drain bounds are unchanged. Runtime Process code is byte-identical; startup
+latency remains an unresolved operational input, not a diagnosed cleanup defect.

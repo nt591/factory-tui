@@ -217,3 +217,10 @@ Large search-result navigation has 20,000-result traversal and lifecycle tests.
 Its private array/index changes no selection-by-ID semantics or persisted state.
 The recurring process invalid-event cleanup timing assertion failed in an initial
 parallel run; no deadline or process code was modified to hide it.
+
+A temporary phase probe reproduced one process “cleanup” assertion failure: first
+output arrived after 2.27s, while cleanup took about 0.568ms. Error-path tests now
+measure from event delivery, keeping the existing one-second bound and checking
+specific errors/direct-child reaping. Delayed-readiness coverage prevents startup
+misclassification. Runtime code was restored byte-for-byte; the cause of delayed
+startup and arbitrary launch-time guarantees remain unresolved.

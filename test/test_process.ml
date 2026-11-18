@@ -1,5 +1,7 @@
 open Factory_tui
 
+external monotonic : unit -> float = "factory_monotonic"
+
 let checks = ref 0
 
 let check name condition =
@@ -117,10 +119,42 @@ let () =
       let result = ok (run cfg) in
       check "stderr drained concurrently"
         (result.succeeded && result.stderr_bytes = 262144);
-      let cfg = config "printf 'bad json\\n'\nsleep 10\n" in
-      let before = Unix.gettimeofday () in
-      check "invalid event stops child" (Result.is_error (run cfg));
-      check "invalid event cleanup bounded" (Unix.gettimeofday () -. before < 1.);
+      let invalid_after_ready =
+        "printf '%s\\n' '{\"type\":\"turn.started\"}' 'bad json'\nsleep 10\n"
+      in
+      (* Error teardown starts at event delivery, not at fresh script startup. *)
+      let invalid_cleanup prefix =
+        let delivered = ref None in
+        let started = monotonic () in
+        let outcome =
+          run
+            ~on_event:(fun _ -> delivered := Some (monotonic ()))
+            (config (prefix ^ invalid_after_ready))
+        in
+        check "invalid event stops child"
+          (outcome = Error "Invalid harness event. Source content was not printed.");
+        let delivered =
+          match !delivered with
+          | Some time -> time
+          | None -> failwith "Invalid-event fixture did not deliver its readiness event."
+        in
+        let elapsed = monotonic () -. delivered in
+        if elapsed >= 1. then
+          failwith
+            (Printf.sprintf
+               "Invalid-event teardown took %.3fs after delivery; startup took %.3fs."
+               elapsed (delivered -. started));
+        check "invalid event cleanup bounded after delivery" (elapsed < 1.);
+        check "invalid-event direct child is reaped"
+          (try
+             ignore (Unix.waitpid [ Unix.WNOHANG ] (-1));
+             false
+           with Unix.Unix_error (Unix.ECHILD, _, _) -> true);
+        delivered -. started
+      in
+      ignore (invalid_cleanup "");
+      check "startup time is excluded from the error teardown bound"
+        (invalid_cleanup "sleep 1.1\n" >= 1.);
       let cfg = config "printf '%0100d' 0\nsleep 10\n" in
       check "unterminated oversized line stopped"
         (Result.is_error (run { cfg with max_line = 32 }));
@@ -133,10 +167,34 @@ let () =
       check "event count bound enforced"
         (Result.is_error (run { cfg with max_events = 2 }));
       let cfg = config (completed ^ "sleep 10\n") in
-      let before = Unix.gettimeofday () in
+      let delivered = ref None in
+      let started = monotonic () in
+      let outcome =
+        run
+          ~on_event:(fun _ ->
+            delivered := Some (monotonic ());
+            failwith "test")
+          cfg
+      in
       check "callback exceptions stop run"
-        (Result.is_error (run ~on_event:(fun _ -> failwith "test") cfg));
-      check "callback failure teardown bounded" (Unix.gettimeofday () -. before < 1.);
+        (outcome = Error "Harness event callback failed.");
+      let delivered =
+        match !delivered with
+        | Some time -> time
+        | None -> failwith "Callback fixture did not deliver its event."
+      in
+      let elapsed = monotonic () -. delivered in
+      if elapsed >= 1. then
+        failwith
+          (Printf.sprintf
+             "Callback teardown took %.3fs after delivery; startup took %.3fs." elapsed
+             (delivered -. started));
+      check "callback failure teardown bounded after delivery" (elapsed < 1.);
+      check "callback-failure direct child is reaped"
+        (try
+           ignore (Unix.waitpid [ Unix.WNOHANG ] (-1));
+           false
+         with Unix.Unix_error (Unix.ECHILD, _, _) -> true);
       let before = Unix.gettimeofday () in
       check "timeout enforced"
         (Result.is_error (run { (config "sleep 10\n") with timeout = 0.1 }));
