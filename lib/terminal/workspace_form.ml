@@ -1,5 +1,10 @@
 type field = Jj | Source | Parent | Revision | Model | Task
-type t = { mutable current : field; mutable values : (field * Text_edit.t) list }
+
+type t = {
+  mutable current : field;
+  mutable values : (field * Text_edit.t) list;
+  mutable status : string;
+}
 
 let fields = [ Jj; Source; Parent; Revision; Model; Task ]
 
@@ -14,6 +19,7 @@ let label = function
 let create ?(jj = "") ~source ~parent ~revision ~model () =
   {
     current = Source;
+    status = "Fill the fields; Ctrl-S creates a queued task. No agent starts.";
     values =
       [
         (Jj, Text_edit.create jj);
@@ -26,6 +32,8 @@ let create ?(jj = "") ~source ~parent ~revision ~model () =
   }
 
 let current t = t.current
+let status t = t.status
+let report t text = t.status <- text
 let editor t field = List.assoc field t.values
 let value t field = Text_edit.text (editor t field)
 

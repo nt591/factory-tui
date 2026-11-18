@@ -301,6 +301,10 @@ let close_expansion t =
   t.activity_expanded <- false;
   focus_pane t focus
 
+let report_creation t text =
+  t.status <- text;
+  Option.iter (fun form -> Workspace_form.report form text) t.workspace_form
+
 let rec act t action =
   reset_keys t;
   match action with
@@ -501,7 +505,7 @@ let rec act t action =
   | Cancel_workspace ->
       if t.creation_job = None && t.creation_request = None then t.workspace_form <- None
       else
-        t.status <-
+        report_creation t
           "Creation is in progress. Wait for its bounded completion before closing."
   | Submit_workspace -> (
       if t.creation_request <> None || t.creation_job <> None then ()
@@ -510,7 +514,7 @@ let rec act t action =
         | None -> ()
         | Some form -> (
             match Workspace_form.validate form with
-            | Error error -> t.status <- error
+            | Error error -> report_creation t error
             | Ok () ->
                 let value = Workspace_form.value form in
                 let id = next_id t "T" in
@@ -524,7 +528,8 @@ let rec act t action =
                       revision = value Workspace_form.Revision;
                       model = value Workspace_form.Model;
                       instruction = value Workspace_form.Task;
-                    }))
+                    };
+                Workspace_form.report form "Creating workspace. No agent starts."))
   | Begin_new when t.live_config <> None -> act t Begin_workspace
   | Begin_new ->
       t.input <- New_task;
@@ -1002,10 +1007,10 @@ let poll_creation t ~storage =
       t.creation_request <- None;
       t.jj_executable <- request.jj;
       match storage with
-      | None -> t.status <- "Persistent storage is required for workspace creation."
+      | None -> report_creation t "Persistent storage is required for workspace creation."
       | Some worker -> (
           match Persistence.error worker with
-          | Some error -> t.status <- "Storage error: " ^ error
+          | Some error -> report_creation t ("Storage error: " ^ error)
           | None -> t.creation_job <- Some (Task_creation.start request))));
   match t.creation_job with
   | None -> ()
@@ -1016,7 +1021,7 @@ let poll_creation t ~storage =
           Task_creation.close job;
           t.creation_job <- None;
           match result with
-          | Error error -> t.status <- error
+          | Error error -> report_creation t error
           | Ok task ->
               t.tasks <- t.tasks @ [ task ];
               select t task.id;

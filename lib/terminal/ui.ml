@@ -671,7 +671,7 @@ let render t ~width:cols ~height:rows =
       let dialog =
         Workspace_dialog.render form
           ~busy:(t.creation_job <> None || t.creation_request <> None)
-          ~status:t.status ~width ~height
+          ~status:(Workspace_form.status form) ~width ~height
       in
       paint x y dialog.image;
       hits := [];

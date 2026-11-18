@@ -581,7 +581,8 @@ press `W` to create a workspace-backed task: Tab/Shift-Tab selects fields, Enter
 moves to the next, Ctrl-S creates, and Escape cancels before submission. Long
 values follow the cursor horizontally; Home/End reveals the prefix/suffix without
 changing the stored path or instruction. The form
-shows the source-snapshot disclosure. Creation runs in the background and selects
+shows the source-snapshot disclosure and its own setup/validation status; background
+run updates do not erase form errors. Creation runs in the background and selects
 the new Queued chat; it starts no agent. Source, parent, exact base, and model are
 remembered from previous workspace-backed tasks unless overridden by optional
 TOML workspace defaults. jj's path is explicit but can be configured once.

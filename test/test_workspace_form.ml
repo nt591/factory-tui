@@ -150,6 +150,8 @@ let () =
           let before = List.length controller.tasks in
           Controller.key controller (`ASCII 'S', [ `Ctrl ]);
           check "Ctrl-S queues explicit request" (controller.creation_request <> None);
+          check "submission reports form-local creation state"
+            (Workspace_form.status form = "Creating workspace. No agent starts.");
           Controller.poll_creation controller ~storage:(Some worker);
           check "creation job is owned by controller" (controller.creation_job <> None);
           Controller.key controller (`ASCII 'n', []);
@@ -212,5 +214,24 @@ let () =
           check "failed creation cannot overwrite destination"
             (match Task_creation.result job with Some (Error _) -> true | _ -> false);
           check "failed creation retains original files"
-            (Sys.is_directory (Option.get task.workspace).directory)));
+            (Sys.is_directory (Option.get task.workspace).directory);
+          Controller.set_workspace_defaults controller Workspace_defaults.empty;
+          Controller.act controller Controller.Begin_workspace;
+          let form = Option.get controller.workspace_form in
+          controller.creation_request <- Some request;
+          Controller.poll_creation controller ~storage:(Some worker);
+          let deadline = Unix.gettimeofday () +. 5. in
+          while controller.creation_job <> None && Unix.gettimeofday () < deadline do
+            Controller.poll_creation controller ~storage:(Some worker);
+            Thread.delay 0.01
+          done;
+          check "creation failure leaves form open with its own error"
+            (controller.workspace_form <> None
+            && controller.creation_job = None
+            && Workspace_form.status form = controller.status
+            && not (Controller.contains (Workspace_form.status form) "Fill the fields"));
+          check "failed form retains source and existing destination"
+            (Workspace_form.value form Workspace_form.Source = source
+            && Sys.is_directory (Option.get task.workspace).directory);
+          Controller.act controller Controller.Cancel_workspace));
   Printf.printf "Passed %d workspace form checks. Temporary repositories only.\n" !checks

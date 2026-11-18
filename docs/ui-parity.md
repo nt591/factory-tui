@@ -355,3 +355,10 @@ next-run settings. Scoped keys map to recorded run IDs; legacy/unmatched keys sa
 `Source run: not recorded` rather than guessing. Raw payloads remain unchanged and
 show the same origin context. Pure prefix/history tests and fake/installed-agent
 terminal checks verify source attribution after resume. Inspection starts no run.
+
+Workspace setup uses form-local status for guidance, validation, and creation
+errors. Background task updates can change the application footer but cannot
+erase the form's validation/error message. Submission and bounded creation failures
+update both status channels; successful creation closes the form. Cancelling drops
+the form-local status and leaves task data unchanged. Unit event/render tests,
+real-jj failed-destination tests, and the PTY creation workflow cover this isolation.

@@ -59,7 +59,9 @@ against these interfaces during the normal Dune build.
   and previous/next file lookup. Supplied paths remain display text, not commands.
 - `Workspace_defaults`: optional typed startup preferences shared by config and
   form initialization; it holds no instruction, credentials, or execution permission.
-- `Workspace_form`: abstract field/editor state; local validation and input only.
+- `Workspace_form`: abstract field/editor state and form-local setup/error status;
+  local validation and input only. Background task status cannot replace dialog
+  feedback; controller creation paths explicitly report form outcomes.
   Cursor-separated text parts support horizontal display windows without exposing
   the editor handle. Text_layout selects whole graphemes around the cursor.
 - `Workspace_dialog`: form rendering/hitboxes, independent of controller and jobs.

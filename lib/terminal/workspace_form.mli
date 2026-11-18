@@ -13,6 +13,8 @@ val create :
 val fields : field list
 val label : field -> string
 val current : t -> field
+val status : t -> string
+val report : t -> string -> unit
 val value : t -> field -> string
 val cursor_parts : t -> field -> string * string
 val focus : t -> field -> unit

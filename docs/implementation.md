@@ -360,3 +360,10 @@ selected next-run settings or raw payload item ID, determines that origin. Match
 uses the longest complete run-ID prefix; unmatched legacy keys say not recorded.
 Raw/readable views retain this context. Unit and fake/installed-agent PTY checks
 verify old tool attribution after a later attempt without changing stored events.
+
+Workspace setup uses form-local status for guidance, validation, and creation
+errors. Background task updates can change the application footer but cannot
+erase the form's validation/error message. Submission and bounded creation failures
+update both status channels; successful creation closes the form. Cancelling drops
+the form-local status and leaves task data unchanged. Unit event/render tests,
+real-jj failed-destination tests, and the PTY creation workflow cover this isolation.
