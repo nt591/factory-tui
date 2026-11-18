@@ -23,6 +23,10 @@ type action =
   | Next_repository
   | Next_harness
   | Begin_model
+  | Open_models
+  | Refresh_models
+  | Close_models
+  | Choose_model of string
   | Toggle_archive
   | Toggle_pause
   | Help
@@ -49,6 +53,8 @@ type action =
   | Begin_new
 
 type t = {
+  model_picker : Model_picker.t;
+  mutable model_target : string option;
   mutable live_config : Live_runner.config option;
   mutable live_confirmation : string option;
   mutable live_waiting_tasks : string list;
@@ -112,6 +118,8 @@ type t = {
 
 let create ?(external_events = false) ?(fake_harness = false) () =
   {
+    model_picker = Model_picker.create ();
+    model_target = None;
     live_config = None;
     live_confirmation = None;
     live_waiting_tasks = [];
@@ -468,6 +476,51 @@ let rec act t action =
           t.model_text <- task.model;
           t.input <- Edit_model;
           t.editor <- Text_edit.create task.model)
+  | Open_models
+    when t.live_confirmation <> None || t.review <> None || t.workspace_form <> None ->
+      ()
+  | Open_models -> (
+      match selected t with
+      | Some task when task.state <> Done ->
+          t.help <- false;
+          t.input <- Normal;
+          t.model_target <- Some task.id;
+          Model_picker.reset t.model_picker
+      | _ -> ())
+  | Close_models -> t.model_target <- None
+  | Refresh_models when t.model_target = None -> ()
+  | Refresh_models ->
+      let fetch =
+        match t.live_config with
+        | Some config -> (
+            match Live_runner.gateway config with
+            | Some gateway ->
+                fun () ->
+                  Gateway_models.fetch ~curl:"/usr/bin/curl" ~lookup:Sys.getenv_opt
+                    gateway
+            | None -> fun () -> Error "Model discovery requires --gateway PATH on launch."
+            )
+        | None ->
+            fun () -> Error "Model discovery requires live mode with an explicit gateway."
+      in
+      Model_picker.refresh t.model_picker fetch
+  | Choose_model model -> (
+      match t.model_target with
+      | Some id
+        when id = t.selected && List.mem model (Model_picker.visible t.model_picker) -> (
+          match selected t with
+          | Some task -> (
+              match set_model task model with
+              | Ok task ->
+                  replace t task;
+                  t.model_target <- None;
+                  if not (String.starts_with ~prefix:"Storage error:" t.status) then
+                    t.status <-
+                      "Next-run model selected. Compatibility is unverified; no run \
+                       starts."
+              | Error error -> t.status <- error)
+          | None -> ())
+      | _ -> ())
   | Cancel_live -> t.live_confirmation <- None
   | Confirm_live when not t.confirmation_readable ->
       t.status <-
@@ -720,7 +773,15 @@ let insert_text t value =
     else ignore (accept_input t editor)
 
 let paste_key t (key, mods) =
-  if t.live_confirmation <> None then ()
+  if t.model_target <> None then
+    match key with
+    | `ASCII char -> Model_picker.insert t.model_picker (String.make 1 char)
+    | `Uchar char ->
+        let buffer = Buffer.create 4 in
+        Uutf.Buffer.add_utf_8 buffer char;
+        Model_picker.insert t.model_picker (Buffer.contents buffer)
+    | _ -> ()
+  else if t.live_confirmation <> None then ()
   else if t.review <> None then Review.paste_key (Option.get t.review) (key, mods)
   else if t.workspace_form <> None then (
     if t.creation_job = None && t.creation_request = None then
@@ -948,6 +1009,7 @@ let normal_key t (key, mods) =
     | `ASCII 'b' -> command (fun () -> act t Session_board)
     | `ASCII 'T' -> command (fun () -> act t Toggle_raw_tools)
     | `ASCII 't' -> command (fun () -> act t Toggle_tools)
+    | `ASCII 'M' -> command (fun () -> act t Open_models)
     | `ASCII 'm' -> command (fun () -> act t Begin_model)
     | `ASCII 'H' -> command (fun () -> act t Next_harness)
     | `ASCII 'v' -> command (fun () -> act t Open_review)
@@ -984,6 +1046,16 @@ let key t (key, mods) =
   if key = `ASCII 'c' && List.mem `Ctrl mods then (
     reset_keys t;
     t.quit <- true)
+  else if t.model_target <> None then (
+    reset_keys t;
+    match key with
+    | `Escape -> act t Close_models
+    | `Enter when mods = [] ->
+        Option.iter
+          (fun id -> act t (Choose_model id))
+          (Model_picker.selected t.model_picker)
+    | `ASCII 'r' when List.mem `Ctrl mods -> act t Refresh_models
+    | _ -> Model_picker.key t.model_picker (key, mods))
   else if t.live_confirmation <> None then (
     reset_keys t;
     match key with
@@ -1017,6 +1089,7 @@ let key t (key, mods) =
     | `ASCII 'G' | `End -> t.menu_scroll <- 10000
     | `Page `Down -> t.menu_scroll <- min 10000 (t.menu_scroll + t.menu_page_rows)
     | `Page `Up -> t.menu_scroll <- max 0 (t.menu_scroll - t.menu_page_rows)
+    | `ASCII 'M' when t.menu_tab = Settings_tab -> act t Open_models
     | `ASCII 'm' when t.menu_tab = Settings_tab ->
         t.help <- false;
         act t Begin_model

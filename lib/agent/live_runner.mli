@@ -2,6 +2,7 @@ type config
 
 val configure : executable:string -> gateway_file:string option -> (config, string) result
 val with_policy : config -> Model.execution_policy -> config
+val gateway : config -> Gateway.t option
 val policy : config -> Model.execution_policy
 val policy_label : config -> string
 val prepare : config -> Model.task -> (Process.config * string, string) result

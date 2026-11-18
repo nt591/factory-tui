@@ -410,3 +410,15 @@ the parent with SIGPIPE and process cleanup is bounded. User curl configuration
 and redirect following are disabled. Literal and environment-backed API base URLs
 append /models without retry/route guessing. Listing is not Responses/tool/resume
 compatibility validation. The TUI catalogue picker remains pending.
+
+TUI model-picker verification on 2026-11-18 passed 25 fixture worker/view/controller
+checks and format/build/unit gates. All 19 UI cases passed with 65 previews;
+evidence: `/tmp/factory-model-picker-ui-20261118/report.json`. The filtered-picker
+preview was inspected. Loopback tests hold a request while Escape/reopen remain
+responsive, verify request-free opening/cache, exact dummy authorization, filter/
+apply, authentication failure/retry and unchanged persisted drafts/history/runs.
+Separate discovery CLI (31), setup (35), invocation (21), fake execution (19) and
+package (17) checks passed. The user's key/gateway were not accessed. Requests
+remain explicit and bounded; closing the view does not cancel the owned request,
+and quitting can wait for its transport bound. First-task form catalogue selection
+and real-provider protocol compatibility remain unverified/pending.

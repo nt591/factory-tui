@@ -593,8 +593,8 @@ let render t ~width:cols ~height:rows =
            details
              { x = sidebar_width; y = body_y + top; w = main_width; h = body_h - top });
   if
-    !detail_visible && (not t.help) && t.review = None && t.workspace_form = None
-    && t.live_confirmation = None
+    !detail_visible && t.model_target = None && (not t.help) && t.review = None
+    && t.workspace_form = None && t.live_confirmation = None
   then Task_updates.clear t.task_updates t.selected;
   let pending_keys =
     (if t.count = 0 then "" else string_of_int t.count)
@@ -791,6 +791,27 @@ let render t ~width:cols ~height:rows =
             | Live_confirmation.Cancel -> Cancel_live))
         view.hits);
 
+  if t.model_target <> None then (
+    let w = min 96 cols and h = min 28 rows in
+    let x = (cols - w) / 2 and y = (rows - h) / 2 in
+    let view = Model_picker_view.make t.model_picker ~width:w ~height:h in
+    let content =
+      I.vcat (List.map (line (max 0 (w - 4)) (attr text)) view.rows) |> I.hpad 1 1
+    in
+    paint x y
+      (border w h ~title:"Gateway models / next run" ~footer:view.footer ~color:accent
+         ~focused:true content);
+    hits := [];
+    input_controls := [];
+    modal_scroll := Some { x; y; w; h };
+    List.iter
+      (fun (item : Model_picker_view.hit) ->
+        hit (x + item.x) (y + item.y) item.width 1
+          (match item.choice with
+          | Fetch -> Refresh_models
+          | Close -> Close_models
+          | Model id -> Choose_model id))
+      view.hits);
   {
     image = fit cols rows !canvas;
     hits = !hits;
@@ -807,6 +828,10 @@ let mouse (t : Controller.t) frame ~now = function
       if t.input = Normal then (
         reset_keys t;
         match hit_at frame x y with
+        | Some action when t.model_target <> None -> (
+            match action with
+            | Refresh_models | Close_models | Choose_model _ -> act t action
+            | _ -> ())
         | Some (Select id) ->
             let double =
               match t.last_click with
@@ -844,6 +869,9 @@ let mouse (t : Controller.t) frame ~now = function
         if over_modal_content && mods = [] then
           Live_confirmation.scroll t.confirmation_viewport
             (if direction = `Up then -3 else 3))
+      else if t.model_target <> None then (
+        if over_modal_content then
+          Model_picker.move t.model_picker (if direction = `Up then -3 else 3))
       else if t.workspace_form <> None then ()
       else if t.review <> None then (
         let review = Option.get t.review in

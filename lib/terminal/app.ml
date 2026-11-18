@@ -93,6 +93,7 @@ let interactive ?(fake_harness = false) ?live
                 Option.iter
                   (fun runner -> Live_runner.close runner (Controller.live_context t))
                   live_runner;
+                Model_picker.close t.model_picker;
                 Option.iter Review.close t.review;
                 Controller.finish_creation t ~storage:worker;
                 Demo.Runner.close runner (Controller.demo_context t);
@@ -116,6 +117,7 @@ let interactive ?(fake_harness = false) ?live
           let pasting = ref false in
           while not t.quit do
             Controller.tick t (Unix.gettimeofday ());
+            Model_picker.poll t.model_picker;
             Option.iter Review.poll t.review;
             Option.iter
               (fun source ->

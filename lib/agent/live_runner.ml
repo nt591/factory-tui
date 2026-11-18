@@ -25,6 +25,7 @@ let configure ~executable ~gateway_file =
 
 let with_policy config policy = { config with policy }
 let policy config = config.policy
+let gateway config = config.gateway
 
 let policy_label config =
   match config.policy with

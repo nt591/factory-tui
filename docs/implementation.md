@@ -962,3 +962,14 @@ redirects. Catalogue JSON is bounded/validated and failures withhold bodies and
 stderr. Pure and loopback tests cover paths, auth, environment, limits and secret
 redaction. Manual model entry remains; picker and real-provider compatibility are
 not yet verified. See docs/gateway.md for discovery and read-only live testing.
+
+The TUI gateway catalogue is available with M on a selected nonaccepted task.
+Open/reopen is request-free; Fetch/Ctrl-R explicitly reads the gateway key through
+an asynchronous bounded worker. Escape closes the view while pending work remains
+owned/polled and shutdown joins it. Literal filtering, arrow/page/wheel selection
+and row/Enter apply only the next-run model; manual m editing remains separate.
+Pure Model_picker/Model_picker_view modules keep request state and view geometry
+separate from Controller/UI. Drafts and captured run settings remain unchanged.
+The 19th fixture UI case verifies loopback request hold/close/reopen, caching,
+auth error/retry and model application with no executable invocation. A first-task
+workspace-form picker and real-provider protocol compatibility remain pending.

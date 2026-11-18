@@ -427,3 +427,8 @@
  (name test_gateway_models)
  (modules test_gateway_models)
  (libraries factory_tui))
+
+(test
+ (name test_model_picker)
+ (modules test_model_picker)
+ (libraries factory_tui notty threads))

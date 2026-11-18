@@ -21,6 +21,7 @@ let items ~task ~live ~replay ~fake ~storage ~expanded =
         if task.state = Done then []
         else
           [ ("m model", Begin_model) ]
+          @ (if live then [ ("M models", Open_models) ] else [])
           @ if live then [] else [ ("H harness", Next_harness) ])
   @ (if storage then [ ("W workspace", Begin_workspace) ] else [])
   @ (if live then if storage then [ ("n task", Begin_new) ] else []

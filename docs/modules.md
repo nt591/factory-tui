@@ -37,6 +37,9 @@ against these interfaces during the normal Dune build.
   targets retain their editor mode and reject modal or stale different-mode clicks.
 - `Shortcut_guidance`: pure current-mode/pane shortcut copy with terminal-width
   limits. Input validation and size warnings take priority in the renderer.
+- `Model_picker`: abstract transient catalogue/filter state and background request
+  ownership. Closing the view retains bounded work for later poll/shutdown join.
+- `Model_picker_view`: pure modal rows and mouse-target geometry; no requests.
 - `Gateway_models`: validated, bounded explicit catalogue discovery through curl.
   Authorization uses stdin; response bodies and client stderr stay out of errors.
 - `Model`: immutable task/run/event data and lifecycle transitions. Records and

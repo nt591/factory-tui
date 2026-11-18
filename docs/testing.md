@@ -866,3 +866,10 @@ output, timeout and early stdin closure without SIGPIPE terminating the parent.
 
 Model discovery proves only that a catalogue request works. Responses/tool/resume
 compatibility with a real LiteLLM model remains a separate explicit live test.
+
+The 19-case UI catalogue includes `model-picker`: temporary SQLite, loopback
+models and dummy key with a must-not-launch agent executable. Opening starts no
+request, pending discovery can close/reopen, filter/apply changes only the next
+model, and explicit auth retry restores the catalogue. Pure worker/view tests
+cover asynchronous ownership, duplicate suppression, literal filtering, bounds,
+modal isolation, stale different-task selection and accepted read-only state.

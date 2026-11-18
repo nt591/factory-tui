@@ -81,7 +81,7 @@ are withheld, but this is not general protection against transformed secret data
 
 No agent, database, workspace creation or model-completion request occurs during
 discovery. It cannot be combined with execution/storage/check modes. Manual model
-entry remains available through `m`; a TUI catalogue picker is a later integration.
+entry remains available through `m`; `M` opens the TUI catalogue picker.
 
 ## Read-only live test after discovery
 
@@ -105,3 +105,25 @@ The CLI smoke uses a loopback server and dummy key only:
 ```sh
 python3 scripts/smoke-gateway-models.py
 ```
+
+## In-app model picker
+
+On a selected nonaccepted task, press `M` to browse gateway model IDs. Opening
+and reopening the picker does not read the key or contact the network. Click
+Fetch or press Ctrl-R for an explicit background request. The interface remains
+responsive while the request runs: Escape closes the modal without discarding
+its job. Requests retain the 12-second transport bound; quitting joins a pending
+request and can wait for that bound. The catalogue is cached only for this launch.
+
+Type a literal filter, use arrows/Page Up/Down or the modal wheel to select, and
+press Enter or click a row to apply the model to the selected task's next run.
+No agent starts. Existing run records and drafts are unchanged; accepted tasks
+remain read-only. Escape closes without applying. `m` still offers manual entry
+when the picker is closed. For a first task, enter a model in the workspace form;
+a form-integrated picker is not implemented yet. Models require an explicit
+gateway in live mode; missing configuration/auth errors stay in the modal.
+
+The fixture `model-picker` UI case uses a loopback server and dummy key. It holds
+a request to test closing/reopening, filters a 40-model catalogue, applies a model,
+checks caching/auth error/retry, and preserves exact drafts/messages/run records.
+It is not a real model or gateway compatibility test.

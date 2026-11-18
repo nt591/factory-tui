@@ -23,6 +23,10 @@ type action =
   | Next_repository
   | Next_harness
   | Begin_model
+  | Open_models
+  | Refresh_models
+  | Close_models
+  | Choose_model of string
   | Toggle_archive
   | Toggle_pause
   | Help
@@ -49,6 +53,8 @@ type action =
   | Begin_new
 
 type t = {
+  model_picker : Model_picker.t;
+  mutable model_target : string option;
   mutable live_config : Live_runner.config option;
   mutable live_confirmation : string option;
   mutable live_waiting_tasks : string list;

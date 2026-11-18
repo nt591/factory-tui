@@ -32,6 +32,7 @@ CASES = (
     "review-notice",
     "panes",
     "workflow",
+    "model-picker",
 )
 
 

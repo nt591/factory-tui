@@ -29,6 +29,7 @@ let help ~mode =
     | Replay -> "Replay supplies updates. s cannot start a run; a accepts Ready."
     | Fake -> "s starts a local process fixture; x stops; a accepts Ready."
     | Simulation -> "s starts a simulated run; x stops; a accepts Ready tasks.");
+    "M opens the gateway catalogue; Fetch or Ctrl-R explicitly reads the key.";
     "b returns to all tasks. R cycles repositories. d opens Archive.";
     "v opens real workspace changes; r refreshes; Escape returns.";
     "Review: [/]: files; h/l: long lines; Ctrl-U/D: half; Ctrl-B/F: page.";
@@ -93,7 +94,7 @@ let settings ~mode ~database ~task ~layout =
           (if task.state = Done then "Accepted task / settings are read-only"
            else
              match mode with
-             | Live _ -> "m edits model / live Codex only"
+             | Live _ -> "m edits model / live Codex only / M gateway catalogue"
              | _ -> "m edits model / H changes harness");
           "Past run settings do not change.";
         ])
