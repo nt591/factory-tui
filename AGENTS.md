@@ -46,3 +46,7 @@ binary. Inspect the report scope and relevant preview images before claiming UI
 coverage. --binary skips format/build/unit gates. Do not run build/format/package
 commands concurrently with its PTYs. Installed-agent checks remain separate opt-in
 commands and are not part of this suite.
+
+Vim-style navigation and insert mode are sufficient. Do not add keybindings solely
+for Vim parity. Prioritize the factory workflow, readable task/chat views, reliable
+updates, and simple input behavior.
