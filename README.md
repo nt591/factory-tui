@@ -630,7 +630,8 @@ not change the task or its workspace.
 
 Model, task-title, and search footer editors follow their cursor when values are
 long. Home/End reveals the prefix/suffix; display clipping does not shorten the
-submitted text. Short values retain key hints beside the input.
+submitted text. Long middle edits show text on both sides of the cursor. Short
+values retain key hints beside the input.
 
 Selecting a card also refreshes the footer with its task ID and next-step guidance,
 without clearing storage errors or starting a run.

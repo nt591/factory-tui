@@ -922,6 +922,7 @@ printf '%s\\n' '{"type":"turn.completed"}'
     while "-END▏" not in screen.display[-3] and time.monotonic() < deadline:
         pump(0.05)
     check("long model footer keeps actual cursor visible", "-END▏" in screen.display[-3])
+    check("long model edit exposes text after cursor", "-END▏coding-large" in screen.display[-3])
     send(b"\x1b[H")
     check("model Home reveals beginning in footer", "▏BEGIN-" in screen.display[-3])
     send(b"\x1b[F")

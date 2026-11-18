@@ -406,3 +406,10 @@ says so instead of implying a recovery failure. `Restart_guidance.ml/.mli` reads
 the pre-recovery snapshot; recovery still moves Working tasks to Needs you and
 starts no process. Pure snapshot/controller and SQLite-restart PTY checks verify
 accurate counts, retained editing text, and unchanged completion gates.
+
+Single-line cursor windows reserve forward context when editing inside a long
+value. Text after the cursor remains visible instead of placing the marker at
+the far right with all upcoming characters hidden. Home and End retain prefix/
+suffix behavior, short values retain their layout, and only whole graphemes enter
+the display window. Shared text/form/review/footer unit and PTY model checks cover
+this behavior; field values, submission, and execution remain unchanged.

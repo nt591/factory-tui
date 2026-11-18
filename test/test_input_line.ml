@@ -22,6 +22,10 @@ let () =
   let middle = Text_edit.right home |> fun editor -> Text_edit.insert editor "é" in
   check "middle cursor is displayed at actual position"
     (Controller.contains (line middle) "Bé▏EGIN-");
+  let inside = Text_edit.left editor |> Text_edit.left |> Text_edit.left in
+  check "long footer exposes forward text beside cursor"
+    (Controller.contains (line inside) "-▏END");
+
   check "short values retain shortcut hints"
     (Input_line.render ~width:80 ~label:" Search: " ~hint:" [Enter finish]"
        (Text_edit.create "word")

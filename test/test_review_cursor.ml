@@ -41,6 +41,12 @@ let () =
   Review.key review (`End, []);
   let _, text = render 60 in
   check "End restores editable tail" (Controller.contains text "/END▏");
+  List.iter (fun _ -> Review.key review (`Arrow `Left, [])) [ 1; 2; 3 ];
+  let _, text = render 60 in
+  check "review path exposes forward context within long value"
+    (Controller.contains text "/▏END");
+  Review.key review (`End, []);
+
   List.iter
     (fun key -> Review.key review (key, [ `Ctrl ]))
     [ `ASCII 'd'; `ASCII 'f'; `Enter ];

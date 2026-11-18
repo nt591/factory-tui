@@ -170,6 +170,8 @@ against these interfaces during the normal Dune build.
   text. It has no controller or resource state; Ui sanitizes text before wrapping.
   A cluster wider than the pane stays whole and is cropped by rendering.
   Bounded row previews reserve a grapheme-safe ellipsis for hidden title content.
+  Single-line editor windows reserve forward context for long middle edits while
+  preserving whole graphemes, prefix-at-Home, and suffix-at-End behavior.
 - `Ui`: frame/hitbox data, render, mouse dispatch, and tested text wrapping.
   Separate visible scroll rectangles prevent footer/composer/sidebar-heading wheel
   input from affecting keyboard-focused panes. Modal content has a separate

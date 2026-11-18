@@ -9,6 +9,13 @@ let () =
     (Text_layout.cursor_window 8 ~before:"" ~after:"BEGIN-long" = "▏BEGIN-l");
   check "middle cursor retains editable neighborhood"
     (Text_layout.cursor_window 8 ~before:"abc" ~after:"defghijk" = "abc▏defg");
+  check "long middle edit retains text on both sides of cursor"
+    (Text_layout.cursor_window 10 ~before:"long-prefix" ~after:"suffix" = "prefix▏suf");
+  check "short forward context gives unused space to preceding text"
+    (Text_layout.cursor_window 10 ~before:"long-prefix" ~after:"z" = "g-prefix▏z");
+  check "end editing uses full width for preceding context"
+    (Text_layout.cursor_window 10 ~before:"long-prefix" ~after:"" = "ng-prefix▏");
+
   List.iter
     (fun cluster ->
       let text =
@@ -48,6 +55,10 @@ let () =
     && Controller.contains (render ()) "/Z▏BEGIN/");
   Workspace_form.key form (`End, []);
   check "End restores suffix viewport" (Controller.contains (render ()) "/END▏");
+  List.iter (fun _ -> Workspace_form.key form (`Arrow `Left, [])) [ 1; 2; 3 ];
+  check "long workspace field exposes upcoming suffix beside cursor"
+    (Controller.contains (render ()) "/▏END");
+
   check "viewport does not truncate stored source"
     (String.length (Workspace_form.value form Workspace_form.Source)
     = String.length original + 1);

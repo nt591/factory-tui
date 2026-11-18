@@ -86,7 +86,8 @@ let cursor_window columns ~before ~after =
           if size > remaining then (selected, remaining)
           else take (remaining - size) (cluster :: selected) rest
     in
-    (* Keep the cursor visible even when preceding text exceeds the field width. *)
-    let left, remaining = take available [] (clusters before) in
-    let right, _ = take remaining [] (List.rev (clusters after)) in
+    (* Forward context must remain visible while editing inside a long value. *)
+    let forward = min (width after) (available / 3) in
+    let left, remaining = take (available - forward) [] (clusters before) in
+    let right, _ = take (remaining + forward) [] (List.rev (clusters after)) in
     String.concat "" left ^ marker ^ String.concat "" (List.rev right)
