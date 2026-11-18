@@ -656,6 +656,10 @@ The wide repository sidebar keeps navigation pinned and scrolls repository rows
 with the mouse wheel. It shows an overflow range; `R` brings the current filter
 into view, and `b` returns to all repositories. Hidden entries are not clickable.
 
+Compact headers put the execution mode first so simulation, replay, and live
+write/read policy remain recognizable in small terminals. Resizing never enables
+execution; live confirmation still requires all disclosure details to fit.
+
 ## Module interfaces
 
 All core modules have explicit `.mli` interfaces. Database, persistence worker,

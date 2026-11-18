@@ -262,3 +262,8 @@
  (name test_restart_guidance)
  (modules test_restart_guidance)
  (libraries factory_tui))
+
+(test
+ (name test_session_header)
+ (modules test_session_header)
+ (libraries factory_tui notty))

@@ -88,20 +88,14 @@ let render t ~width:cols ~height:rows =
   in
   let sidebar = ref None and column_regions = ref [] and panes = ref [] in
   let modal_scroll = ref None in
-  let header =
-    Printf.sprintf " FACTORY / terminal     %s  %s"
-      (if t.live_config <> None then
-         if
-           Option.fold ~none:false
-             ~some:(fun config -> Live_runner.policy config = Model.Workspace_write)
-             t.live_config
-         then "LIVE WRITE / CONFIRMED CALLS"
-         else "LIVE ENABLED / CONFIRMED CALLS"
-       else if t.fake_harness then "FAKE HARNESS / NO MODEL CALLS"
-       else if t.external_events then "FIXTURE REPLAY"
-       else "SIMULATION")
-      (if t.paused then "[PAUSED]" else "[UPDATING]")
+  let mode =
+    match t.live_config with
+    | Some config -> Menu_content.Live (Live_runner.policy config)
+    | None when t.fake_harness -> Menu_content.Fake
+    | None when t.external_events -> Menu_content.Replay
+    | None -> Menu_content.Simulation
   in
+  let header = Session_header.text ~width:cols ~mode ~paused:t.paused in
   paint 0 0 (line cols A.(fg accent ++ bg background ++ st bold) header);
   let sidebar_width = if cols >= 145 && not t.zoom then 22 else 0 in
   let main_width = cols - sidebar_width in
@@ -609,7 +603,8 @@ let render t ~width:cols ~height:rows =
         Input_line.render ~width:cols ~label:" New task: "
           ~hint:"  [Enter create / Esc cancel]" t.editor
   in
-  if rows >= 3 then
+  (* Tiny terminals retain the execution header instead of overwriting it with controls. *)
+  if rows >= 4 then
     paint 0 (rows - 3)
       (line cols (attr (if t.input = Normal then muted else accent)) input_text);
   let buttons =
@@ -617,7 +612,7 @@ let render t ~width:cols ~height:rows =
       ~fake:t.fake_harness ~storage:(t.database_path <> None) ~expanded:t.zoom
   in
   let x = ref 0 in
-  if rows >= 2 then
+  if rows >= 4 then
     List.iter
       (fun (title, action) ->
         let w = String.length title + 2 in
@@ -626,7 +621,7 @@ let render t ~width:cols ~height:rows =
           hit !x (rows - 2) w 1 action;
           x := !x + w))
       buttons;
-  if rows >= 1 then
+  if rows >= 4 then
     paint 0 (rows - 1)
       (line cols
          A.(fg muted ++ bg background)
@@ -635,13 +630,6 @@ let render t ~width:cols ~height:rows =
   if t.help then (
     let w = min 86 cols and h = min 31 rows in
     let x = (cols - w) / 2 and y = (rows - h) / 2 in
-    let mode =
-      match t.live_config with
-      | Some config -> Menu_content.Live (Live_runner.policy config)
-      | None when t.fake_harness -> Menu_content.Fake
-      | None when t.external_events -> Menu_content.Replay
-      | None -> Menu_content.Simulation
-    in
     let help_rows = Menu_content.help ~mode in
     let settings_rows = Menu_content.settings ~mode ~database:t.database_path ~task in
     let menu_rows = if t.menu_tab = Help_tab then help_rows else settings_rows in

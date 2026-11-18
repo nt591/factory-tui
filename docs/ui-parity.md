@@ -414,3 +414,10 @@ the far right with all upcoming characters hidden. Home and End retain prefix/
 suffix behavior, short values retain their layout, and only whole graphemes enter
 the display window. Shared text/form/review/footer unit and PTY model checks cover
 this behavior; field values, submission, and execution remain unchanged.
+
+Below sixty columns, the header prioritizes execution mode: SIMULATION, FAKE / NO
+MODEL, REPLAY, LIVE READ, or LIVE WRITE. Tiny heights retain the header rather than
+replace it with footer navigation. The normal wide title/disclosure remains
+unchanged. Unit tests include 20-column one/two/three-row rendering in all modes,
+and PTY resize checks verify the 20x8 simulation and live-read badges. Mode display
+is not authorization; complete live-run confirmation must still fit before Run.

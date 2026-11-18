@@ -146,6 +146,8 @@ against these interfaces during the normal Dune build.
 - `Text_edit`: abstract bounded UTF-8 text and cursor state, with insertion,
   deletion, line navigation, and extended-grapheme movement. Segmentation uses
   Uuseg; cached boundaries are private and malformed UTF-8 is normalized. It performs no UI actions.
+- `Session_header`: pure mode/width-aware banner copy. Compact headers prioritize
+  execution policy over application identity; rendering grants no run permission.
 - `Menu_content`: pure mode-specific Help/Settings rows. Simulation, fake, replay,
   and live modes state their actual invocation boundary. No controller, Notty,
   filesystem, process, or authentication dependency is required.

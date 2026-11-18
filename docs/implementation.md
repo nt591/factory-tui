@@ -413,3 +413,11 @@ the far right with all upcoming characters hidden. Home and End retain prefix/
 suffix behavior, short values retain their layout, and only whole graphemes enter
 the display window. Shared text/form/review/footer unit and PTY model checks cover
 this behavior; field values, submission, and execution remain unchanged.
+
+Compact session headers put simulation/fake/replay/live policy before the app
+identity so mode does not disappear behind a clipped title. Terminals shorter
+than four rows omit footer controls rather than overwrite the mode header. Wide
+headers stay unchanged. `Session_header.ml/.mli` generates the text; unit and PTY
+resize checks cover simulation and live-policy visibility without starting runs.
+Extremely narrow terminals can still truncate text; live authorization retains
+its independent complete-disclosure geometry gate.
