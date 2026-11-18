@@ -17,9 +17,10 @@ runs in session roots or isolated workspaces; headless execution is also availab
 ```
 
 Setup writes non-secret config after confirmation and prints the launch command.
-It starts no agent and does not fetch models or read your API key. Existing files
-are not overwritten. See `docs/configuration.md` for test config locations and
-folder/repository defaults.
+It starts no agent. Setup offers gateway model discovery and an optional default;
+Skip makes no request. Only variable references are saved, never your API key. Existing files
+are not overwritten. Run the TUI from the project directory; new tasks use that directory by default.
+See `docs/configuration.md` for overrides and test config locations.
 
 ## LiteLLM discovery and live testing
 

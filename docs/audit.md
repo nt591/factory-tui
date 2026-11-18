@@ -522,3 +522,17 @@ Its paste observer checks the visible composer rather than the removed duplicate
 input text, so fresh compatible benchmarks are needed for comparisons across
 that observer change. No real key, gateway or paid model was used. Acceptance and
 archive transitions are unchanged; their confirmation/restore UX is separate work.
+
+Provider-discovered optional model defaults and launch-cwd creation verification
+passed 13 pure setup tests, format/build/unit gates, and all 21 fixture UI cases
+with 68 previews. Evidence:
+`/tmp/factory-cwd-optional-model-ui-20261118/report.json`. The simplified creation
+preview was inspected: instruction focus, starting directory/model fields only.
+Loopback setup fetch/filter/number selection saves only an optional model default;
+skipping makes no request and leaves the fresh live task's model blank. One config
+creates tasks from two launch folders and persists distinct roots without starting
+an agent; saved task/run settings are unchanged. Explicit source/mode overrides
+remain compatible. Discovery CLI (31), setup CLI (37), invocation (26), fake
+execution (19) and temporary package (19) checks passed separately. Only dummy
+credentials/loopback were used; no real gateway was contacted. Acceptance/archive
+behavior is unchanged and remains a separately requested discussion.

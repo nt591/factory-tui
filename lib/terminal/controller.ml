@@ -659,13 +659,17 @@ let rec act t action =
         in
         let source, parent, revision, model =
           match previous with
-          | None -> ("", "", "@", "coding-large")
+          | None -> ("", "", "@", if t.live_config <> None then "" else "coding-large")
           | Some task ->
               let w = Option.get task.workspace in
               (w.source, Filename.dirname w.directory, w.base, task.model)
         in
         let defaults = t.workspace_defaults in
-        let source = Option.value ~default:source defaults.source
+        let source =
+          Option.value
+            ~default:
+              (if defaults.mode = Workspace_defaults.Folder then Sys.getcwd () else source)
+            defaults.source
         and parent = Option.value ~default:parent defaults.parent
         and revision = Option.value ~default:revision defaults.revision
         and model = Option.value ~default:model defaults.model in

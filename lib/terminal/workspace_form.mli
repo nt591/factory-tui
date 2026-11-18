@@ -28,3 +28,4 @@ val greenfield : t -> bool
 val toggle_greenfield : t -> unit
 val folder_root : t -> bool
 val toggle_folder_root : t -> unit
+val visible_fields : t -> field list

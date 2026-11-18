@@ -8,9 +8,7 @@ gateway = "litellm.toml"
 reasoning_effort = "low"
 
 [workspace]
-jj = "/opt/homebrew/bin/jj"
-# Source and parent must exist. Create workspaces only through the form.
-source = "~/projects/example"
-parent = "~/factory-workspaces"
-revision = "@"
-model = "your-model-id"
+mode = "folder"
+# No source is required: new tasks start in the TUI launch directory.
+# Choose a model per task, or uncomment a provider-specific default locally.
+# model = "your-model-id"

@@ -913,3 +913,16 @@ variable references, validates saved private configs, refuses overwrite, and
 opens the generated live form without a key or network request. The fixture UI
 catalogue now contains 21 cases. Model first-open discovery remains loopback-only
 in tests; reply editor tests verify single draft display and tiny-layout fallback.
+
+Setup model selection tests cover catalogue filtering/number selection, no-request
+skip, failed/empty catalogue retry choices, bounded model-list invocation and
+restricted environment inheritance. The setup PTY fixture additionally exercises
+real loopback discovery with dummy authorization, saves the selected default,
+skips in a separate config without another request, and verifies a fresh task
+form has no invented placeholder. No real provider/model or key is used.
+
+The setup fixture verifies launch-cwd task roots across two launches with the same
+source-free config, without prompting for working area paths. Both task roots are
+retained in SQLite and neither run starts. Pure form tests check instruction focus,
+folder-only field order and runtime cwd fallback. Optional/manual/configured model
+selection remains independently verified. Existing source overrides still work.

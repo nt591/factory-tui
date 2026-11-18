@@ -94,7 +94,7 @@ file and explicitly reports `enables_live_mode: false`.
 
 `examples/live-test.toml` is a user-editable generic template. Copy it to your own
 config directory, place the environment-only gateway config beside it, and edit
-source/workspace/model paths. Never store an API key in either file. The configs
+model defaults and any optional path overrides. Never store an API key in either file. The configs
 under `test/configs/` are fixture-only templates copied into temporary directories
 by the UI tests; they are not ready-to-run real-provider configurations.
 
@@ -111,23 +111,32 @@ From a checkout, run:
 ```
 
 The wizard asks for the Codex executable, gateway URL/key **environment variable
-names**, exact model ID, reasoning preference, working-area mode and storage path.
-It validates paths and the generated config, then asks before saving. It does not
-read your key, fetch models, initialize repositories, create workspaces or launch
+names**, optional provider-discovered model default, reasoning preference and
+storage path. It validates paths and the generated config,
+then asks before saving. Model discovery is offered after an explicit notice that
+it contacts the gateway
+and reads the referenced key. Fetch is the default choice; Skip performs no
+request. Setup never initializes repositories, creates workspaces or launches
 an agent. A missing local TUI binary is built only to validate the config.
-Use the model-list command separately if you need a model ID; do not paste a key
-into a model or variable-name prompt.
+Search the returned catalogue and select a numbered model, or skip the default
+and select per task. Retry and manual entry are available if discovery fails.
+Do not paste a key into a model or variable-name prompt.
 
 Saved `config.toml` and `gateway.toml` are private (0600); newly created config
 folders are 0700. Existing config files—including symlinks—are never overwritten.
 For a separate test setup, use `./scripts/setup.sh --config-dir /path/to/new-config`.
-Cancelled setup saves no files. If publishing either file fails, the wizard removes
+Cancelled setup saves no files (an explicitly chosen discovery request may
+already have occurred). If publishing either file fails, the wizard removes
 only files it created during that save; it does not delete pre-existing files.
 
-`[workspace] mode = "folder"`, `"existing"` or `"greenfield"` chooses the creation
-form's initial mode. The old default is existing-project mode when omitted. The
-form can still switch modes per task; saved mode never enables live runs or writes.
-Folder mode needs only the root/model defaults, not jj or a workspace parent.
+Setup saves `[workspace] mode = "folder"` without a source path. New tasks start
+in the directory where you launch the TUI; setup never asks you to name a project
+or prepare a session folder. The form focuses the task instruction and hides
+unused jj, parent and revision fields. Starting directory and model remain editable.
+
+For advanced configurations, `mode = "existing"` or `"greenfield"` still selects
+repository creation. Older configs keep their previous mode and explicit source
+paths. A saved mode never enables live runs or writes.
 
 After setup, the wizard prints the read-only launch command. For the default
 config location this is also:
@@ -138,3 +147,22 @@ config location this is also:
 
 Each actual run still requires confirmation. Add `--workspace-write` deliberately
 when needed; folder roots are existing working directories, not isolated copies.
+
+A selected setup model is only the default for future task creation. It does not
+change saved tasks or recorded runs. Skipping omits the model from TOML; on a fresh
+live board the task form starts with no model and requires a task-specific choice.
+Existing task settings and the prior-task prefill remain intact. Discovered IDs
+are catalogue entries, not proof of Codex protocol compatibility.
+
+For everyday use, launch from the directory you want the task to work in:
+
+```sh
+cd /path/to/your/project
+/path/to/factory-tui/scripts/run.sh --live-ui
+```
+
+Each created task records its resolved starting directory. Reopening it from a
+different directory does not move that task. New tasks without an explicit source
+override use the new launch directory. Agents may navigate and create subprojects
+with their tools according to the configured execution policy; the TUI does not
+automatically create an isolated workspace or expand write permissions.

@@ -40,13 +40,13 @@ let render_body form ~busy ~status ~width:cols ~height:rows =
               (" "
               ^
               if field = Workspace_form.Source && Workspace_form.folder_root form then
-                "Session root folder"
+                "Starting directory"
               else Workspace_form.label field),
             None );
           (value, Some (Field field));
           (row normal "", None);
         ])
-      Workspace_form.fields
+      (Workspace_form.visible_fields form)
   in
   let capacity = max 0 (rows - 7) in
   let rec focus_index i = function
@@ -98,8 +98,7 @@ let render_body form ~busy ~status ~width:cols ~height:rows =
            else " jj can snapshot source files; never fetches, merges, or pushes.");
         row normal
           (if Workspace_form.folder_root form then
-             " FOLDER ROOT / Source is working folder; no checkout is created. Ctrl-E \
-              switches."
+             " FOLDER ROOT / Start here; no checkout is created. Ctrl-E switches."
            else if Workspace_form.greenfield form then
              " GREENFIELD / new repository; source and revision are ignored. Ctrl-N \
               switches."

@@ -12,8 +12,9 @@ Open the creation form with `n` in live mode or `W` with SQLite configured.
   parent, or use **Projects / Ctrl-P** to select a configured project. Creation
   resolves the revision and makes a separate checkout. It never automatically
   converts a Git-only source, fetches, merges or pushes.
-- **Folder root / Ctrl-E**: the Source field becomes **Session root folder**.
-  Choose an existing directory and enter the task goal. jj, workspace parent and
+- **Folder root / Ctrl-E**: the Source field becomes **Starting directory**.
+  Wizard-generated configs use the launch directory automatically; enter the task
+  goal. You can override the displayed directory. jj, workspace parent and
   revision are ignored. Creation records that folder, creates no files/checkouts,
   and starts no process. Codex runs with this directory as its working root.
 - **New repository / Ctrl-N**: choose an existing workspace parent and enter the
@@ -27,7 +28,7 @@ to existing-project mode. Other field values remain editable and are retained
 when switching. Ctrl-S is always the separate explicit creation action. Model
 selection uses **Models / Ctrl-G** and performs no creation or execution.
 
-For a folder-rooted microservice task, prepare an appropriate working folder:
+A folder-rooted task can start in a project or a multi-service working folder:
 
 ```text
 my-session/

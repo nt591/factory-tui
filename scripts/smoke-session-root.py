@@ -78,7 +78,7 @@ for event in [
             tui.ready()
             tui.send(b"n")
             tui.wait("folder root mode", lambda: "FOLDER ROOT" in tui.text())
-            tui.send(b"\t" * 4 + b"Work across these services and create a new one\x13")
+            tui.send(b"Work across these services and create a new one\x13")
             tui.wait("session created", lambda: "Workspace task created" in tui.text())
             tui.check(
                 "session root needs no jj initialization",

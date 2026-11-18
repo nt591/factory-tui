@@ -1030,3 +1030,22 @@ preference (folder/existing/greenfield), not an execution-mode auto-enable flag.
 The setup fixture checks cancellation, save, overwrite refusal and that generated
 folder defaults reach the real TUI without starting an agent. No acceptance or
 archive behavior changes in this increment.
+
+Setup offers provider catalogue discovery with credential/network disclosure and
+an optional new-task default. Search/number selection replaces required model-ID
+entry. Retry, Skip and manual fallback remain available; skipped setup does not
+request models or write a default. A fresh live creation form with no default
+has an empty model field rather than a fixture placeholder. Existing task/run
+settings are unchanged. Discovery uses the existing bounded model-list CLI with
+only the referenced environment values passed; no key or response errors are
+printed or persisted. Wizard pure/loopback tests cover selection, retry, empty
+catalogue, skip and unchanged tasks. Acceptance/archive behavior is untouched.
+
+Setup no longer requests session-folder, repository, parent or jj defaults. Its
+folder-mode config omits source, so new tasks use the TUI's runtime working
+directory. Creation focuses the instruction and hides repository-only fields;
+the starting directory and per-task model remain editable. Explicit old source/
+mode configs retain their behavior. Each task persists its canonical root and does
+not move on restart from another cwd. Fixture tests create two tasks from two
+launch folders using one config and verify exact separate persisted roots without
+agent starts or workspace creation. Existing/greenfield modes remain opt-in.

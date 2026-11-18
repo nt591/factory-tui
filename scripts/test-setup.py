@@ -2,6 +2,7 @@
 """Check setup file safety and prompts without models, credentials or repositories."""
 
 import importlib.util
+import json
 import stat
 import sys
 import tempfile
@@ -94,10 +95,9 @@ class Tests(unittest.TestCase):
                 str(binary),
                 "",
                 "",
+                "manual",
                 "fixture-model",
                 "",
-                "",
-                str(root),
                 "",
                 "yes",
             ]
@@ -136,10 +136,9 @@ class Tests(unittest.TestCase):
                 str(binary),
                 "",
                 "",
+                "manual",
                 "fixture-model",
                 "",
-                "",
-                str(root),
                 "",
                 "no",
             ]
@@ -157,25 +156,14 @@ class Tests(unittest.TestCase):
             run.assert_not_called()
             self.assertFalse(output.exists())
 
-    def test_greenfield_wizard_needs_parent_not_source(self):
+    def test_setup_leaves_working_directory_dynamic(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             binary = root / "binary"
             binary.write_text("fixture")
             binary.chmod(0o700)
             output = root / "config"
-            answers = [
-                str(binary),
-                "",
-                "",
-                "fixture-model",
-                "default",
-                "greenfield",
-                str(binary),
-                str(root),
-                "",
-                "yes",
-            ]
+            answers = [str(binary), "", "", "skip", "default", "", "yes"]
             with (
                 mock.patch.object(
                     sys,
@@ -190,10 +178,93 @@ class Tests(unittest.TestCase):
             ):
                 setup.main()
             config = (output / "config.toml").read_text()
-            self.assertIn('mode = "greenfield"', config)
-            self.assertNotIn("source =", config)
-            self.assertNotIn("reasoning_effort =", config)
-            self.assertFalse((output / "board.sqlite").exists())
+            for field in ("source =", "parent =", "jj =", "revision =", "model ="):
+                self.assertNotIn(field, config)
+            self.assertIn('mode = "folder"', config)
+
+    def test_discovery_filter_selects_exact_catalogue_id(self):
+        with (
+            mock.patch("builtins.input", side_effect=["", "worker", "1"]),
+            mock.patch("builtins.print"),
+            mock.patch.object(
+                setup, "discover_models", return_value=["api-model", "worker-model"]
+            ) as fetch,
+        ):
+            self.assertEqual(
+                setup.choose_default(Path("/binary"), "refs", "URL", "KEY"),
+                "worker-model",
+            )
+        fetch.assert_called_once()
+
+    def test_skip_never_reads_environment_or_calls_discovery(self):
+        with (
+            mock.patch("builtins.input", return_value="skip"),
+            mock.patch("builtins.print"),
+            mock.patch.object(setup, "discover_models") as fetch,
+        ):
+            self.assertIsNone(
+                setup.choose_default(Path("/binary"), "refs", "URL", "KEY")
+            )
+        fetch.assert_not_called()
+
+    def test_discovery_failure_retry_and_empty_skip(self):
+        with (
+            mock.patch("builtins.input", side_effect=["fetch", "fetch", "skip"]),
+            mock.patch("builtins.print"),
+            mock.patch.object(
+                setup, "discover_models", side_effect=[None, []]
+            ) as fetch,
+        ):
+            self.assertIsNone(
+                setup.choose_default(Path("/binary"), "refs", "URL", "KEY")
+            )
+        self.assertEqual(fetch.call_count, 2)
+
+    def test_discovery_limits_environment_and_withholds_error_body(self):
+        with (
+            mock.patch.dict(
+                setup.os.environ,
+                {
+                    "URL": "https://fixture.example/v1",
+                    "KEY": "dummy-key",
+                    "OTHER_SECRET": "not-inherited",
+                },
+            ),
+            mock.patch.object(
+                setup.subprocess,
+                "run",
+                return_value=mock.Mock(
+                    returncode=0, stdout=json.dumps({"models": ["fixture-model"]})
+                ),
+            ) as run,
+        ):
+            self.assertEqual(
+                setup.discover_models(
+                    Path("/binary"),
+                    'base_url_environment="URL"\nkey_environment="KEY"',
+                    "URL",
+                    "KEY",
+                ),
+                ["fixture-model"],
+            )
+        self.assertEqual(
+            set(run.call_args.kwargs["env"]), {"PATH", "HOME", "URL", "KEY"}
+        )
+        self.assertNotIn("dummy-key", str(run.call_args.args))
+        with (
+            mock.patch.object(
+                setup.subprocess,
+                "run",
+                return_value=mock.Mock(
+                    returncode=2, stdout="sensitive", stderr="sensitive"
+                ),
+            ),
+            mock.patch("builtins.print") as output,
+        ):
+            self.assertIsNone(
+                setup.discover_models(Path("/binary"), "refs", "URL", "KEY")
+            )
+        self.assertNotIn("sensitive", str(output.call_args_list))
 
     def test_existing_files_refused_before_prompt_or_process(self):
         with tempfile.TemporaryDirectory() as temporary:

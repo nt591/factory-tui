@@ -15,7 +15,9 @@ version in .ocamlformat and scripts/setup-editor.sh consistent.
 Write comments only for non-obvious safety conditions or choices. Use plain English.
 
 Live execution must be explicitly enabled and explicitly started. Setup must
-not start an agent or import credentials. Acceptance does not merge, push, or
+not start an agent or store credentials. Setup may read the referenced API key
+only for user-selected gateway model discovery after disclosure; Skip must make
+no request. Acceptance does not merge, push, or
 delete a workspace. Use fake harnesses and temporary workspaces for tests.
 
 Add an explicit .mli for each core module. Export supported entry points, not

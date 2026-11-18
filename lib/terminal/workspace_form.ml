@@ -43,7 +43,8 @@ let folder_root t = t.folder_root
 
 let toggle_folder_root t =
   t.folder_root <- not t.folder_root;
-  t.greenfield <- false
+  t.greenfield <- false;
+  t.current <- (if t.folder_root then Task else Source)
 
 let greenfield t = t.greenfield
 
@@ -105,7 +106,10 @@ let set_model t value =
       change t (fun _ -> Text_edit.create model.model);
       Ok ()
 
+let visible_fields t = if t.folder_root then [ Source; Model; Task ] else fields
+
 let cycle t backwards =
+  let fields = visible_fields t in
   let order = if backwards then List.rev fields else fields in
   let rec next = function
     | a :: b :: _ when a = t.current -> b

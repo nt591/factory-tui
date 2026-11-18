@@ -127,6 +127,24 @@ let () =
       Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (120, 36) frame.image;
       check "form discloses no checkout creation"
         (Controller.contains (Buffer.contents buffer) "FOLDER ROOT");
+      let cwd = Sys.getcwd () in
+      let fresh = Controller.create () in
+      fresh.database_path <- Some "/fixture/not-opened.sqlite";
+      Controller.set_workspace_defaults fresh
+        { Workspace_defaults.empty with mode = Folder };
+      Fun.protect
+        ~finally:(fun () -> Unix.chdir cwd)
+        (fun () ->
+          Unix.chdir root;
+          Controller.act fresh Begin_workspace;
+          let current = Option.get fresh.workspace_form in
+          check "folder defaults use runtime cwd without requiring setup source"
+            (Workspace_form.value current Source = root
+            && Workspace_form.current current = Task
+            && Workspace_form.visible_fields current = [ Source; Model; Task ]);
+          Workspace_form.key current (`Tab, []);
+          check "folder tab order ignores unused repository fields"
+            (Workspace_form.current current = Source));
       let view = Live_confirmation.render (Some task) ~width:100 ~height:50 in
       Buffer.clear buffer;
       Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (100, 50) view.image;
