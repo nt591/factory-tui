@@ -142,3 +142,8 @@
  (name test_menu_window)
  (modules test_menu_window)
  (libraries factory_tui notty))
+
+(test
+ (name test_diff_display)
+ (modules test_diff_display)
+ (libraries factory_tui notty unix))

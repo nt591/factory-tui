@@ -90,7 +90,11 @@ Acceptance does not merge, push, or delete a workspace.
    scrolling uses terminal cells, with h/l, arrows, 0, and Ctrl-wheel verified on
    long Unicode lines. `]`/`[` and clickable buttons jump file headers using an
    immutable patch index; the footer shows file position, and page keys use the
-   viewport height. Short final-file headers stay visible. Review never
+   viewport height. Short final-file headers stay visible. Sanitized display rows
+   and maximum terminal width are prepared once per loaded result in `Diff_display`;
+   redraw/resize do not scan the entire patch. Refresh invalidates both raw index
+   and display cache. Unit/real-jj tests cover lifecycle and unchanged raw text.
+   Review never
    accepts, integrates, or deletes. `--live-ui` explicitly enables confirmed
    workspace-backed Codex execution with a durable Working checkpoint. Acceptance
    remains separate from merge and push. Live calls require explicit live mode;

@@ -43,13 +43,8 @@ let render review ~width:cols ~height:rows =
   let line_count =
     Option.fold ~none:(List.length messages) ~some:Diff_document.line_count document
   in
-  let widest =
-    Option.fold ~none:0
-      ~some:(fun document ->
-        Diff_document.fold_lines document ~init:0 ~f:(fun widest text ->
-            max widest (I.width (I.string A.empty (clean text)))))
-      document
-  in
+  let display = Option.bind document (fun _ -> Review.display review) in
+  let widest = Option.fold ~none:0 ~some:Diff_display.widest display in
   Review.set_horizontal review (min (Review.horizontal review) (max 0 (widest - cols)));
   (* File jumps keep the header at the top, including a short final file. *)
   Review.set_scroll review (min (Review.scroll review) (max 0 (line_count - 1)));
@@ -58,10 +53,11 @@ let render review ~width:cols ~height:rows =
       ~none:
         (List.filteri
            (fun i _ -> i >= Review.scroll review && i < Review.scroll review + capacity)
-           messages)
-      ~some:(fun document ->
-        Diff_document.lines document ~start:(Review.scroll review) ~count:capacity)
-      document
+           messages
+        |> List.map clean)
+      ~some:(fun display ->
+        Diff_display.lines display ~start:(Review.scroll review) ~count:capacity)
+      display
   in
   let color text =
     if String.starts_with ~prefix:"+" text then A.lightgreen
@@ -74,7 +70,7 @@ let render review ~width:cols ~height:rows =
       vcat
         (List.map
            (fun text ->
-             let image = string (attr (color text)) (clean text) in
+             let image = string (attr (color text)) text in
              image |> hcrop (Review.horizontal review) 0 |> hsnap ~align:`Left cols)
            visible)
       |> vsnap ~align:`Top capacity)

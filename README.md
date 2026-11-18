@@ -548,7 +548,9 @@ horizontal offset. Page keys move by the visible patch height. Empty and failed
 diffs are explicit states, not sample patches.
 Review does not accept, merge, push, or delete. `h/l` or Left/Right scroll long
 diff lines horizontally; `0` returns to their start. Ctrl-wheel also scrolls
-horizontally. Offsets use terminal cells, preserving UTF-8 text.
+horizontally. Offsets use terminal cells, preserving UTF-8 text. Display rows and
+maximum width are prepared per refresh, so redraw/resize does not scan the full
+patch. Raw patch text remains unchanged.
 Creation requires durable storage;
 a save failure leaves the new directory for inspection instead of deleting it.
 See [docs/workspaces.md](docs/workspaces.md) for the API limits and next steps.

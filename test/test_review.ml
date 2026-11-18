@@ -62,7 +62,8 @@ let () =
       check "open does not run jj automatically"
         (Review.state review = Changes.Idle
         && Review.editing review
-        && Review.document review = None);
+        && Review.document review = None
+        && Review.display review = None);
       Review.key review (`Enter, []);
       check "invalid path does not spawn"
         (Review.state review = Changes.Idle && Review.status review <> None);
@@ -136,8 +137,14 @@ let () =
         Buffer.contents buffer
       in
       let document = Option.get (Review.document review) in
+      let display = Option.get (Review.display review) in
+      check "loaded patch has prepared display metadata"
+        (List.length (Diff_display.lines display ~start:0 ~count:max_int)
+        = Diff_document.line_count document);
       check "loaded patch indexes both real files" (Diff_document.file_count document = 2);
       Review.poll review;
+      check "idle polling retains prepared display"
+        (Option.get (Review.display review) == display);
       check "idle polling retains parsed document"
         (Option.get (Review.document review) == document);
       let text = rendered review 80 24 in
@@ -196,10 +203,13 @@ let () =
       ignore (rendered review 180 24);
       check "wide resize restores unneeded horizontal offset"
         (Review.horizontal review = 0);
+      check "resize reuses display metadata"
+        (Option.get (Review.display review) == display);
       Review.set_horizontal review 50;
       Review.refresh review;
       check "refresh resets horizontal viewport" (Review.horizontal review = 0);
       check "refresh clears previous file index" (Review.document review = None);
+      check "refresh clears previous display metadata" (Review.display review = None);
       Review.key review (`ASCII ']', []);
       check "file navigation while loading does not move viewport"
         (Review.scroll review = 0);

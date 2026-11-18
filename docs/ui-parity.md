@@ -139,3 +139,10 @@ covering content. `Menu_window.ml/.mli` computes row selection and clamping;
 keyboard/mouse dispatch stays in the controller. Unit and compact-terminal PTY
 checks cover paging, bottom instructions, tab reset, frame bounds, and background
 control isolation. Saved tasks and drafts do not change while browsing the menu.
+
+Changes review caches sanitized display rows and maximum terminal-cell width per
+loaded patch. Redraw/resize uses the cache and prepares only visible row images,
+so scrolling does not repeatedly scan an entire large patch. Refresh invalidates
+this data; raw patch/file identity stays separate and unchanged. Pure and real-jj
+checks cover sanitation, cached width, visible slices, and lifecycle. Synthetic
+render-preparation measurements and their limited scope are in `docs/testing.md`.

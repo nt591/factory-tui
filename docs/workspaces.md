@@ -119,3 +119,11 @@ recognition ignores added lines and hunk content when deriving file labels.
 Their interfaces hide worker handles and state representation. Tests and the PTY
 smoke verify real added files in a temporary workspace, empty/error states, modal
 isolation, file/viewport navigation, scrolling, and return to chat.
+
+`Diff_display` prepares sanitized rows and maximum terminal-cell width once when a
+patch loads. Rendering measures only visible rows; horizontal clamping reads the
+cached maximum. Scrolling and resize reuse this data, while refresh discards it.
+The raw `Diff_document` stays unchanged. This uses extra memory for sanitized
+lines so large patches are not repeatedly scanned on the foreground redraw path.
+A synthetic measurement of this specific preparation work is in `docs/testing.md`;
+it is not a full UI-performance or native-app comparison.

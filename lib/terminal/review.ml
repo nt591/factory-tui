@@ -8,6 +8,7 @@ type t = {
   mutable horizontal : int;
   mutable error : string option;
   mutable document : Diff_document.t option;
+  mutable display : Diff_display.t option;
   mutable page_rows : int;
 }
 
@@ -26,6 +27,7 @@ let create (task : Model.task) ~jj =
           horizontal = 0;
           error = None;
           document = None;
+          display = None;
           page_rows = 10;
         }
 
@@ -35,6 +37,7 @@ let executable t = Text_edit.text t.executable
 let editing t = t.editing
 let state t = Changes.state t.changes
 let document t = t.document
+let display t = t.display
 let set_page_rows t value = t.page_rows <- max 1 value
 let scroll t = t.scroll
 let set_scroll t value = t.scroll <- max 0 (min 1000000 value)
@@ -55,7 +58,8 @@ let refresh t =
         t.editing <- false;
         t.scroll <- 0;
         t.horizontal <- 0;
-        t.document <- None
+        t.document <- None;
+        t.display <- None
 
 let status t = t.error
 let edit_executable t = if state t <> Changes.Loading then t.editing <- true
@@ -124,8 +128,13 @@ let paste_key t (key, _) = if t.editing then input t key
 let poll t =
   Changes.poll t.changes;
   match (state t, t.document) with
-  | Changes.Patch patch, None -> t.document <- Some (Diff_document.parse patch)
+  | Changes.Patch patch, None ->
+      let document = Diff_document.parse patch in
+      t.document <- Some document;
+      t.display <- Some (Diff_display.create document)
   | Changes.Patch _, Some _ -> ()
-  | _ -> t.document <- None
+  | _ ->
+      t.document <- None;
+      t.display <- None
 
 let close t = Changes.close t.changes

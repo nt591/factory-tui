@@ -88,3 +88,30 @@ check, Notty and pyte disagreed on that emoji's width at the last available cell
 the test leaves enough room for both widths. This is a documented display-width
 limit, not a reason to split a grapheme. Exact right-edge emoji rendering requires
 terminal-specific coverage and is not claimed by this test.
+
+## Diff redraw preparation
+
+`test_diff_display` verifies prepared row sanitization, malformed-text replacement,
+terminal-cell width, bounded slices, reused row strings, and unchanged raw patch.
+Real-jj review tests verify cache construction, idle/resize reuse, and refresh
+invalidation. `Review_view` reads the cached width and visible row slice rather
+than sanitizing/measuring every line on each redraw.
+
+An opt-in synthetic measurement runs no command or workspace operation:
+
+```sh
+opam exec --switch=. -- dune exec test/test_diff_display.exe -- --measure
+```
+
+On November 18, 2026, a local 20,000-line synthetic Unicode patch yielded:
+
+- Initial sanitized display preparation: 65.499 ms.
+- Twenty full sanitation/terminal-width scans: 212.739 ms total.
+- Twenty cached-width lookups plus 30 visible-row images each: 0.069 ms total.
+
+The full-scan path uses the prior sanitation and Notty measurement operations.
+The cached path excludes initial preparation and stores extra sanitized row data.
+These are local single-run observations, not timing assertions or a whole-TUI,
+real-provider, terminal-output, or native-GUI performance comparison. Initial
+preparation still runs when the bounded patch result is delivered; no asynchronous
+preparation or large-transcript performance claim follows from this measurement.
