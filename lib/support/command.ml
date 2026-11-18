@@ -3,6 +3,10 @@ open Scope
 type output = { status : Unix.process_status; stdout : string; stderr_bytes : int }
 
 external monotonic : unit -> float = "factory_monotonic"
+external no_sigpipe : Unix.file_descr -> unit = "factory_socket_no_sigpipe"
+
+external send_input : Unix.file_descr -> bytes -> int -> int -> int
+  = "factory_socket_send"
 
 exception Command_error of string
 
@@ -18,7 +22,7 @@ let reap pid =
   in
   loop ()
 
-let run ~executable ~arguments ~directory ~timeout ~max_output =
+let execute ~input_text ~executable ~arguments ~directory ~timeout ~max_output =
   try
     if
       Filename.is_relative executable
@@ -34,6 +38,9 @@ let run ~executable ~arguments ~directory ~timeout ~max_output =
       timeout <= 0.
       || (not (Float.is_finite timeout))
       || max_output < 1 || max_output > 2097152
+      || Option.fold ~none:false
+           ~some:(fun text -> String.length text > 1048576)
+           input_text
     then raise (Command_error "Invalid command limits.");
     let descriptors = ref [] in
     let pipe () =
@@ -47,8 +54,27 @@ let run ~executable ~arguments ~directory ~timeout ~max_output =
     in
     let@ () = on_exit (fun () -> List.iter close !descriptors) in
     let output_read, output_write = pipe () and error_read, error_write = pipe () in
-    let input = Unix.openfile "/dev/null" [ Unix.O_RDONLY; Unix.O_CLOEXEC ] 0 in
-    descriptors := input :: !descriptors;
+    let input, input_write =
+      match input_text with
+      | None ->
+          let fd = Unix.openfile "/dev/null" [ Unix.O_RDONLY; Unix.O_CLOEXEC ] 0 in
+          descriptors := fd :: !descriptors;
+          (fd, None)
+      | Some _ ->
+          let read, write = Unix.socketpair Unix.PF_UNIX Unix.SOCK_STREAM 0 in
+          descriptors := read :: write :: !descriptors;
+          Unix.set_close_on_exec read;
+          Unix.set_close_on_exec write;
+          no_sigpipe write;
+          (read, Some write)
+    in
+    let pending_input = ref input_write in
+    let input_offset = ref 0 in
+    let input_bytes = Bytes.of_string (Option.value ~default:"" input_text) in
+    let close_input () =
+      Option.iter release !pending_input;
+      pending_input := None
+    in
     let pid =
       Spawn.spawn ~prog:executable ~argv:(executable :: arguments)
         ~cwd:(Spawn.Working_dir.Path directory) ~stdin:input ~stdout:output_write
@@ -63,6 +89,7 @@ let run ~executable ~arguments ~directory ~timeout ~max_output =
     in
     List.iter release [ input; output_write; error_write ];
     List.iter Unix.set_nonblock [ output_read; error_read ];
+    Option.iter Unix.set_nonblock input_write;
     let output_open = ref true and error_open = ref true in
     let output = Buffer.create 4096 and error_bytes = ref 0 in
     let started = monotonic () and exited = ref None in
@@ -92,6 +119,7 @@ let run ~executable ~arguments ~directory ~timeout ~max_output =
          in
          if found <> 0 then (
            status := Some value;
+           close_input ();
            exited := Some now;
            signal pid));
       (match !exited with
@@ -102,11 +130,27 @@ let run ~executable ~arguments ~directory ~timeout ~max_output =
         (if !output_open then [ output_read ] else [])
         @ if !error_open then [ error_read ] else []
       in
-      let ready, _, _ =
-        try Unix.select reads [] [] 0.02
+      if !input_offset = Bytes.length input_bytes then close_input ();
+      let writes = Option.to_list !pending_input in
+      let ready, writable, _ =
+        try Unix.select reads writes [] 0.02
         with Unix.Unix_error (Unix.EINTR, _, _) -> ([], [], [])
       in
-      List.iter (fun fd -> receive fd (fd = output_read)) ready
+      List.iter (fun fd -> receive fd (fd = output_read)) ready;
+      List.iter
+        (fun fd ->
+          let count =
+            try
+              send_input fd input_bytes !input_offset
+                (min 8192 (Bytes.length input_bytes - !input_offset))
+            with
+            | Unix.Unix_error ((Unix.EINTR | Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) -> 0
+            | Unix.Unix_error ((Unix.EPIPE | Unix.ECONNRESET), _, _) ->
+                close_input ();
+                0
+          in
+          input_offset := !input_offset + count)
+        writable
     done;
     Ok
       {
@@ -118,3 +162,9 @@ let run ~executable ~arguments ~directory ~timeout ~max_output =
   | Command_error error -> Error error
   | Unix.Unix_error _ | Sys_error _ | Failure _ ->
       Error "Command process operation failed."
+
+let run ~executable ~arguments ~directory ~timeout ~max_output =
+  execute ~input_text:None ~executable ~arguments ~directory ~timeout ~max_output
+
+let run_input ~input ~executable ~arguments ~directory ~timeout ~max_output =
+  execute ~input_text:(Some input) ~executable ~arguments ~directory ~timeout ~max_output

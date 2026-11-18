@@ -128,7 +128,7 @@ let make ~base_url ~key_environment =
 
 exception Invalid
 
-let parse source =
+let parse_environment ~lookup source =
   if String.length source > 65536 then Error "Gateway config exceeds 64 KiB."
   else
     try
@@ -144,9 +144,23 @@ let parse source =
         | Some (TString value) -> value
         | _ -> raise Invalid
       in
-      make ~base_url:(value "base_url") ~key_environment:(value "key_environment")
+      let base_url =
+        match Table.find_opt (Table.Key.of_string "base_url_environment") table with
+        | None -> Ok (value "base_url")
+        | Some (TString name) when variable name -> (
+            match lookup name with
+            | Some url when url <> "" -> Ok url
+            | _ -> Error "Gateway base URL environment variable is not set.")
+        | _ -> Error "Gateway base URL reference must be an environment variable name."
+      in
+      Result.bind base_url (fun base_url ->
+          make ~base_url ~key_environment:(value "key_environment"))
     with Invalid | Toml.Parser.Error _ ->
-      Error "Invalid gateway config; expected base_url and key_environment only."
+      Error
+        "Invalid gateway config; expected base_url or base_url_environment, plus \
+         key_environment."
+
+let parse source = parse_environment ~lookup:Sys.getenv_opt source
 
 let load filename =
   try

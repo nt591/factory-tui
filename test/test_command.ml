@@ -13,6 +13,19 @@ let ok ~context = function
 
 let fixture mode =
   match mode with
+  | "echo-input" ->
+      let bytes = Bytes.create 8192 in
+      let rec loop () =
+        let count = input stdin bytes 0 8192 in
+        if count > 0 then (
+          output stdout bytes 0 count;
+          flush stdout;
+          loop ())
+      in
+      loop ()
+  | "reject-input" ->
+      Unix.close Unix.stdin;
+      print_string "closed"
   | "output" ->
       print_string "stdout";
       prerr_string "stderr"
@@ -43,6 +56,23 @@ let tests () =
       ~arguments:([ "--fixture"; mode ] @ arguments)
       ~directory ~timeout ~max_output
   in
+  let payload = String.make 262144 'p' in
+  let echo input mode timeout =
+    Command.run_input ~input ~executable ~arguments:[ "--fixture"; mode ] ~directory
+      ~timeout ~max_output:1048576
+  in
+  let received =
+    ok ~context:"large stdin with concurrent output" (echo payload "echo-input" 3.)
+  in
+  check "stdin streams beyond pipe capacity without deadlock" (received.stdout = payload);
+  check "empty stdin closes immediately"
+    ((ok ~context:"empty stdin" (echo "" "echo-input" 1.)).stdout = "");
+  let closed = ok ~context:"early stdin closure" (echo payload "reject-input" 1.) in
+  check "early stdin closure does not crash parent" (closed.stdout = "closed");
+  check "unread stdin respects timeout"
+    (echo payload "wait" 0.1 = Error "Command timeout exceeded.");
+  check "oversized stdin rejected before spawn"
+    (Result.is_error (echo (String.make 1048577 'x') "echo-input" 1.));
   let output = ok ~context:"initial stdout/stderr" (command "output") in
   check "stdout captured and stderr counted"
     (output.stdout = "stdout" && output.stderr_bytes = 6);

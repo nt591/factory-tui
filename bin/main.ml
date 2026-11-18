@@ -8,6 +8,7 @@ let () =
   and config = ref None
   and no_config = ref false
   and fake_harness = ref false
+  and list_models = ref false
   and check_config = ref None
   and check_gateway = ref None
   and dry_run = ref false
@@ -51,6 +52,9 @@ let () =
       ( "--resume",
         Arg.String (fun value -> thread_id := Some value),
         "ID Explicit thread for headless resume or preview" );
+      ( "--list-models",
+        Arg.Set list_models,
+        " Fetch gateway model IDs explicitly; reads referenced API key, no agent" );
       ( "--gateway",
         Arg.String (fun value -> gateway_file := Some value),
         "PATH Non-secret gateway config for explicit execution or preview" );
@@ -82,6 +86,40 @@ let () =
     "factory-tui [--config PATH | --no-config] [--database PATH]\n\
      See --help for snapshot, fixture, preview, and explicit live execution modes.";
   try
+    if !list_models then (
+      if
+        !workspace_write || !live_ui || !run_codex || !dry_run || !snapshot
+        || !events <> "" || !database <> None || !config <> None || !no_config
+        || !fake_harness || !check_gateway <> None || !check_config <> None
+        || !directory <> None || !model <> None || !thread_id <> None
+        || !executable <> None
+      then
+        invalid_arg
+          "Model discovery cannot be combined with execution, storage or other check \
+           modes.";
+      let file =
+        match !gateway_file with
+        | Some file -> file
+        | None -> invalid_arg "Model discovery requires --gateway PATH."
+      in
+      let result =
+        Result.bind (Gateway.load file)
+          (Gateway_models.fetch ~curl:"/usr/bin/curl" ~lookup:Sys.getenv_opt)
+      in
+      match result with
+      | Error error ->
+          prerr_endline error;
+          exit 2
+      | Ok models ->
+          print_endline
+            (Yojson.Basic.pretty_to_string
+               (`Assoc
+                  [
+                    ("models", `List (List.map (fun id -> `String id) models));
+                    ("starts_agent", `Bool false);
+                    ("compatibility_verified", `Bool false);
+                  ]));
+          exit 0);
     if !check_config <> None then (
       if
         !workspace_write || !live_ui || !run_codex || !dry_run || !snapshot

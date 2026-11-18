@@ -950,3 +950,15 @@ submitted IDs; no third process starts and the captured prompt stays unchanged.
 Acceptance and restart retain that exact queued reply plus the unsent draft in a
 read-only conversation. This verifies the next-turn queue boundary end to end,
 not live provider delivery or sandbox enforcement. No runtime behavior changes.
+
+Gateway URL configuration supports an exported base_url_environment reference
+alongside the existing literal base_url. Explicit --list-models --gateway PATH
+reads only the referenced API key for a bounded authenticated catalogue request;
+setup/checks resolve URL without requesting a model or reading the key. The
+LiteLLM example names LITELLM_BASE_URL/LITELLM_API_KEY. Command.run_input supplies
+bounded concurrent stdin/output over a SIGPIPE-safe socket without secret argv
+or files. Curl disables user config, retains TLS verification and does not follow
+redirects. Catalogue JSON is bounded/validated and failures withhold bodies and
+stderr. Pure and loopback tests cover paths, auth, environment, limits and secret
+redaction. Manual model entry remains; picker and real-provider compatibility are
+not yet verified. See docs/gateway.md for discovery and read-only live testing.

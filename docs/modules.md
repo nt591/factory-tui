@@ -37,6 +37,8 @@ against these interfaces during the normal Dune build.
   targets retain their editor mode and reject modal or stale different-mode clicks.
 - `Shortcut_guidance`: pure current-mode/pane shortcut copy with terminal-width
   limits. Input validation and size warnings take priority in the renderer.
+- `Gateway_models`: validated, bounded explicit catalogue discovery through curl.
+  Authorization uses stdin; response bodies and client stderr stay out of errors.
 - `Model`: immutable task/run/event data and lifecycle transitions. Records and
   variants are public because reducers, codecs, and rendering inspect them.
 - `Restart_guidance`: pure pre-recovery snapshot summary of interrupted tasks and

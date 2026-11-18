@@ -851,3 +851,18 @@ reply and waits for SQLite to retain it outside the active submitted-ID set.
 Only the test releases completion. The accepted/reopened task retains exactly one
 queued late reply, the draft and both completed runs without a third invocation.
 This checks queue isolation across the real UI/process/persistence boundary.
+
+## Gateway catalogue discovery
+
+`python3 scripts/smoke-gateway-models.py` uses only a loopback HTTP server, dummy
+API key, isolated HOME and explicit model-list CLI. It verifies `/v1/models` and
+root-base `/models`, exact authorization, sorted/deduplicated IDs, empty catalogues,
+missing environment, mode conflicts, failed HTTP responses, oversized/invalid
+bodies, credential echoes and refusal to follow redirects. User `.curlrc` is
+ignored. No model completion or installed agent is involved. Pure gateway tests
+cover URL reference lookup (not key access), catalogue structure/ID limits and
+missing keys. Native Command tests additionally verify bounded concurrent stdin/
+output, timeout and early stdin closure without SIGPIPE terminating the parent.
+
+Model discovery proves only that a catalogue request works. Responses/tool/resume
+compatibility with a real LiteLLM model remains a separate explicit live test.

@@ -422,3 +422,8 @@
  (name test_config_preview)
  (modules test_config_preview)
  (libraries factory_tui yojson))
+
+(test
+ (name test_gateway_models)
+ (modules test_gateway_models)
+ (libraries factory_tui))

@@ -5,3 +5,4 @@ val parse : string -> (t, string) result
 val load : string -> (t, string) result
 val base_url : t -> string
 val key_environment : t -> string
+val parse_environment : lookup:(string -> string option) -> string -> (t, string) result

@@ -105,6 +105,7 @@ with tempfile.TemporaryDirectory(prefix="factory-check-config-") as temporary:
         and not (directory / "missing-source").exists(),
     )
     for extra in (
+        ["--list-models"],
         ["--live-ui"],
         ["--run-codex"],
         ["--dry-run-codex"],

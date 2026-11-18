@@ -4,7 +4,7 @@
  (name factory_tui)
  (foreign_stubs
   (language c)
-  (names clock_stubs))
+  (names clock_stubs socket_stubs))
  (libraries
   notty
   notty.unix

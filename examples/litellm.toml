@@ -1,0 +1,2 @@
+base_url_environment = "LITELLM_BASE_URL"
+key_environment = "LITELLM_API_KEY"

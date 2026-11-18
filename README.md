@@ -9,6 +9,18 @@ Session rules are adapted from Factory's Rust session and event reducers, not
 linked through FFI. The TUI remains a simulated interaction prototype; explicit headless Codex
 execution is available separately and requires deliberate invocation.
 
+## LiteLLM discovery and live testing
+
+With `LITELLM_BASE_URL` and `LITELLM_API_KEY` exported in your shell:
+
+```sh
+./scripts/run.sh --list-models --gateway examples/litellm.toml
+```
+
+This explicitly contacts the gateway to list model IDs; it starts no agent.
+See `docs/gateway.md` for a read-only live Codex command and confirmation workflow.
+Listed models are not yet verified for Codex/Responses compatibility.
+
 ## Check startup configuration
 
 ```sh

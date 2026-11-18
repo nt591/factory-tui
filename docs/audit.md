@@ -397,3 +397,16 @@ process keeps its original prompt and no third invocation starts. Both run recor
 source preservation and exact restart history remain verified. Separate setup (34),
 invocation (20), fake execution (19) and package (16) checks passed. No runtime
 change, model call, provider-delivery claim or sandbox security claim is made.
+
+LiteLLM environment/discovery verification on 2026-11-18 passed format/build/unit
+gates, 23 pure catalogue checks and 66 native command checks. All 18 fixture UI
+cases passed with 64 previews; evidence:
+`/tmp/factory-litellm-discovery-ui-20261118/report.json`. Loopback model discovery
+(31), setup CLI (35), invocation (21), fake execution (19) and temporary package
+(17) checks passed separately. Only a dummy API key and loopback HTTP server were
+used; the user's LITELLM_API_KEY and real gateway were not inspected or contacted.
+Authorization travels through bounded stdin; early socket closure cannot terminate
+the parent with SIGPIPE and process cleanup is bounded. User curl configuration
+and redirect following are disabled. Literal and environment-backed API base URLs
+append /models without retry/route guessing. Listing is not Responses/tool/resume
+compatibility validation. The TUI catalogue picker remains pending.

@@ -58,6 +58,10 @@ with tempfile.TemporaryDirectory(prefix="factory-package-") as temporary:
     check("packaged snapshot renders", result.returncode == 0 and "FACTORY / terminal" in result.stdout)
     check("snapshot creates no default config", not (temporary / ".config").exists())
     check("package includes startup validation instructions", (package / "docs/configuration.md").is_file())
+    check("package includes environment gateway configuration and instructions",
+          (package / "examples/litellm.toml").read_text() == (root / "examples/litellm.toml").read_text()
+          and (package / "docs/gateway.md").is_file())
+
     result = invoke([str(binary), "--check-config", str(package / "examples/config.toml")], env=env)
     preview = json.loads(result.stdout) if result.returncode == 0 else {}
     check("packaged config preview resolves without opening SQLite", result.returncode == 0
