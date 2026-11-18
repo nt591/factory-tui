@@ -562,3 +562,10 @@ updated together after repaired-UTF-8 length validation. Limits remain 64 KiB an
 edits clear it. Pure and full-draft SQLite PTY checks verify exact rejection,
 Unicode normalization/cluster bounds, visible feedback, recovery and unchanged
 run/message state. Submission queues only retained text.
+
+
+Workspace-form editor bounds now produce field-specific “Edit not applied” feedback
+instead of silently dropping insertion. Existing reports remain appended; text and
+cursor stay exact. Cursor/focus/other-field changes keep the warning, while an
+actual text change in its field clears it. Pure full-field input/render checks
+verify rejection and recovery; normal form behavior still has terminal coverage.

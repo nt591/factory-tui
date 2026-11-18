@@ -5,6 +5,7 @@ type t = {
   mutable current : field;
   mutable values : (field * Text_edit.t) list;
   mutable status : feedback;
+  mutable rejected : field option;
 }
 
 let fields = [ Jj; Source; Parent; Revision; Model; Task ]
@@ -20,6 +21,7 @@ let label = function
 let create ?(jj = "") ~source ~parent ~revision ~model () =
   {
     current = Source;
+    rejected = None;
     status = Guidance "Fill the fields; Ctrl-S creates a queued task. No agent starts.";
     values =
       [
@@ -35,7 +37,12 @@ let create ?(jj = "") ~source ~parent ~revision ~model () =
 let current t = t.current
 
 let status t =
-  match t.status with Guidance text | Validation (_, text) | Report text -> text
+  let feedback =
+    match t.status with Guidance text | Validation (_, text) | Report text -> text
+  in
+  match t.rejected with
+  | None -> feedback
+  | Some field -> label field ^ ": Edit not applied / 64 KiB limit. " ^ feedback
 
 let report t text =
   match t.status with
@@ -55,11 +62,12 @@ let focus t field = t.current <- field
 let change t fn =
   let previous = editor t t.current in
   let updated = fn previous in
-  (if Text_edit.text previous <> Text_edit.text updated then
-     match t.status with
-     | Validation (field, _) when field = t.current ->
-         t.status <- Guidance "Field edited. Ctrl-S checks all fields before creating."
-     | _ -> ());
+  if Text_edit.text previous <> Text_edit.text updated then (
+    if t.rejected = Some t.current then t.rejected <- None;
+    match t.status with
+    | Validation (field, _) when field = t.current ->
+        t.status <- Guidance "Field edited. Ctrl-S checks all fields before creating."
+    | _ -> ());
   t.values <- (t.current, updated) :: List.remove_assoc t.current t.values
 
 let cycle t backwards =
@@ -72,7 +80,11 @@ let cycle t backwards =
   t.current <- next order
 
 let insert t text =
-  change t (fun editor -> Text_edit.insert editor (Terminal_text.line text))
+  let text = Terminal_text.line text in
+  let previous = editor t t.current in
+  let updated = Text_edit.insert previous text in
+  if text <> "" && updated == previous then t.rejected <- Some t.current
+  else change t (fun _ -> updated)
 
 let key t (key, mods) =
   match key with

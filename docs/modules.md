@@ -332,3 +332,10 @@ Transient input_limit stores only a rejected byte limit; Ui shows it on the lowe
 shortcut footer in edit mode. Cursor movement cannot silently clear feedback,
 while valid text changes clear it. Text_edit's public immutable API and insertion
 bound remain unchanged. No input-limit feedback is stored in snapshots.
+
+
+Workspace_form's abstract state includes a rejected-field marker separate from
+validation/operational feedback. Status names the rejected insertion without
+replacing those reports. Actual text changes clear only their own marker; focus,
+cursor motion and another field's edits retain it. No new interface or persisted
+state is exposed, and rejection does not submit a workspace request.

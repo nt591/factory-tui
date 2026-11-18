@@ -155,3 +155,9 @@ uv run --with pyte python scripts/smoke-codex-ui.py --codex /absolute/path/to/co
 For a packaged binary pass `--binary` to the PTY smoke. Package/installation
 checks use temporary destinations. Do not install into the user's PATH, fetch,
 push, or contact a real model as a side effect of this audit.
+
+
+Workspace-form input rejection has pure full-field and supplied-form render checks
+for exact cursor/text retention, named feedback, Unicode recovery and operational
+report preservation. The full-limit case is not claimed as a PTY paste check;
+normal creation and form feedback remain covered by the terminal regression.

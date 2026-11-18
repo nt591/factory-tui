@@ -820,3 +820,9 @@ edit was not applied. Reply/footer values are capped at 64 KiB after UTF-8 repai
 chat search remains capped at 256 bytes. Rejected edits leave the cursor, editor
 text and saved draft/query unchanged. Cursor motion keeps the warning; deleting
 text or making a valid text change clears it. Enter queues the retained text only.
+
+
+The workspace form also reports rejected 64-KiB field edits. Its feedback names
+the affected field and retains existing validation or operational messages.
+Cursor movement or editing another field does not dismiss the warning; an actual
+text change in the affected field clears it. Rejection never starts creation.

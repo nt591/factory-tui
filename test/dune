@@ -332,3 +332,8 @@
  (name test_input_limits)
  (modules test_input_limits)
  (libraries factory_tui))
+
+(test
+ (name test_form_limits)
+ (modules test_form_limits)
+ (libraries factory_tui notty))

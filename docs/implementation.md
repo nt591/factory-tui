@@ -613,3 +613,14 @@ Unicode whole-cluster rejection, normalization synchronization, recovery, visibl
 warning, exact retained submission and saved-state isolation. A temporary SQLite
 PTY verifies over-limit paste, unchanged cursor/tail, cursor-only warning retention,
 delete/insert recovery and exact saved draft without submission or a new run.
+
+
+Workspace_form records the field whose insertion was rejected by the editor's
+64-KiB bound. Its status prefixes field-local rejection feedback while retaining
+existing validation/operational reports. Rejected insertions leave text/cursor
+unchanged; cursor motion and edits to other fields preserve the warning. An actual
+text edit in the affected field clears only the rejection marker. The abstract
+form API is unchanged. Pure full-field/Unicode/render tests verify atomic rejection,
+recovery, independent feedback and no task/creation request. Existing terminal
+workspace creation and feedback checks continue to verify normal form integration;
+full-limit rejection itself is verified by supplied-form rendering, not a PTY paste.

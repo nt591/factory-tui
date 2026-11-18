@@ -554,3 +554,12 @@ editor/backing-value synchronization, whole-cluster rejection and storage errors
 An initial parallel run in this increment hit test_process's existing
 `invalid event cleanup bounded` timing assertion. The full rerun passed without
 changing deadlines or runtime process code. The cause remains undiagnosed.
+
+
+`test_form_limits` constructs a full field in memory and exercises the public form
+input API, including multi-byte paste rejection, exact text/cursor retention,
+recovery, other-field/cursor isolation and retained operational messages. Ui renders
+the supplied form to verify visible rejection and no creation request. This does
+not simulate pasting 64 KiB through a PTY. Normal workspace creation/feedback remains
+covered by the full terminal regression. No path inspection or subprocess is used
+by this unit test.
