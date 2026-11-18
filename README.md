@@ -154,6 +154,8 @@ plugins, modify shell startup files, or require global OCaml tool installations.
   across states; four-column boards keep vertical motion within a column and
   horizontal motion between columns. Mouse wheel and Page Up/Down scroll.
   Overflowing columns/lists show the visible range and above/below arrows.
+  Wheel input targets the visible pane under the pointer, not keyboard focus;
+  footer/composer surfaces do not scroll another pane.
   Mouse-wheel positions are independent per Kanban column. Selecting a card or
   moving the selected task to a new state restores following in its column.
   Long card titles use a two-row preview with an ellipsis; opening the card shows

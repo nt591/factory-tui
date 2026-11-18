@@ -132,6 +132,10 @@ try:
     check("counted vim motion selects card", "T-106 / Queued / conversation" in text())
     send(b"gg")
     check("gg selects first card", "T-101 / Queued / conversation" in text())
+    initial_board = screen.display[3:19]
+    send(b"\x1b[<65;5;35M")
+    check("wheel over footer leaves board window unchanged", screen.display[3:19] == initial_board)
+
     send(b"G")
     check("G selects last card", "T-106 / Queued / conversation" in text())
     check("last-card selection updates visible range", "Queued 3 / 2-3/3" in text())

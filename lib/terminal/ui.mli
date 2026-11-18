@@ -6,6 +6,7 @@ type frame = {
   hits : hit list;
   sidebar : (rect * int) option;
   columns : (rect * Model.state * int * int) list;
+  panes : (rect * Controller.focus) list;
 }
 
 val wrap : int -> string -> string list

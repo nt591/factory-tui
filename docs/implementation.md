@@ -242,3 +242,9 @@ starting a run or changing its captured history. Accepted tasks reject model-edi
 entry as well as harness changes. Mode/content tests and the installed-agent
 loopback workflow verify these shortcuts before confirmation; simulation still
 supports its two-harness cycle.
+
+Non-modal wheel dispatch uses visible pane rectangles rather than falling back to
+keyboard focus. Chat, Activity, compact lists, columns, and repository rows retain
+their own targets; composer/footer/pinned-sidebar surfaces do not move another
+pane. Frame/mouse tests verify boundaries and snapshot isolation, and the PTY
+smoke checks that footer wheel input leaves the board window unchanged.

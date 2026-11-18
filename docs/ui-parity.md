@@ -235,3 +235,11 @@ Claude task, explicit H selects Codex without starting execution or rewriting pa
 runs. Accepted tasks do not open a model editor or change harness. Simulation
 retains Codex/Claude cycling. Tests cover normal/menu shortcuts and no automatic
 confirmation; the installed-agent PTY workflow uses both H paths before Start.
+
+Wheel input outside visible scrollable regions is ignored instead of scrolling
+the keyboard-focused pane. The frame records chat, Activity, and compact-list
+rectangles separately from click hitboxes; column and repository scroll regions
+retain their dedicated routing. The composer, footer, header, and pinned sidebar
+controls do not scroll another pane. Modal ownership remains unchanged. Unit
+boundary checks and a footer-wheel PTY check cover this behavior without altering
+saved tasks or drafts.

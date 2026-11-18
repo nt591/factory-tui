@@ -10,6 +10,7 @@ type frame = {
   hits : hit list;
   sidebar : (rect * int) option;
   columns : (rect * Model.state * int * int) list;
+  panes : (rect * Controller.focus) list;
 }
 
 let color_rgb r g b = A.rgb_888 ~r ~g ~b
@@ -76,7 +77,7 @@ let render t ~width:cols ~height:rows =
     if x >= 0 && y >= 0 && w > 0 && h > 0 then
       hits := { rect = { x; y; w; h }; action } :: !hits
   in
-  let sidebar = ref None and column_regions = ref [] in
+  let sidebar = ref None and column_regions = ref [] and panes = ref [] in
   let header =
     Printf.sprintf " FACTORY / terminal     %s  %s"
       (if t.live_config <> None then
@@ -204,6 +205,7 @@ let render t ~width:cols ~height:rows =
                 position count
             in
             I.(line (r.w - 2) (emphasis accent) description <-> content)));
+    panes := ({ r with h = chat_height }, Conversation) :: !panes;
     hit r.x r.y r.w chat_height (Focus Conversation);
     if composer_height > 0 then (
       let task = Option.get task in
@@ -285,6 +287,7 @@ let render t ~width:cols ~height:rows =
            if t.activity_expanded then " / expanded · e or Esc returns"
            else " / e expands")
          ~color:accent ~focused:(t.focus = Activity) content);
+    panes := (r, Activity) :: !panes;
     hit r.x r.y r.w r.h (Focus Activity)
   in
   let details r =
@@ -301,6 +304,7 @@ let render t ~width:cols ~height:rows =
   in
   let board r =
     t.board_list <- r.w < 88 || t.archive;
+    if t.board_list then panes := (r, Board) :: !panes;
     let tasks = visible t in
     if tasks = [] then (
       let guidance =
@@ -696,6 +700,7 @@ let render t ~width:cols ~height:rows =
     hits = !hits;
     sidebar = !sidebar;
     columns = !column_regions;
+    panes = !panes;
   }
 
 let mouse t frame ~now = function
@@ -734,10 +739,6 @@ let mouse t frame ~now = function
               (Review.scroll review + if direction = `Up then -3 else 3))
       else if t.input = Normal && t.workspace_form = None then (
         reset_keys t;
-        (match hit_at frame x y with
-        | Some (Focus focus) -> t.focus <- focus
-        | Some (Select _) -> t.focus <- Board
-        | _ -> ());
         let delta = if direction = `Up then -1 else 1 in
         let sidebar_offset =
           match frame.sidebar with
@@ -757,9 +758,18 @@ let mouse t frame ~now = function
           Column_scroll.set t.column_scroll state (min maximum (max 0 (offset + delta))))
         else if sidebar_offset <> None then
           t.sidebar_scroll <- Some (max 0 (Option.get sidebar_offset + (delta * 3)))
-        else if t.focus = Board && not t.zoom then
-          t.board_scroll <- max 0 (t.board_scroll + delta)
         else
-          t.scroll <-
-            max 0 (t.scroll + ((if t.focus = Activity then delta else -delta) * 3)))
+          match
+            List.find_opt
+              (fun (r, _) -> x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h)
+              frame.panes
+          with
+          | Some (_, Board) ->
+              act t (Focus Board);
+              t.board_scroll <- max 0 (t.board_scroll + delta)
+          | Some (_, focus) ->
+              act t (Focus focus);
+              t.scroll <-
+                max 0 (t.scroll + ((if focus = Activity then delta else -delta) * 3))
+          | None -> ())
   | _ -> ()
