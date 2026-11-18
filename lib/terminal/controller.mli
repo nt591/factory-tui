@@ -70,6 +70,7 @@ type t = {
   mutable menu_scroll : int;
   mutable menu_page_rows : int;
   mutable repository : string option;
+  mutable sidebar_scroll : int option;
   mutable tools_expanded : bool;
   mutable raw_tools : bool;
   mutable database_path : string option;

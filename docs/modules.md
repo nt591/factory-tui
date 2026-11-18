@@ -86,6 +86,9 @@ against these interfaces during the normal Dune build.
   private. This is not yet an abstract controller with a read-only view model.
   The renderer supplies transient board list/column mode so navigation follows
   the displayed task order; this mode is not a persisted task preference.
+- `Sidebar_window`: pinned navigation and bounded repository rows with a reserved
+  overflow cue. The frame supplies the visible repository scroll region; hidden
+  entries create no click targets. Filter changes restore selection-follow mode.
 - `Board_window`: pure visible-item selection, selection/manual-scroll offsets,
   and card/list range cues. The renderer uses one window definition for content
   and overflow labels; the helper changes no task or viewport state.

@@ -70,6 +70,7 @@ type t = {
   mutable menu_scroll : int;
   mutable menu_page_rows : int;
   mutable repository : string option;
+  mutable sidebar_scroll : int option;
   mutable tools_expanded : bool;
   mutable raw_tools : bool;
   mutable database_path : string option;
@@ -129,6 +130,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     menu_scroll = 0;
     menu_page_rows = 8;
     repository = None;
+    sidebar_scroll = None;
     tools_expanded = false;
     raw_tools = false;
     database_path = None;
@@ -294,6 +296,7 @@ let rec act t action =
   | Toggle_tools -> t.tools_expanded <- not t.tools_expanded
   | Repository repository ->
       t.repository <- repository;
+      t.sidebar_scroll <- None;
       t.board_scroll <- 0;
       focus_pane t Board
   | Archive_view ->
@@ -302,6 +305,7 @@ let rec act t action =
       repair_selection t;
       focus_pane t Board
   | Session_board ->
+      t.sidebar_scroll <- None;
       t.query <- "";
       t.archive <- false;
       t.repository <- None;
@@ -317,6 +321,7 @@ let rec act t action =
         | [] -> None
       in
       t.repository <- next options;
+      t.sidebar_scroll <- None;
       t.board_scroll <- 0;
       focus_pane t Board
   | Begin_chat_search -> (

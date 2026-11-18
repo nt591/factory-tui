@@ -193,3 +193,12 @@ titles do not get a false truncation marker. Opening the task still shows the
 full original instruction; no title or message is replaced by the preview.
 `Text_layout` owns preview row limits and ellipsis construction. Pure Unicode,
 card-frame, and PTY create/open checks verify display and retained text.
+
+The repository sidebar keeps main navigation pinned while repositories scroll in
+their own region. Hidden repository rows create no click targets beyond the pane.
+An overflow cue shows the visible range; R/filter changes bring the selected
+repository into view, and b restores the top. Wheel input over repository rows
+moves only that window, not the board/chat. Long labels use a display ellipsis.
+`Sidebar_window.ml/.mli` owns row selection, and the frame records actual visible
+scroll geometry. Pure tests cover clipping/resize/modal isolation; the dedicated
+PTY smoke verifies scrolling, clicking, filtering, and reset with forty repositories.

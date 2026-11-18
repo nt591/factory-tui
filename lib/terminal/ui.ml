@@ -4,7 +4,7 @@ open Controller
 
 type rect = { x : int; y : int; w : int; h : int }
 type hit = { rect : rect; action : action }
-type frame = { image : image; hits : hit list }
+type frame = { image : image; hits : hit list; sidebar : (rect * int) option }
 
 let color_rgb r g b = A.rgb_888 ~r ~g ~b
 let background = color_rgb 19 23 32
@@ -70,6 +70,7 @@ let render t ~width:cols ~height:rows =
     if x >= 0 && y >= 0 && w > 0 && h > 0 then
       hits := { rect = { x; y; w; h }; action } :: !hits
   in
+  let sidebar = ref None in
   let header =
     Printf.sprintf " FACTORY / terminal     %s  %s"
       (if t.live_config <> None then
@@ -439,41 +440,72 @@ let render t ~width:cols ~height:rows =
                content))
         columns
   in
-  (if sidebar_width > 0 then
-     let entries =
-       [
-         ("Session board", Session_board);
-         ("Archive", Archive_view);
-         ((if t.live_config = None then "+ Demo task" else "+ New task"), Begin_new);
-         ("+ Workspace task", Begin_workspace);
-         ("? Help / settings", Help);
-         ("", Help);
-         ("REPOSITORIES", Help);
-         ("All repositories", Repository None);
-       ]
-       @ List.map (fun repo -> (repo, Repository (Some repo))) (repositories t)
-     in
-     let content =
-       I.vcat
-         (List.mapi
-            (fun index (title, action) ->
-              let active =
-                match action with
-                | Session_board -> (not t.archive) && t.repository = None
-                | Archive_view -> t.archive
-                | Repository repo -> t.repository = repo
-                | _ -> false
-              in
-              let a =
-                if active then A.(fg accent ++ bg (color_rgb 38 57 72)) else attr muted
-              in
-              if title <> "" && title <> "REPOSITORIES" then
-                hit 1 (body_y + 1 + index) (sidebar_width - 2) 1 action;
-              line (sidebar_width - 2) a (" " ^ title))
-            entries)
-     in
-     paint 0 body_y
-       (border sidebar_width body_h ~title:"Factory" ~color:accent ~focused:false content));
+  if sidebar_width > 0 then (
+    let pinned =
+      [
+        ("Session board", Session_board);
+        ("Archive", Archive_view);
+        ((if t.live_config = None then "+ Demo task" else "+ New task"), Begin_new);
+        ("+ Workspace task", Begin_workspace);
+        ("? Help / settings", Help);
+        ("", Help);
+        ("REPOSITORIES", Help);
+      ]
+    in
+    let repositories =
+      ("All repositories", Repository None)
+      :: List.map (fun repo -> (repo, Repository (Some repo))) (repositories t)
+    in
+    let selected =
+      let rec find index = function
+        | [] -> 0
+        | (_, Repository repo) :: _ when repo = t.repository -> index
+        | _ :: rest -> find (index + 1) rest
+      in
+      find 0 repositories
+    in
+    let window =
+      Sidebar_window.make ~height:body_h ~selected ~scroll:t.sidebar_scroll ~pinned
+        repositories
+    in
+    let entries = window.pinned @ window.repositories.items in
+    let content =
+      I.vcat
+        (List.mapi
+           (fun index (title, action) ->
+             let active =
+               match action with
+               | Session_board -> (not t.archive) && t.repository = None
+               | Archive_view -> t.archive
+               | Repository repo -> t.repository = repo
+               | _ -> false
+             in
+             let a =
+               if active then A.(fg accent ++ bg (color_rgb 38 57 72)) else attr muted
+             in
+             if title <> "" && title <> "REPOSITORIES" then
+               hit 1 (body_y + 1 + index) (sidebar_width - 2) 1 action;
+             line (sidebar_width - 2) a
+               (" "
+               ^ Text_layout.ellipsize (sidebar_width - 3) (clean ~newlines:false title)))
+           entries
+        @
+        if window.cue = "" then []
+        else [ line (sidebar_width - 2) (emphasis accent) window.cue ])
+    in
+    let repository_y = body_y + 1 + List.length window.pinned in
+    if window.repositories.items <> [] then
+      sidebar :=
+        Some
+          ( {
+              x = 1;
+              y = repository_y;
+              w = sidebar_width - 2;
+              h = List.length window.repositories.items;
+            },
+            window.repositories.offset );
+    paint 0 body_y
+      (border sidebar_width body_h ~title:"Factory" ~color:accent ~focused:false content));
   (if body_h > 0 then
      if t.zoom && t.activity_expanded then
        activity { x = 0; y = body_y; w = cols; h = body_h }
@@ -709,7 +741,7 @@ let render t ~width:cols ~height:rows =
             | Live_confirmation.Cancel -> Cancel_live))
         view.hits);
 
-  { image = fit cols rows !canvas; hits = !hits }
+  { image = fit cols rows !canvas; hits = !hits; sidebar = !sidebar }
 
 let mouse t frame ~now = function
   | `Press `Left, (x, y), _ ->
@@ -752,7 +784,16 @@ let mouse t frame ~now = function
         | Some (Select _) -> t.focus <- Board
         | _ -> ());
         let delta = if direction = `Up then -1 else 1 in
-        if t.focus = Board && not t.zoom then
+        let sidebar_offset =
+          match frame.sidebar with
+          | Some (r, offset) when x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h
+            ->
+              Some offset
+          | _ -> None
+        in
+        if sidebar_offset <> None then
+          t.sidebar_scroll <- Some (max 0 (Option.get sidebar_offset + (delta * 3)))
+        else if t.focus = Board && not t.zoom then
           t.board_scroll <- max 0 (t.board_scroll + delta)
         else
           t.scroll <-

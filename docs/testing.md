@@ -176,3 +176,16 @@ A local November 18, 2026 synthetic run with 2,000 matching messages measured
 plus thirty highlight lookups per pass. This is a component observation, not a
 whole-TUI benchmark. It excludes layout, viewport scans, terminal output, and
 match navigation; changed lists still perform a full match scan.
+
+Repository sidebar overflow has a separate temporary-board terminal check:
+
+```sh
+uv run --with pyte --with pillow python scripts/smoke-sidebar.py \
+  --preview /tmp/factory-sidebar.png
+```
+
+It uses forty synthetic repositories in a temporary SQLite snapshot, no agents or
+real workspaces. It checks wheel scrolling, visible click targets, filtered cards,
+and reset to the top. Unit tests also cover clipped hitboxes, resize, following a
+selected repository, and modal wheel ownership. The fixture preserves selected
+chat when filtering, as the product contract requires.

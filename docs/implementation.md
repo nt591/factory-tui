@@ -145,6 +145,10 @@ Acceptance does not merge, push, or delete a workspace.
    Two-row task-card previews mark hidden title content with a grapheme-safe
    ellipsis. Chat retains the complete instruction; pure/render/PTY tests verify
    the preview marker and unchanged task text, including Unicode boundaries.
+   Repository sidebar rows are bounded to the pane, with pinned main navigation,
+   a separate wheel scroll region, overflow cues, and selection-follow on filter
+   changes. Hidden entries create no hitboxes over the footer. Pure/terminal tests
+   verify large repository lists, clipping, resize, and modal input isolation.
    UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,

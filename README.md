@@ -583,6 +583,10 @@ Help/Settings shows the visible row range and indicates more content above or
 below. Page Up/Down moves by the current menu height; switching tabs returns to
 the top. `?` or Escape closes the menu without changing tasks or drafts.
 
+The wide repository sidebar keeps navigation pinned and scrolls repository rows
+with the mouse wheel. It shows an overflow range; `R` brings the current filter
+into view, and `b` returns to all repositories. Hidden entries are not clickable.
+
 ## Module interfaces
 
 All core modules have explicit `.mli` interfaces. Database, persistence worker,
