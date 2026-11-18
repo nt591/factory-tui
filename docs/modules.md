@@ -290,3 +290,15 @@ and empty-patch states. Review_view keeps patch geometry separate and reports th
 notice row count to Review for document-free End navigation. Notice layout has no
 Review/controller/process dependency. Page capacity and notice count are transient
 render geometry, not persisted state or execution permission.
+
+
+`Terminal_text` owns the shared UTF-8/control-character sanitation policy.
+`line` replaces malformed byte sequences with U+FFFD and C0/DEL/C1 controls with
+spaces. `multiline` applies the same policy but retains LF. CR remains a space,
+including in CRLF, to preserve existing display behavior. Both preserve printable
+Unicode and grapheme sequences. Layout modules use explicit policies rather than
+local copies: author/search/footer/path/diff rows are single-line; message bodies,
+reply windows and review notices retain LF. Controller.clean remains a supported
+compatibility wrapper. Workspace-form insertion uses the same single-line rule.
+Text_edit's UTF-8 repair is separate: it must preserve raw controls and logical
+line separators so rendering does not silently modify stored/editor text.

@@ -7,29 +7,16 @@ type t = {
   below : bool;
 }
 
-let clean text =
-  let buffer = Buffer.create (String.length text) in
-  Uutf.String.fold_utf_8
-    (fun () _ -> function
-      | `Malformed _ -> Uutf.Buffer.add_utf_8 buffer Uutf.u_rep
-      | `Uchar u ->
-          let code = Uchar.to_int u in
-          if code = 10 then Buffer.add_char buffer '\n'
-          else if code < 32 || (code >= 127 && code <= 159) then
-            Buffer.add_char buffer ' '
-          else Uutf.Buffer.add_utf_8 buffer u)
-    () text;
-  Buffer.contents buffer
-
 let make ~width ~capacity ~preview ~editor =
   let width = max 1 width and capacity = max 0 capacity in
   let prompt, before =
     match editor with
-    | None -> ("  " ^ clean preview, None)
+    | None -> ("  " ^ Terminal_text.multiline preview, None)
     | Some editor ->
         let text = Text_edit.text editor and cursor = Text_edit.cursor editor in
-        let before = "> " ^ clean (String.sub text 0 cursor) ^ "▏" in
-        ( before ^ clean (String.sub text cursor (String.length text - cursor)),
+        let before = "> " ^ Terminal_text.multiline (String.sub text 0 cursor) ^ "▏" in
+        ( before
+          ^ Terminal_text.multiline (String.sub text cursor (String.length text - cursor)),
           Some before )
   in
   let rows = Text_layout.wrap width prompt in

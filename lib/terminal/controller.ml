@@ -633,17 +633,7 @@ let rec act t action =
 let append_utf8 buffer uchar = Uutf.Buffer.add_utf_8 buffer uchar
 
 let clean ?(newlines = true) text =
-  let buffer = Buffer.create (String.length text) in
-  Uutf.String.fold_utf_8
-    (fun () _ -> function
-      | `Malformed _ -> append_utf8 buffer Uutf.u_rep
-      | `Uchar u ->
-          let n = Uchar.to_int u in
-          if n = 10 && newlines then Buffer.add_char buffer '\n'
-          else if n < 32 || (n >= 127 && n <= 159) then Buffer.add_char buffer ' '
-          else append_utf8 buffer u)
-    () text;
-  Buffer.contents buffer
+  if newlines then Terminal_text.multiline text else Terminal_text.line text
 
 let remove_last text =
   let last = ref 0 in

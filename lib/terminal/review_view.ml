@@ -5,23 +5,13 @@ type hit = { x : int; y : int; width : int; action : action }
 type scroll_region = { x : int; y : int; width : int; height : int }
 type t = { image : Notty.image; hits : hit list; scroll_region : scroll_region option }
 
-let clean text =
-  let buffer = Buffer.create (String.length text) in
-  Uutf.String.fold_utf_8
-    (fun () _ -> function
-      | `Malformed _ -> Uutf.Buffer.add_utf_8 buffer Uutf.u_rep
-      | `Uchar u ->
-          if Uchar.to_int u < 32 || (Uchar.to_int u >= 127 && Uchar.to_int u <= 159) then
-            Buffer.add_char buffer ' '
-          else Uutf.Buffer.add_utf_8 buffer u)
-    () text;
-  Buffer.contents buffer
-
 let render review ~width:cols ~height:rows =
   let cols = max 1 cols and rows = max 1 rows in
   let background = A.rgb_888 ~r:25 ~g:31 ~b:42 in
   let attr color = A.(fg color ++ bg background) in
-  let row color text = I.(string (attr color) (clean text) |> hsnap ~align:`Left cols) in
+  let row color text =
+    I.(string (attr color) (Terminal_text.line text) |> hsnap ~align:`Left cols)
+  in
   let capacity = max 0 (rows - 6) in
   Review.set_page_rows review capacity;
   let document =
@@ -45,7 +35,7 @@ let render review ~width:cols ~height:rows =
         (List.filteri
            (fun i _ -> i >= Review.scroll review && i < Review.scroll review + capacity)
            messages
-        |> List.map clean)
+        |> List.map Terminal_text.line)
       ~some:(fun display ->
         Diff_display.lines display ~start:(Review.scroll review) ~count:capacity)
       display
@@ -72,7 +62,7 @@ let render review ~width:cols ~height:rows =
       " jj: "
       ^ Text_layout.cursor_window
           (max 0 (cols - 5))
-          ~before:(clean before) ~after:(clean after)
+          ~before:(Terminal_text.line before) ~after:(Terminal_text.line after)
     else " jj: " ^ Review.executable review ^ "  [i edits / Enter refreshes]"
   in
   let file_navigation =

@@ -485,3 +485,15 @@ an empty-result notice despite its empty patch document, and exact saved
 task/run/draft retention. This does not test real jj semantics: those remain in test_review. No model, credentials or real
 repository are accessed. `--binary` avoids rebuilding. Pure test_review_notice
 covers sanitation, wrapped limits, empty/idle states and document-free End.
+
+
+## Shared terminal sanitation checks
+
+`test_terminal_text` runs in the normal Dune suite. It checks explicit line and
+multiline policies against the previous decode/control algorithm, all C0/DEL/C1
+values, malformed and incomplete UTF-8, 2,000 seeded random byte strings, printable
+BMP scalar encodings, CRLF behavior, idempotence and editor-state isolation.
+The terminal component tests remain the integration checks for wrapping, widths,
+search, confirmation, path input and drafts; full PTY/review/composer checks verify
+readability and retained text through actual input. These checks do not claim
+universal font/terminal grapheme width or broader terminal-security containment.

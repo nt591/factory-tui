@@ -71,19 +71,8 @@ let cycle t backwards =
   in
   t.current <- next order
 
-let sanitize text =
-  let buffer = Buffer.create (String.length text) in
-  Uutf.String.fold_utf_8
-    (fun () _ -> function
-      | `Malformed _ -> Uutf.Buffer.add_utf_8 buffer Uutf.u_rep
-      | `Uchar u ->
-          if Uchar.to_int u < 32 || (Uchar.to_int u >= 127 && Uchar.to_int u <= 159) then
-            Buffer.add_char buffer ' '
-          else Uutf.Buffer.add_utf_8 buffer u)
-    () text;
-  Buffer.contents buffer
-
-let insert t text = change t (fun editor -> Text_edit.insert editor (sanitize text))
+let insert t text =
+  change t (fun editor -> Text_edit.insert editor (Terminal_text.line text))
 
 let key t (key, mods) =
   match key with

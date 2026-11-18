@@ -18,25 +18,9 @@ let clear t = t.cached <- None
 let rows (document : document) = document.rows
 let anchors (document : document) = document.anchors
 
-let clean text =
-  let buffer = Buffer.create (String.length text) in
-  Uutf.String.fold_utf_8
-    (fun () _ -> function
-      | `Malformed _ -> Uutf.Buffer.add_utf_8 buffer Uutf.u_rep
-      | `Uchar u ->
-          let code = Uchar.to_int u in
-          if code = 10 then Buffer.add_char buffer '\n'
-          else if code < 32 || (code >= 127 && code <= 159) then
-            Buffer.add_char buffer ' '
-          else Uutf.Buffer.add_utf_8 buffer u)
-    () text;
-  Buffer.contents buffer
-
 let build_message width (message : Model.message) =
-  let body = Text_layout.wrap width (clean message.text) in
-  let author =
-    clean message.author |> String.map (fun char -> if char = '\n' then ' ' else char)
-  in
+  let body = Text_layout.wrap width (Terminal_text.multiline message.text) in
+  let author = Terminal_text.line message.author in
   let heading =
     author
     ^

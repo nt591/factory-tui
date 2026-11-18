@@ -2,27 +2,15 @@ type action = Toggle_archive | Search
 type hit = { x : int; width : int; action : action }
 type t = { text : string; hits : hit list }
 
-let clean value =
-  let buffer = Buffer.create (String.length value) in
-  Uutf.String.fold_utf_8
-    (fun () _ -> function
-      | `Malformed _ -> Uutf.Buffer.add_utf_8 buffer Uutf.u_rep
-      | `Uchar u ->
-          let code = Uchar.to_int u in
-          if code < 32 || (code >= 127 && code <= 159) then Buffer.add_char buffer ' '
-          else Uutf.Buffer.add_utf_8 buffer u)
-    () value;
-  Buffer.contents buffer
-
 let width value = Notty.I.width (Notty.I.string Notty.A.empty value)
 
 let make ~width:columns ~archive ~repository ~count ~query =
   let label =
     if archive then "Archive"
-    else Option.value ~default:"Session board" repository |> clean
+    else Option.value ~default:"Session board" repository |> Terminal_text.line
   in
   let count = Printf.sprintf "%d tasks%s" count (if archive then " accepted" else "") in
-  let search = if query = "" then "/ search tasks" else "/ " ^ clean query in
+  let search = if query = "" then "/ search tasks" else "/ " ^ Terminal_text.line query in
   let full = " " ^ label ^ "  |  " ^ count ^ "  | " ^ search in
   let label, search =
     if width full <= columns then (label, search)

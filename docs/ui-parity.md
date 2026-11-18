@@ -520,3 +520,11 @@ and file navigation. The pure Review_notice module handles notice sanitation and
 reflow; no layout operation retries a command. Unit and fake-jj PTY checks cover
 narrow failure pages, explicit retry to a patch, output privacy, paste/open/page
 inactivity and unchanged saved task/run data.
+
+
+Text sanitation is shared by rendering modules through explicit single-line and
+LF-preserving Terminal_text entry points. The policy preserves the existing
+C0/DEL/C1 replacement and malformed-UTF-8 repair. It does not strip printable
+Unicode or rewrite stored message/editor content. Fixed-control and seeded byte
+corpus tests verify equivalence; existing component and terminal checks continue
+to cover widths, cursor visibility, Unicode draft retention and input isolation.

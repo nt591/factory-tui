@@ -50,18 +50,6 @@ let visit t first last =
 
 let reviewed t = t.visited = [ (0, t.total) ]
 
-let clean value =
-  let buffer = Buffer.create (String.length value) in
-  Uutf.String.fold_utf_8
-    (fun () _ -> function
-      | `Malformed _ -> Uutf.Buffer.add_utf_8 buffer Uutf.u_rep
-      | `Uchar u ->
-          let code = Uchar.to_int u in
-          if code < 32 || (code >= 127 && code <= 159) then Buffer.add_char buffer ' '
-          else Uutf.Buffer.add_utf_8 buffer u)
-    () value;
-  Buffer.contents buffer
-
 let disclosure ~policy task =
   [
     "Real Codex process / may incur model usage.";
@@ -85,7 +73,7 @@ let disclosure ~policy task =
 
 let wrapped ~policy task width =
   List.concat_map
-    (fun text -> Text_layout.wrap (max 1 (width - 2)) (clean text))
+    (fun text -> Text_layout.wrap (max 1 (width - 2)) (Terminal_text.line text))
     (disclosure ~policy task)
 
 let required_height ?(policy = Model.Read_only) task ~width =
@@ -121,7 +109,7 @@ let render ?(policy = Model.Read_only) ?viewport task ~width:cols ~height:rows =
   let text = A.(fg white ++ bg background) in
   let warning = A.(fg lightyellow ++ bg background ++ st bold) in
   let line attr value =
-    I.(string attr (clean value) |> hsnap ~align:`Left (max 0 (cols - 2)))
+    I.(string attr (Terminal_text.line value) |> hsnap ~align:`Left (max 0 (cols - 2)))
   in
   let button_y = rows - 2 in
   let lines =

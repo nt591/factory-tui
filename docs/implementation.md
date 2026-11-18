@@ -550,3 +550,17 @@ Pure notices/viewport tests and a fake-jj temporary-workspace PTY check verify f
 failure text, narrow paging and Home/End, no command on paste/open/page, only
 explicit retries, unwrapped patch recovery, empty-result paging and unchanged
 stored tasks/runs/drafts.
+
+
+Shared terminal text sanitation lives in Terminal_text.ml/.mli instead of duplicated
+loops in board summaries, transcript/composer layout, review notices/views, diff
+display, live confirmation, footer input, search banners and workspace input.
+Explicit line/multiline entry points retain the established malformed-UTF-8 and
+C0/DEL/C1 behavior; only multiline retains LF. Controller.clean preserves its API.
+Raw Text_edit UTF-8 repair remains separate because editor controls and line breaks
+must not be normalized as a side effect of display. No dependency or persisted
+schema changes are required. Tests compare the extracted policy against the prior
+algorithm over fixed controls, malformed sequences, 2,000 deterministic byte
+strings and printable BMP scalars; they check idempotence, Unicode validity,
+printable grapheme preservation and unchanged editor state. Existing component
+and terminal tests verify call-site integration and exact retained text.

@@ -307,3 +307,8 @@
  (name test_review_notice)
  (modules test_review_notice)
  (libraries factory_tui notty))
+
+(test
+ (name test_terminal_text)
+ (modules test_terminal_text)
+ (libraries factory_tui))

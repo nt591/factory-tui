@@ -78,6 +78,11 @@ accessible help/settings. The staged native-app implementation remains the guide
    writes since the last checkpoint and leave an unassociated created workspace.
    Conversation/tool content is sensitive. These limits remain documented.
 
+Terminal_text centralizes the existing UI sanitation policy behind explicit line
+and multiline entry points. Pure corpus tests verify equivalence and editor-state
+isolation; component and terminal checks cover integration. Raw Text_edit repair
+remains separate, and no persistence/dependency change is introduced.
+
 Review failure notices also wrap and page without a patch document. Pure and
 fake-jj PTY checks verify complete retry guidance, output privacy, no implicit
 retry during reading/reflow, explicit patch recovery and saved-state isolation.
