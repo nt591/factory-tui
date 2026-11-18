@@ -60,7 +60,9 @@ let () =
       check "review binds original task identity"
         (Review.task_id review = task.id && Review.title review = task.title);
       check "open does not run jj automatically"
-        (Review.state review = Changes.Idle && Review.editing review);
+        (Review.state review = Changes.Idle
+        && Review.editing review
+        && Review.document review = None);
       Review.key review (`Enter, []);
       check "invalid path does not spawn"
         (Review.state review = Changes.Idle && Review.status review <> None);
@@ -70,6 +72,13 @@ let () =
       Review.key review (`Enter, []);
       await review;
       check "empty workspace has real empty patch" (Review.state review = Changes.Patch "");
+      let empty_view = Review_view.render review ~width:120 ~height:36 in
+      check "empty review has no file buttons"
+        (List.for_all
+           (fun (hit : Review_view.hit) ->
+             hit.action <> Review_view.Next_file
+             && hit.action <> Review_view.Previous_file)
+           empty_view.hits);
       check "refresh leaves editing mode" (not (Review.editing review));
       let channel =
         open_out (Filename.concat (Workspace.destination workspace) "changed.txt")
@@ -87,6 +96,13 @@ let () =
             Controller.contains patch "changed.txt"
             && Controller.contains patch "+a real addition"
         | _ -> false);
+      let single_view = Review_view.render review ~width:120 ~height:36 in
+      check "single-file review has no redundant file buttons"
+        (List.for_all
+           (fun (hit : Review_view.hit) ->
+             hit.action <> Review_view.Next_file
+             && hit.action <> Review_view.Previous_file)
+           single_view.hits);
       check "review does not write source file"
         (not (Sys.file_exists (Filename.concat source "changed.txt")));
       List.iter
@@ -119,6 +135,45 @@ let () =
         Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (width, height) view.image;
         Buffer.contents buffer
       in
+      let document = Option.get (Review.document review) in
+      check "loaded patch indexes both real files" (Diff_document.file_count document = 2);
+      Review.poll review;
+      check "idle polling retains parsed document"
+        (Option.get (Review.document review) == document);
+      let text = rendered review 80 24 in
+      check "review displays current file position"
+        (Controller.contains text "file 1/2: changed.txt");
+      Review.set_horizontal review 40;
+      Review.key review (`ASCII ']', []);
+      let target =
+        Option.get (Diff_document.file_at document ~line:(Review.scroll review))
+      in
+      check "next file jumps to its header and resets horizontal position"
+        (target.name = "long.txt"
+        && target.line = Review.scroll review
+        && Review.horizontal review = 0);
+      let text = rendered review 80 24 in
+      check "short final file stays aligned at the top"
+        (Review.scroll review = target.line
+        && Controller.contains text "file 2/2: long.txt");
+      let rows = String.split_on_char '\n' text in
+      check "file header is the first patch row"
+        (Controller.contains (List.nth rows 3) "diff --git a/long.txt b/long.txt");
+      Review.key review (`ASCII ']', []);
+      check "next file at the last boundary stays put" (Review.scroll review = target.line);
+      Review.key review (`ASCII '[', []);
+      check "previous file returns to the first header" (Review.scroll review = 0);
+      Review.key review (`ASCII '[', []);
+      check "previous file at the first boundary stays put" (Review.scroll review = 0);
+      ignore (rendered review 60 8);
+      Review.key review (`Page `Down, []);
+      check "page scroll uses rendered patch height" (Review.scroll review = 2);
+      Review.key review (`Page `Up, []);
+      check "page up returns by rendered patch height" (Review.scroll review = 0);
+      Review.key review (`ASCII 'G', []);
+      check "bottom uses last full viewport"
+        (Review.scroll review = max 0 (Diff_document.line_count document - 2));
+      Review.key review (`ASCII 'g', []);
       let text = rendered review 80 24 in
       check "long diff suffix initially clipped"
         (not (Controller.contains text "LONG_LINE_END"));
@@ -144,12 +199,21 @@ let () =
       Review.set_horizontal review 50;
       Review.refresh review;
       check "refresh resets horizontal viewport" (Review.horizontal review = 0);
+      check "refresh clears previous file index" (Review.document review = None);
+      Review.key review (`ASCII ']', []);
+      check "file navigation while loading does not move viewport"
+        (Review.scroll review = 0);
       await review;
       Review.edit_executable review;
       Review.key review (`ASCII 'l', []);
       check "path editing keeps navigation literal"
         (String.ends_with ~suffix:"l" (Review.executable review)
         && Review.horizontal review = 0);
+      Review.key review (`Backspace, []);
+      Review.key review (`ASCII ']', []);
+      check "file key remains literal in path editing"
+        (String.ends_with ~suffix:"]" (Review.executable review)
+        && Review.scroll review = 0);
       Review.key review (`Backspace, []);
       Review.key review (`Enter, []);
       await review;
@@ -175,6 +239,39 @@ let () =
                 (r.x >= 0 && r.y >= 0 && r.x + r.w <= width && r.y + r.h <= height))
             frame.hits)
         [ (1, 1); (20, 8); (60, 20); (120, 36); (180, 50) ];
+      let before_file_navigation = Controller.snapshot controller in
+      let next_file_hit =
+        List.find
+          (fun (hit : Ui.hit) -> hit.action = Controller.Next_review_file)
+          frame.hits
+      in
+      Ui.mouse controller frame ~now:3.
+        (`Press `Left, (next_file_hit.rect.x, next_file_hit.rect.y), []);
+      check "next file button selects the second file"
+        ((Option.get
+            (Diff_document.file_at
+               (Option.get (Review.document review))
+               ~line:(Review.scroll review)))
+           .index = 1);
+      let previous_file_hit =
+        List.find
+          (fun (hit : Ui.hit) -> hit.action = Controller.Previous_review_file)
+          frame.hits
+      in
+      Ui.mouse controller frame ~now:3.1
+        (`Press `Left, (previous_file_hit.rect.x, previous_file_hit.rect.y), []);
+      check "previous file button returns to first file" (Review.scroll review = 0);
+      check "file navigation changes no task or saved draft"
+        (Controller.snapshot controller = before_file_navigation);
+      let view = Review_view.render review ~width:120 ~height:35 in
+      let buffer_buttons = Buffer.create 8192 in
+      Notty.Render.to_buffer buffer_buttons Notty.Cap.dumb (0, 0) (120, 35) view.image;
+      let button_row =
+        List.nth (String.split_on_char '\n' (Buffer.contents buffer_buttons)) 33
+      in
+      check "file buttons align with their visible labels"
+        (String.sub button_row next_file_hit.rect.x 11 = "[Next file]"
+        && String.sub button_row previous_file_hit.rect.x 11 = "[Prev file]");
       let parser = Notty.Unescape.create () in
       let bytes = Bytes.of_string "\027[<81;10;10M" in
       Notty.Unescape.input parser bytes 0 (Bytes.length bytes);
@@ -204,7 +301,8 @@ let () =
            (fun (hit : Ui.hit) ->
              match hit.action with
              | Controller.Refresh_review | Controller.Edit_review_executable
-             | Controller.Close_review ->
+             | Controller.Close_review | Controller.Next_review_file
+             | Controller.Previous_review_file ->
                  true
              | _ -> false)
            frame.hits);

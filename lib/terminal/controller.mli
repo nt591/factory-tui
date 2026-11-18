@@ -38,6 +38,8 @@ type action =
   | Refresh_review
   | Edit_review_executable
   | Close_review
+  | Next_review_file
+  | Previous_review_file
   | Begin_workspace
   | Submit_workspace
   | Cancel_workspace

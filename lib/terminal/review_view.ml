@@ -1,6 +1,6 @@
 open Notty
 
-type action = Refresh | Edit_executable | Close
+type action = Refresh | Edit_executable | Close | Next_file | Previous_file
 type hit = { x : int; y : int; width : int; action : action }
 type t = { image : Notty.image; hits : hit list }
 
@@ -22,7 +22,13 @@ let render review ~width:cols ~height:rows =
   let attr color = A.(fg color ++ bg background) in
   let row color text = I.(string (attr color) (clean text) |> hsnap ~align:`Left cols) in
   let capacity = max 0 (rows - 6) in
-  let lines =
+  Review.set_page_rows review capacity;
+  let document =
+    match Review.state review with
+    | Changes.Patch patch when patch <> "" -> Review.document review
+    | _ -> None
+  in
+  let messages =
     match Review.state review with
     | Changes.Idle -> [ "Press r / Enter to read the workspace diff. No agent starts." ]
     | Changes.Loading -> [ "Reading workspace changes… input remains responsive." ]
@@ -32,23 +38,30 @@ let render review ~width:cols ~height:rows =
           "Retain the workspace. i edits jj path; r retries explicitly.";
         ]
     | Changes.Patch "" -> [ "No changes relative to this task's recorded base." ]
-    | Changes.Patch patch -> String.split_on_char '\n' patch
+    | Changes.Patch _ -> []
   in
-  let patch = match Review.state review with Changes.Patch _ -> true | _ -> false in
+  let line_count =
+    Option.fold ~none:(List.length messages) ~some:Diff_document.line_count document
+  in
   let widest =
-    if patch then
-      List.fold_left
-        (fun widest text -> max widest (I.width (I.string A.empty (clean text))))
-        0 lines
-    else 0
+    Option.fold ~none:0
+      ~some:(fun document ->
+        Diff_document.fold_lines document ~init:0 ~f:(fun widest text ->
+            max widest (I.width (I.string A.empty (clean text)))))
+      document
   in
   Review.set_horizontal review (min (Review.horizontal review) (max 0 (widest - cols)));
-  Review.set_scroll review
-    (min (Review.scroll review) (max 0 (List.length lines - capacity)));
+  (* File jumps keep the header at the top, including a short final file. *)
+  Review.set_scroll review (min (Review.scroll review) (max 0 (line_count - 1)));
   let visible =
-    List.filteri
-      (fun i _ -> i >= Review.scroll review && i < Review.scroll review + capacity)
-      lines
+    Option.fold
+      ~none:
+        (List.filteri
+           (fun i _ -> i >= Review.scroll review && i < Review.scroll review + capacity)
+           messages)
+      ~some:(fun document ->
+        Diff_document.lines document ~start:(Review.scroll review) ~count:capacity)
+      document
   in
   let color text =
     if String.starts_with ~prefix:"+" text then A.lightgreen
@@ -67,6 +80,23 @@ let render review ~width:cols ~height:rows =
       |> vsnap ~align:`Top capacity)
   in
   let executable = Review.executable review ^ if Review.editing review then "▏" else "" in
+  let file_navigation =
+    (not (Review.editing review))
+    && Option.fold ~none:false
+         ~some:(fun document -> Diff_document.file_count document > 1)
+         document
+  in
+  let file_position =
+    Option.fold ~none:""
+      ~some:(fun document ->
+        match Diff_document.file_at document ~line:(Review.scroll review) with
+        | None -> ""
+        | Some file ->
+            Printf.sprintf " · file %d/%d: %s" (file.index + 1)
+              (Diff_document.file_count document)
+              file.name)
+      (Review.document review)
+  in
   let image =
     I.vcat
       [
@@ -80,13 +110,15 @@ let render review ~width:cols ~height:rows =
           (Option.value
              ~default:
                (Printf.sprintf " Line %d / %d · column +%d%s"
-                  (if lines = [] then 0 else Review.scroll review + 1)
-                  (List.length lines) (Review.horizontal review)
-                  (if widest > cols then " · h/l to inspect long lines" else ""))
+                  (if line_count = 0 then 0 else Review.scroll review + 1)
+                  line_count (Review.horizontal review)
+                  (file_position ^ if widest > cols then " · h/l: long lines" else ""))
              (Review.status review));
-        row A.lightcyan " [Refresh / r]  [jj path / i]  [Close / Esc]";
+        row A.lightcyan
+          (" [Refresh / r]  [jj path / i]  [Close / Esc]"
+          ^ if file_navigation then "  [Prev file]  [Next file]" else "");
         row A.white
-          " h/l: horizontal · 0: line start · j/k: scroll · g/G: top/bottom · Esc: chat";
+          " h/l: horizontal · j/k: scroll · g/G: top/bottom · [/]: files · Esc: chat";
       ]
   in
   let hits = ref [] in
@@ -102,7 +134,15 @@ let render review ~width:cols ~height:rows =
           :: !hits;
       if cols > 31 then
         hits :=
-          { x = 31; y = rows - 2; width = min 14 (cols - 31); action = Close } :: !hits));
+          { x = 31; y = rows - 2; width = min 13 (cols - 31); action = Close } :: !hits;
+      if file_navigation && cols > 46 then
+        hits :=
+          { x = 46; y = rows - 2; width = min 11 (cols - 46); action = Previous_file }
+          :: !hits;
+      if file_navigation && cols > 59 then
+        hits :=
+          { x = 59; y = rows - 2; width = min 11 (cols - 59); action = Next_file }
+          :: !hits));
   {
     image =
       I.(

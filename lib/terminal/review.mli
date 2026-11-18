@@ -6,6 +6,9 @@ val title : t -> string
 val executable : t -> string
 val editing : t -> bool
 val state : t -> Changes.state
+val document : t -> Diff_document.t option
+val set_page_rows : t -> int -> unit
+val jump_file : t -> [ `Next | `Previous ] -> unit
 val scroll : t -> int
 val set_scroll : t -> int -> unit
 val horizontal : t -> int

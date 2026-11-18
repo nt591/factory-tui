@@ -651,7 +651,6 @@ let render t ~width:cols ~height:rows =
         "Ctrl-W then hjkl moves pane focus. Ctrl-W w cycles panes.";
         "Ctrl-U/D: half-page. Ctrl-B/F: full-page. Tab/Shift-Tab: cycle.";
         "Mouse wheel and Page Up/Down scroll. Home/End: first/last.";
-        "";
         "i composes a reply. Enter queues; Ctrl-L/Alt-Enter adds a line.";
         "Arrows edit; Home/End move within a line; Escape keeps the draft.";
         "n creates a demo, or a workspace task in live mode. W: workspace.";
@@ -659,6 +658,7 @@ let render t ~width:cols ~height:rows =
         "s starts a demo or asks for live confirmation; x stops; a accepts.";
         "b returns to all tasks. R cycles repositories. d opens Archive.";
         "v opens real workspace changes; r refreshes; Escape returns.";
+        "Review: [/]: previous/next file; h/l: long lines; Page Up/Down: page.";
         "t expands tools; T toggles readable/raw payload. f pauses demo.";
         "/ searches focused board or chat. S searches chat from any pane.";
         "In chat search: n/N moves matches; Escape clears. Literal search.";
@@ -776,6 +776,8 @@ let render t ~width:cols ~height:rows =
             | Review_view.Refresh -> Refresh_review
             | Review_view.Edit_executable -> Edit_review_executable
             | Review_view.Close -> Close_review
+            | Review_view.Next_file -> Next_review_file
+            | Review_view.Previous_file -> Previous_review_file
           in
           hit item.x (item.y + 1) item.width 1 action)
         view.hits);

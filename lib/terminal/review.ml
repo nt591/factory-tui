@@ -7,6 +7,8 @@ type t = {
   mutable scroll : int;
   mutable horizontal : int;
   mutable error : string option;
+  mutable document : Diff_document.t option;
+  mutable page_rows : int;
 }
 
 let create (task : Model.task) ~jj =
@@ -23,6 +25,8 @@ let create (task : Model.task) ~jj =
           scroll = 0;
           horizontal = 0;
           error = None;
+          document = None;
+          page_rows = 10;
         }
 
 let task_id t = t.task_id
@@ -30,6 +34,8 @@ let title t = t.title
 let executable t = Text_edit.text t.executable
 let editing t = t.editing
 let state t = Changes.state t.changes
+let document t = t.document
+let set_page_rows t value = t.page_rows <- max 1 value
 let scroll t = t.scroll
 let set_scroll t value = t.scroll <- max 0 (min 1000000 value)
 let horizontal t = t.horizontal
@@ -48,7 +54,8 @@ let refresh t =
         t.error <- None;
         t.editing <- false;
         t.scroll <- 0;
-        t.horizontal <- 0
+        t.horizontal <- 0;
+        t.document <- None
 
 let status t = t.error
 let edit_executable t = if state t <> Changes.Loading then t.editing <- true
@@ -70,6 +77,22 @@ let input t key =
       t.executable <- Text_edit.insert t.executable (Buffer.contents buffer)
   | _ -> ()
 
+let jump_file t direction =
+  if (not t.editing) && match state t with Changes.Patch _ -> true | _ -> false then
+    Option.iter
+      (fun document ->
+        let target =
+          match direction with
+          | `Next -> Diff_document.next_file document ~line:t.scroll
+          | `Previous -> Diff_document.previous_file document ~line:t.scroll
+        in
+        Option.iter
+          (fun (file : Diff_document.file) ->
+            t.scroll <- file.line;
+            t.horizontal <- 0)
+          target)
+      t.document
+
 let key t (key, mods) =
   if t.editing then
     match key with
@@ -83,14 +106,26 @@ let key t (key, mods) =
     | `ASCII 'h' | `Arrow `Left -> set_horizontal t (t.horizontal - 4)
     | `ASCII 'l' | `Arrow `Right -> set_horizontal t (t.horizontal + 4)
     | `ASCII '0' -> set_horizontal t 0
+    | `ASCII ']' -> jump_file t `Next
+    | `ASCII '[' -> jump_file t `Previous
     | `ASCII 'j' | `Arrow `Down -> set_scroll t (t.scroll + 1)
     | `ASCII 'k' | `Arrow `Up -> set_scroll t (t.scroll - 1)
-    | `Page `Down -> set_scroll t (t.scroll + 10)
-    | `Page `Up -> set_scroll t (t.scroll - 10)
+    | `Page `Down -> set_scroll t (t.scroll + t.page_rows)
+    | `Page `Up -> set_scroll t (t.scroll - t.page_rows)
     | `Home | `ASCII 'g' -> set_scroll t 0
-    | `End | `ASCII 'G' -> set_scroll t 1000000
+    | `End | `ASCII 'G' ->
+        Option.iter
+          (fun document -> set_scroll t (Diff_document.line_count document - t.page_rows))
+          t.document
     | _ -> ()
 
 let paste_key t (key, _) = if t.editing then input t key
-let poll t = Changes.poll t.changes
+
+let poll t =
+  Changes.poll t.changes;
+  match (state t, t.document) with
+  | Changes.Patch patch, None -> t.document <- Some (Diff_document.parse patch)
+  | Changes.Patch _, Some _ -> ()
+  | _ -> t.document <- None
+
 let close t = Changes.close t.changes

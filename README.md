@@ -541,7 +541,10 @@ TOML workspace defaults. jj's path is explicit but can be configured once.
 Press `v` to open real changes review for the selected workspace task. Opening
 runs nothing: enter jj's absolute path if needed, then Enter/`r` refreshes in the
 background. `i` edits the path; `j/k`, Page Up/Down, and the wheel scroll; Escape
-returns to chat. Empty and failed diffs are explicit states, not sample patches.
+returns to chat. `]`/`[` jump to next/previous files; multi-file patches also have
+clickable Prev/Next buttons. The footer shows file position, and jumps reset the
+horizontal offset. Page keys move by the visible patch height. Empty and failed
+diffs are explicit states, not sample patches.
 Review does not accept, merge, push, or delete. `h/l` or Left/Right scroll long
 diff lines horizontally; `0` returns to their start. Ctrl-wheel also scrolls
 horizontally. Offsets use terminal cells, preserving UTF-8 text.

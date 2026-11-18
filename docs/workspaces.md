@@ -91,8 +91,15 @@ recorded base on a background worker. The pane distinguishes not-loaded, loading
 empty diff, patch, and error states. Paths are remembered for this application
 session after creation or review, not silently guessed from a global install.
 
-`j/k`, Page Up/Down, and the mouse wheel scroll; `g/G` goes to top/bottom. The diff
-uses addition/deletion/hunk colors and preserves line text without word wrapping.
+`j/k`, Page Up/Down, and the mouse wheel scroll; `g/G` goes to top/bottom.
+Page keys use the visible patch height. `]` jumps to the next file, and `[` jumps
+to the previous file. Multi-file patches also show clickable Prev/Next file buttons.
+File jumps put the header at the top, even for a short final file, and reset the
+horizontal offset. Navigation stops at the first/last file rather than wrapping.
+The footer shows the current file number/count and supplied path. Quoted paths
+remain opaque display text; navigation never uses them as command arguments.
+The diff uses addition/deletion/hunk colors and preserves line text without word
+wrapping.
 `h/l` or Left/Right scroll long lines horizontally in four-cell steps; `0`
 returns to the start. Ctrl-wheel also scrolls horizontally. The footer shows
 the current column offset. Cropping uses terminal cells, not UTF-8 byte offsets.
@@ -106,6 +113,9 @@ A task with no workspace shows an error instead of a demo patch. Patches are
 read on explicit refresh and not saved into the conversation database. Each review
 owns its task ID and workspace; results cannot update another task's chat.
 `Changes` owns the background job, `Review` owns input/scroll state, and
-`Review_view` renders the result. Their interfaces hide worker handles and state
-representation. Tests and the PTY smoke verify a real added file in a temporary
-workspace, empty/error states, modal isolation, scrolling, and return to chat.
+`Review_view` renders the result. `Diff_document` indexes immutable patch lines
+and file headers once per loaded result; its representation is abstract. Header
+recognition ignores added lines and hunk content when deriving file labels.
+Their interfaces hide worker handles and state representation. Tests and the PTY
+smoke verify real added files in a temporary workspace, empty/error states, modal
+isolation, file/viewport navigation, scrolling, and return to chat.

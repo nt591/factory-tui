@@ -38,6 +38,8 @@ type action =
   | Refresh_review
   | Edit_review_executable
   | Close_review
+  | Next_review_file
+  | Previous_review_file
   | Begin_workspace
   | Submit_workspace
   | Cancel_workspace
@@ -389,6 +391,9 @@ let rec act t action =
               t.help <- false))
   | Refresh_review -> Option.iter Review.refresh t.review
   | Edit_review_executable -> Option.iter Review.edit_executable t.review
+  | Next_review_file -> Option.iter (fun review -> Review.jump_file review `Next) t.review
+  | Previous_review_file ->
+      Option.iter (fun review -> Review.jump_file review `Previous) t.review
   | Close_review -> (
       match t.review with
       | None -> ()

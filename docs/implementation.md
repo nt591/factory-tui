@@ -88,7 +88,9 @@ Acceptance does not merge, push, or delete a workspace.
    `v` opens explicit background diff review
    with real patch/empty/error states and task-bound result ownership. Horizontal
    scrolling uses terminal cells, with h/l, arrows, 0, and Ctrl-wheel verified on
-   long Unicode lines. Review never
+   long Unicode lines. `]`/`[` and clickable buttons jump file headers using an
+   immutable patch index; the footer shows file position, and page keys use the
+   viewport height. Short final-file headers stay visible. Review never
    accepts, integrates, or deletes. `--live-ui` explicitly enables confirmed
    workspace-backed Codex execution with a durable Working checkpoint. Acceptance
    remains separate from merge and push. Live calls require explicit live mode;

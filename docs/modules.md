@@ -49,6 +49,8 @@ against these interfaces during the normal Dune build.
   explicit refresh, poll, and join. Results never mutate another task.
 - `Review`: abstract changes-pane state, executable editing, and scrolling.
 - `Review_view`: diff display and modal hitboxes; no process or task mutations.
+- `Diff_document`: abstract immutable patch-line/file index, bounded row slices,
+  and previous/next file lookup. Supplied paths remain display text, not commands.
 - `Workspace_defaults`: optional typed startup preferences shared by config and
   form initialization; it holds no instruction, credentials, or execution permission.
 - `Workspace_form`: abstract field/editor state; local validation and input only.

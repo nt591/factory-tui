@@ -386,6 +386,8 @@ try:
         (Path(task["workspace"]["directory"]) / "review.txt").write_text(
             "A real workspace addition\n" + "x" * 180 + "界éLONG_LINE_END\n")
 
+        (Path(task["workspace"]["directory"]) / "z-final.txt").write_text("Final file sentinel\n")
+
         check("created workspace task starts no run", task["state"] == "queued" and task["active"] is None
               and task["runs"] == [])
         check("complete task instruction retained", task["messages"][0]["text"] == "Create an isolated task through the TUI")
@@ -405,6 +407,22 @@ try:
             pump(0.05)
         check("real workspace patch appears in TUI", "+A real workspace addition" in text()
               and "review.txt" in text())
+        check("review file position starts at the first file", "file 1/2: review.txt" in text())
+        send(b"]")
+        check("next file key opens final file", "file 2/2: z-final.txt" in text()
+              and "+Final file sentinel" in text()
+              and "diff --git a/z-final.txt b/z-final.txt" in text().splitlines()[4])
+        send(b"]")
+        check("last file navigation does not wrap", "file 2/2: z-final.txt" in text())
+        if args.preview:
+            preview(args.preview.with_stem(args.preview.stem + "-review-last-file"))
+        send(b"[")
+        check("previous file key returns to first file", "file 1/2: review.txt" in text()
+              and "+A real workspace addition" in text())
+        send(b"\x1b[<0;60;35M\x1b[<0;60;35m")
+        check("clicking next file opens final file", "file 2/2: z-final.txt" in text())
+        send(b"\x1b[<0;47;35M\x1b[<0;47;35m")
+        check("clicking previous file returns to first file", "file 1/2: review.txt" in text())
         check("long diff end initially clipped", "LONG_LINE_END" not in text())
         send(b"l" * 40)
         pump(0.3)

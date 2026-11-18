@@ -86,3 +86,12 @@ A confirmed live retry can wait for a previous workspace process to finish
 cleanup. Activity exposes that waiting state without moving away from the task
 chat. Stop and shutdown interrupt waiting requests; no implicit process starts
 as the application closes. Coordination applies within one live runner.
+
+Changes review has file navigation: `]`/`[` and clickable Prev/Next file buttons
+jump between real Git-format file headers. The footer shows file number/count
+and the supplied path; jumps reset horizontal scrolling and put a short final
+file at the top instead of hiding its header behind the viewport clamp. Page
+keys use the actual visible patch height. The immutable `Diff_document` index
+lives beside review input/rendering with an explicit interface. Pure parser tests,
+real-jj review tests, and PTY keyboard/mouse checks cover multi-file navigation.
+No task, draft, database, or workspace is changed by navigation.
