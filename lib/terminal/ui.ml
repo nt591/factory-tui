@@ -227,42 +227,31 @@ let render t ~width:cols ~height:rows =
     if composer_height > 0 then (
       let task = Option.get task in
       let editing = t.input = Compose in
-      let prompt =
+      let preview =
         if task.state = Done then "Accepted task / chat history is read-only"
-        else if draft t = "" then if editing then "▏" else "Write a reply…  i to compose"
-        else if editing then
-          let value = Text_edit.text t.editor and cursor = Text_edit.cursor t.editor in
-          String.sub value 0 cursor ^ "▏"
-          ^ String.sub value cursor (String.length value - cursor)
+        else if draft t = "" then "Write a reply…  i to compose"
         else draft t
       in
-      let prompt = (if editing then "> " else "  ") ^ prompt in
       let instructions = Composer_guidance.text ~width:inner ~mode ~editing task in
-      let prompt_rows = wrap inner prompt in
       let capacity = composer_height - 3 in
-      let cursor_row =
-        if not editing then List.length prompt_rows - 1
-        else
-          let before =
-            String.sub (Text_edit.text t.editor) 0 (Text_edit.cursor t.editor)
-          in
-          List.length (wrap inner ("> " ^ before ^ "▏")) - 1
-      in
-      let offset = max 0 (cursor_row - capacity + 1) in
-      let visible_rows =
-        List.filteri (fun i _ -> i >= offset && i < offset + capacity) prompt_rows
+      let window =
+        Composer_layout.make ~width:inner ~capacity ~preview
+          ~editor:(if editing && task.state <> Done then Some t.editor else None)
       in
       let composer =
         I.vcat
-          ( List.map (line inner (attr (if editing then text else muted))) visible_rows
+          ( List.map (line inner (attr (if editing then text else muted))) window.rows
           |> fun images ->
             [ fit inner capacity (I.vcat images); line inner (attr muted) instructions ]
           )
         |> I.hpad 1 1
       in
       paint r.x (r.y + chat_height)
-        (border r.w composer_height ~title:"Reply / next turn" ~color:accent
-           ~focused:editing composer);
+        (border r.w composer_height ~title:"Reply / next turn"
+           ~footer:
+             (if task.state = Done then ""
+              else Composer_layout.position ~width:(r.w - 5) window)
+           ~color:accent ~focused:editing composer);
       if task.state <> Done then
         hit r.x (r.y + chat_height) r.w composer_height Begin_compose)
   in

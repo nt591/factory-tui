@@ -489,3 +489,15 @@ zero-capacity pane. Modal hit isolation and normal-input gating remain intact;
 wheel input on the button is ignored. Pure rendering/input tests and the replay
 PTY check verify target alignment, position during append, mouse follow, later
 followed output, search retention and unchanged saved state.
+
+
+Composer wrapping and cursor-following window computation live in the pure
+`Composer_layout.ml/.mli` module. It accepts an optional abstract Text_edit editor
+or a preview, sanitizes display text, preserves grapheme wrapping, and reports
+visible wrapped-row range/overflow. The lower-border cue uses no editor capacity;
+short drafts show no cue. Editing exposes the cursor window, while a saved preview
+shows the tail. Ui retains mode-specific instructions and accepted-task read-only
+policy. Layout/cursor moves do not change saved text, and submission queues the
+complete draft. Pure Unicode/window/zero-capacity/UI checks and a temporary replay
+SQLite PTY verify top/middle/bottom navigation, exact draft restart, retained edits,
+and full queued submission without a new run.

@@ -252,3 +252,11 @@ transcript rows, and exposes no target when the label is clipped. `Ui` registers
 the target after the pane-focus region so its click has priority. `Follow_chat`
 resets chat anchoring and remembered distance without resetting Activity or saved
 task data. Search query/matches survive, but a pending seek cannot undo following.
+
+
+`Composer_layout` owns sanitized grapheme wrapping, cursor-following visible-row
+selection, and a bounded lower-border range cue. Its optional Text_edit handle
+keeps byte-offset validation inside the editor rather than accepting arbitrary
+cursor offsets. Preview mode shows the tail without a cursor. Ui supplies selected
+task placeholders and mode-aware instructions; it renders only the returned rows.
+No controller, storage, process or terminal state is mutated by layout.

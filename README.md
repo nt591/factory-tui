@@ -762,3 +762,11 @@ sending a draft. End remains the keyboard equivalent when chat is focused. Searc
 queries stay available for `n/N`; Activity keeps its own reading position. The
 button takes no transcript row, disappears while following, and is omitted if
 the complete label cannot fit. Wheel input on the button does not scroll.
+
+
+Long replies show a `draft rows first-last/total` cue on the composer's lower
+border, with arrows for hidden text above/below. These are wrapped display rows,
+not logical line numbers. The editor keeps the cursor visible without taking a
+row away from the draft; normal preview shows its tail. Arrow/Home/End navigation
+and Escape retain the complete draft. Enter queues the full text, not just the
+visible window. The cue is absent when the draft fits.

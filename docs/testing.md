@@ -404,3 +404,19 @@ The check verifies preserved visible content, the wrapped-row cue, wheel isolati
 on Latest, mouse follow and later followed output. It does not use a database,
 agent, credentials or workspace. `test_chat_position` separately checks pure target
 alignment, saved-state isolation, search/editor/modal behavior and terminal bounds.
+
+
+## Long reply composer fixture
+
+```sh
+uv run --with pyte --with pillow python scripts/smoke-composer.py \
+  --preview /tmp/factory-composer.png
+```
+
+The real TUI uses an empty temporary replay file, SQLite, and isolated HOME/XDG.
+It pastes an 18-line Unicode draft, checks bottom/top/middle window ranges, edits
+at the top, exits without submitting, restarts, and queues the exact retained
+text. No run is added. Startup recovery of an existing simulated Working attempt
+is accounted for before checking unchanged run history at submission. No agent,
+credentials or workspace are accessed. `--binary` avoids rebuilding; previews
+show top and bottom. Pure `test_composer_layout` covers wrapped text and bounds.

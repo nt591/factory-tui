@@ -287,3 +287,8 @@
  (name test_chat_position)
  (modules test_chat_position)
  (libraries factory_tui notty))
+
+(test
+ (name test_composer_layout)
+ (modules test_composer_layout)
+ (libraries factory_tui notty))

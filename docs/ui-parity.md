@@ -475,3 +475,12 @@ Modal input hides targets, editor input ignores shortcuts, and wheel input on th
 button is ignored. `test_chat_position` and the board-history replay PTY exercise
 range copy, bounded geometry, click alignment, paused append, later followed
 output, search retention, independent offsets and snapshot isolation.
+
+
+Overflowing reply drafts expose visible wrapped-row ranges and above/below arrows
+on the lower border. The cue consumes no edit rows, and fitting drafts omit it.
+Editing still follows the grapheme cursor; preview shows the draft tail. The pure
+Composer_layout module separates wrapping/window logic from Ui policy. Unit and
+replay/SQLite PTY checks cover top/middle/bottom movement, Unicode retention,
+restart of a long unsent draft, exact retained edits and complete queued submission
+without a new run. Wrap rows are display positions, not logical line numbers.
