@@ -716,3 +716,15 @@ rows or page capacity are consumed. Pure state/render checks and a replay PTY
 verify draft exclusion, queued submission, turn acknowledgement and interruption
 retention without automatic execution. The title does not imply progress or token
 consumption, and accepted tasks do not advertise a runnable queue.
+
+Literal_search.ml/.mli prepares a literal ASCII-case-folded needle and prefix
+fallback table. Matching scans supplied bytes without lowercasing the complete
+text or allocating candidate substrings, and repeated prefixes do not rescan prior
+input. Chat_search prepares on query changes; board filtering prepares once per
+visible-task computation. Controller.contains retains its supported argument order.
+Empty-query, UTF-8 byte, non-regex and ASCII-only folding semantics remain unchanged.
+Pure fixed/seeded-reference tests and repeated-prefix large-text cases verify exact
+agreement with the previous algorithm. A scoped ten-search measurement reported
+6.42 ms / 96 allocated bytes versus 50.25 ms / 818.3 MB for the prior scan on a
+300,001-byte repeated-prefix text and 256-byte query. This excludes whole-UI work
+and does not impose timing or allocation thresholds in tests.

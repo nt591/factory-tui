@@ -394,3 +394,10 @@ index distinguishes queued messages owned by the active run from queued future
 replies. Ui uses its bounded title for the reply border; controller input and
 model transitions remain unchanged. Editor drafts are not task messages and are
 not included in these counts.
+
+Literal_search is an abstract immutable prepared matcher under lib/support.
+It stores an ASCII-folded needle and prefix fallback table; match state is local
+to each call. Chat_search prepares only when query changes, while Controller.visible
+prepares once per filter pass. Matching is literal byte search, not a regex or
+Unicode case-folding service. No text, task, match-selection or saved state is
+rewritten by matching.

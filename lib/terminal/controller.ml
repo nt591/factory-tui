@@ -178,22 +178,18 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     external_events;
   }
 
-let contains text query =
-  let text = String.lowercase_ascii text and query = String.lowercase_ascii query in
-  let rec loop i =
-    i + String.length query <= String.length text
-    && (String.sub text i (String.length query) = query || loop (i + 1))
-  in
-  loop 0
+let contains text query = Literal_search.contains (Literal_search.prepare query) text
 
 let visible t =
+  let search = Literal_search.prepare t.query in
   List.filter
     (fun (task : task) ->
       (if t.archive then task.state = Done else task.state <> Done)
       && (match t.repository with
         | None -> true
         | Some repository -> task.repository = repository)
-      && contains (task.id ^ " " ^ task.title ^ " " ^ task.repository) t.query)
+      && Literal_search.contains search
+           (task.id ^ " " ^ task.title ^ " " ^ task.repository))
     t.tasks
 
 let repositories t =

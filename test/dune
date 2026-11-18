@@ -362,3 +362,8 @@
  (name test_queue_summary)
  (modules test_queue_summary)
  (libraries factory_tui notty))
+
+(test
+ (name test_literal_search)
+ (modules test_literal_search)
+ (libraries factory_tui unix))

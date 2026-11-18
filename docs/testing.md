@@ -657,3 +657,20 @@ unsent drafts and later replies, then verify acknowledgement and stop retention.
 No storage, agent, credentials or real workspace are used. Pure test_queue_summary
 covers state transitions, accepted-task copy, border widths and saved-state
 isolation. `--binary` avoids rebuilding.
+
+## Literal search matching
+
+`test_literal_search` compares the shared matcher with the prior substring scan
+for fixed empty/case/UTF-8/malformed-byte/metacharacter cases and 3,000 seeded
+text/query pairs. It also checks reuse after unrelated matching, one-MiB repeated
+prefixes, and board/chat text/author integration. No processes or storage are used.
+
+```sh
+opam exec --switch=. -- dune exec test/test_literal_search.exe -- --measure
+```
+
+One scoped ten-search measurement with 300,001 text bytes and a 256-byte query
+reported 6.42 ms / 96 allocated bytes for prepared matching versus 50.25 ms /
+818,312,496 bytes for the prior substring scan. It excludes full UI/rendering and
+is not a test performance gate. Search remains literal and ASCII-case-insensitive;
+Unicode case folding is not introduced.

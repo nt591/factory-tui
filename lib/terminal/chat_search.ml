@@ -1,5 +1,6 @@
 type t = {
   mutable query : string;
+  mutable search : Literal_search.t;
   mutable matches : string list;
   mutable selected : string option;
   mutable pending_seek : bool;
@@ -10,6 +11,7 @@ type t = {
 let create () =
   {
     query = "";
+    search = Literal_search.prepare "";
     matches = [];
     selected = None;
     pending_seek = false;
@@ -19,23 +21,17 @@ let create () =
 
 let query t = t.query
 
-let contains text query =
-  let text = String.lowercase_ascii text and query = String.lowercase_ascii query in
-  let rec loop i =
-    i + String.length query <= String.length text
-    && (String.sub text i (String.length query) = query || loop (i + 1))
-  in
-  loop 0
-
 let set_query t query =
   if String.length query <= 256 && t.query <> query then (
     t.query <- query;
+    t.search <- Literal_search.prepare query;
     t.selected <- None;
     t.cached_messages <- None;
     t.pending_seek <- true)
 
 let clear t =
   t.query <- "";
+  t.search <- Literal_search.prepare "";
   t.matches <- [];
   t.selected <- None;
   t.pending_seek <- false;
@@ -52,8 +48,10 @@ let sync t messages =
         else
           List.filter_map
             (fun (message : Model.message) ->
-              if contains message.text t.query || contains message.author t.query then
-                Some message.id
+              if
+                Literal_search.contains t.search message.text
+                || Literal_search.contains t.search message.author
+              then Some message.id
               else None)
             messages
       in

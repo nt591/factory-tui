@@ -620,3 +620,10 @@ counts. Drafts and sent history are excluded. After acknowledgement only later
 queued replies remain in the count; interruption returns unacknowledged items to
 the ordinary queue. Pure and replay PTY checks cover these cases without changing
 selection, saved text, edit capacity or explicit execution controls.
+
+Board and transcript search share a prepared literal ASCII-insensitive matcher
+instead of allocating substrings at every candidate position. Empty queries,
+metacharacters and UTF-8 bytes keep their existing semantics. Reference-corpus and
+large repeated-prefix tests verify equivalent matching; existing terminal search
+checks retain count/highlight/navigation and exact query behavior. The optimization
+does not change saved text or add regex/Unicode case-folding features.

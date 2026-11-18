@@ -202,3 +202,8 @@ cross-machine performance. No timing threshold is a safety/test gate.
 Reply queue visibility has pure task/render checks and actual replay terminal input
 coverage for captured acknowledgement, unsent drafts, next-turn replies and stop
 retention. Counts describe delivery flags only, not model progress or billing.
+
+Literal-search matching has fixed/seeded equivalence checks and repeated-prefix
+large-text coverage. A scoped local measurement supports reduced allocations,
+not whole-app or cross-machine performance. Existing board/chat search semantics
+and terminal count/navigation checks remain in force.
