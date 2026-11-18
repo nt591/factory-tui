@@ -90,6 +90,9 @@ let () =
   let saved = Controller.snapshot t in
   check "tool group initially collapsed"
     (not (Controller.contains (rendered ()) "inspect workspace"));
+  check "collapsed group shows latest status without payload details"
+    (Controller.contains (rendered ()) "Latest update: Command"
+    && not (Controller.contains (rendered ()) "diagnostic-value"));
   Controller.key t (`ASCII 't', []);
   let readable = rendered () in
   check "readable activity rendered"

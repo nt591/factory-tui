@@ -37,7 +37,7 @@ let update t ~task_id tools =
           in
           Hashtbl.replace document id entry)
         tools;
-      (* Retain only the current task's tools. Collapsed output does not force parsing. *)
+      (* Retain only current tools. Decoding occurs when a view requests a representation. *)
       t.cached <- Some { task_id; tools; document };
       document
 

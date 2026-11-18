@@ -387,7 +387,16 @@ layout and PTY long-model checks cover width limits, cursor placement, and editi
 Unchanged expanded tool payloads reuse their decoded summary/details and raw text.
 `Tool_cache.ml/.mli` retains one task's current entries, keyed by scoped tool ID
 and immutable payload identity; removed/replaced items do not accumulate. Readable
-and raw views are lazy, so collapsed tool output does not parse JSON. Origin labels
+and raw views are lazy. Collapsed groups request their latest item description only; other
+items and raw payload formatting remain deferred. Origin labels
 still use the task's current recorded history, never cached next-run settings.
 Wrapping and Activity row assembly remain separate. Unit equality/reuse/lifecycle
 checks and existing raw/readable/streaming terminal checks cover the integration.
+
+Collapsed Activity lists the latest tool update summary and its recorded source run,
+while command arguments, output, and raw payloads remain hidden until `t` expands
+them. “Latest” follows the reducer's tool-update order, not a claim that the item
+belongs to the active run. Missing status remains unknown and unrecorded origin
+is explicit. The summary uses the same cached decoder as expanded inspection.
+Unit and fake-process PTY checks verify supplied status, latest-item replacement,
+origin, and hidden details. No run or task state is changed by inspection.

@@ -365,6 +365,8 @@ try:
         send(b"e")
         check("process fixture moves selected card to Ready", "T-101 / Ready / conversation" in text())
         check("process fixture streams into chat", "Local fixture checks are complete" in text())
+        check("collapsed tool group shows latest supplied status", "Latest update: Command" in text())
+        check("collapsed tool group hides command output", "Fixed local fixture output" not in text())
         send(b"t")
         check("tool activity uses readable command summary", "Command / completed / exit 0" in text())
         check("command output displayed as text", "Fixed local fixture output" in text())

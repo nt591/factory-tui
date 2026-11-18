@@ -105,11 +105,13 @@ printf '%s\n' '{"type":"thread.started","thread_id":"different-thread"}'
       check "malformed harness error returned" (Result.is_error (run ()));
       check "malformed run persists Needs you"
         ((List.hd (List.rev (load ()).tasks)).state = Needs_you);
-      write_script "sleep 10\n";
-      let before = Unix.gettimeofday () in
+      let cancellation_marker = Filename.concat directory "cancellation-started" in
+      write_script "touch cancellation-started\nsleep 10\n";
       let summary =
-        ok (run ~cancelled:(fun () -> Unix.gettimeofday () -. before > 0.05) ())
+        ok (run ~cancelled:(fun () -> Sys.file_exists cancellation_marker) ())
       in
+      check "runtime cancellation observes a launched fixture"
+        (Sys.file_exists cancellation_marker);
       check "cancellation terminal state"
         (summary.state = Needs_you && not summary.succeeded);
       check "cancellation records interruption"

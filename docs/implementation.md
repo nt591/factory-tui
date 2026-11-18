@@ -389,8 +389,13 @@ cursor/width/submission checks and PTY long-model/Home/End coverage verify behav
 
 Expanded Activity reuses decoded readable/raw tool content while scoped item IDs
 and immutable payloads are unchanged. `Tool_cache` retains only the rendered task's
-current tools and prepares each representation lazily; collapsed groups do not
-force parsing. Replaced payloads rebuild their entry, while removed items leave
+current tools and prepares each representation lazily; collapsed groups request
+only their latest item description, while other items and raw formatting remain deferred. Replaced payloads rebuild their entry, while removed items leave
 the index. Current recorded source-run labels are not cached with the payload.
 Unit decoder/lifecycle/render checks and full raw/readable PTY and installed-agent
 resume coverage verify unchanged content and snapshot isolation.
+
+Collapsed Activity shows the latest reducer-ordered tool summary and source-run
+context without command/output details. Tool updates do not imply run completion;
+the supplied decoder status remains authoritative, with explicit unknown fallback.
+Unit and fake-process PTY checks verify current summary and hidden payload details.

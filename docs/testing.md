@@ -334,3 +334,10 @@ checks completed, but that suite was not successful. Case-specific context now
 shows the reliability issue is not confined to the previously observed repeated
 output case. Production Command code, one-second success deadlines, and test
 parallelism remain unchanged; later passing reruns do not prove this issue fixed.
+
+The headless execution cancellation fixture waits for its own temporary launch
+marker before requesting cancellation. Its prelaunch-cancellation case remains
+separate. A former 50 ms wall-clock trigger could expire during the durable
+checkpoint and fail before spawning, so it did not reliably exercise runtime
+cancellation. The marker gates the intended test boundary; it changes no process
+or storage implementation, timeout, or production cancellation policy.

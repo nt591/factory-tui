@@ -60,6 +60,57 @@ let () =
   check "collapsed tools do not expose output"
     (contains (lines ~expanded:false (Some task)) "t expands"
     && not (contains (lines ~expanded:false (Some task)) "first output"));
+  let collapsed = lines ~expanded:false (Some task) in
+  check "collapsed tools expose supplied summary without command or output"
+    (List.mem "Latest update: Command / completed / exit 0" collapsed
+    && (not (contains collapsed "$ dune runtest"))
+    && (not (contains collapsed "first output"))
+    && not (contains collapsed "RAW_ONLY"));
+  check "collapsed summary discloses recorded origin"
+    (List.mem "Source run: run / Codex / recorded-model / live / workspace-write"
+       collapsed);
+  let updated =
+    {
+      task with
+      tools =
+        task.tools
+        @ [
+            ( "unrecorded/new",
+              {|{"type":"mcp_tool_call","server":"files","tool":"read","status":"failed"}|}
+            );
+          ];
+    }
+  in
+  let summary = lines ~expanded:false (Some updated) in
+  check "latest update is the final reducer-ordered tool item"
+    (List.mem "Latest update: MCP files/read / failed" summary
+    && not (List.mem "Latest update: Command / completed / exit 0" summary));
+  check "unrecorded summary does not invent live origin"
+    (List.mem "Source run: not recorded" summary);
+  let active =
+    Result.get_ok
+      (Model.start
+         (make ~id:"latest-task" ~title:"Tool updates" ~repository:"fixture")
+         "latest-run")
+  in
+  let tool_update task id payload =
+    Option.get
+      (Model.apply task
+         { task_id = task.id; run_id = "latest-run"; event = Tool (id, payload) })
+  in
+  let first = {|{"type":"command_execution","status":"in_progress"}|} in
+  let second = {|{"type":"file_change","status":"completed"}|} in
+  let done_tool = {|{"type":"command_execution","status":"completed","exit_code":1}|} in
+  let active = tool_update active "first" first in
+  let active = tool_update active "second" second in
+  let active = tool_update active "first" done_tool in
+  let latest = lines ~expanded:false (Some active) in
+  check "updated existing item becomes the latest summary without duplication"
+    (List.length active.tools = 2
+    && List.mem "Latest update: Command / completed / exit 1" latest);
+  check "tool completion summary does not complete the run"
+    (active.state = Working && active.active <> None);
+
   check "waiting status is explicit"
     (contains
        (lines ~waiting:true (Some task))

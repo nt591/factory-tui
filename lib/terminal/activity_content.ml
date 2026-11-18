@@ -40,12 +40,13 @@ let tool_origin runs id =
       | Read_only -> " / read-only"
       | Workspace_write -> " / workspace-write")
 
+let describe tools id payload =
+  match tools with
+  | None -> Tool_activity.describe ~id payload
+  | Some tools -> Tool_cache.describe tools ~id ~payload
+
 let tool_lines ~tools ~runs ~raw (id, payload) =
-  let activity =
-    match tools with
-    | None -> Tool_activity.describe ~id payload
-    | Some tools -> Tool_cache.describe tools ~id ~payload
-  in
+  let activity = describe tools id payload in
   let details =
     if not raw then activity.details
     else
@@ -75,7 +76,13 @@ let lines ?tools ~now ~expanded ~raw ~waiting = function
            Printf.sprintf "▾ %d tool items / %s / T toggles raw" (List.length task.tools)
              (if raw then "raw" else "readable")
            :: List.concat_map (tool_lines ~tools ~runs:task.runs ~raw) task.tools
-         else [ Printf.sprintf "▸ %d tool items / t expands" (List.length task.tools) ])
+         else
+           let id, payload = List.hd (List.rev task.tools) in
+           [
+             Printf.sprintf "▸ %d tool items / t expands" (List.length task.tools);
+             "Latest update: " ^ (describe tools id payload).summary;
+             tool_origin task.runs id;
+           ])
       @
       if task.runs = [] then []
       else

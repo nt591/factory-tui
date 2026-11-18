@@ -122,7 +122,8 @@ against these interfaces during the normal Dune build.
   tied to current task history. The UI
   wraps each row at the actual pane width before computing scroll bounds.
 - `Tool_cache`: abstract selected-task payload cache with lazy readable/raw
-  decoding. Immutable scoped IDs and payload identity control entry reuse;
+  decoding. Collapsed groups request the latest description only; expansion requests
+  the remaining entries. Immutable scoped IDs and payload identity control entry reuse;
   replacements/removals/task changes discard obsolete entries. Origin labels
   remain outside the cache and use current captured run records.
 - `Tool_activity`: pure summaries of actual harness command, MCP, and file-change
