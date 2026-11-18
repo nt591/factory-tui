@@ -261,3 +261,8 @@ valid recovery changes no execution boundary and adds no new keybindings.
 Local submission success does not mask a persistence warning. Pure reply/model/task
 input and rendering checks verify accepted local state, visible warning and no
 extra runs; no automatic storage recovery or durability assertion is introduced.
+
+Acceptance pending-data disclosure has pure state/codec/archive checks and a replay
+PTY with queued follow-ups and an unsent draft. Their identities/content remain
+retained; the accepted detail view reports retention, not next-turn execution.
+No automatic sending, merge, push, workspace deletion or storage recovery is added.

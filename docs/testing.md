@@ -790,3 +790,9 @@ Input-feedback tests also submit valid reply/model/task edits under an injected
 persistence warning. They verify accepted local values, cleared field validation,
 visible Storage error after editor exit and no additional run. This is a pure
 controller/rendering priority check, not a PTY disk-failure or recovery probe.
+
+Acceptance summary tests retain a queued follow-up and unsent draft through Done,
+roundtrip the strict codec, inspect archived state and verify read-only hitboxes,
+width limits and storage-warning priority. The board-history PTY accepts a Ready
+task with two pending instructions and a draft and checks visible retention markers
+without reply/run controls. No model or workspace operation is used.

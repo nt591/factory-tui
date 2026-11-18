@@ -637,9 +637,10 @@ let rec act t action =
           | Error error -> t.status <- error
           | Ok task ->
               replace t task;
-              t.status <-
-                "Task accepted. Chat is read-only. No merge, push, or workspace deletion."
-          ))
+              if not (String.starts_with ~prefix:"Storage error:" t.status) then
+                t.status <-
+                  Acceptance_summary.status
+                    (Acceptance_summary.make ~draft:(draft t) task)))
 
 let append_utf8 buffer uchar = Uutf.Buffer.add_utf_8 buffer uchar
 

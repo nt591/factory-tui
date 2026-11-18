@@ -431,3 +431,8 @@ Task_attention produces attention reason and card metadata from task state and
 recorded run status. It does not infer outcomes from message wording or process
 exit alone. Ui and Task_row share the same reason; update counts remain supplied
 separately. Missing or inconsistent run history uses neutral copy.
+
+Acceptance_summary is a pure queued-count/draft-presence view shared by acceptance
+status and the read-only detail border. It neither sends nor removes pending data.
+Queue_summary remains the editable next-turn view; accepted tasks use distinct
+retention copy. Controller preserves messages/drafts and storage-error priority.

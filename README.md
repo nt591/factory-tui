@@ -902,3 +902,9 @@ Empty replies, invalid next-run model IDs, and blank new-task instructions repor
 validation feedback below the editor. The text and cursor stay intact. Cursor-only
 movement keeps the error; editing the text clears it. Escape keeps a reply draft or
 cancels the field as usual. Validation does not start a run or create a task.
+
+Accepting Ready work keeps queued follow-ups and unsent drafts as read-only history.
+The accepted detail border names retained queued messages and a retained draft;
+acceptance status makes clear they were not sent. Nothing is merged, pushed or
+deleted, and the archived task cannot start a new run. Retained draft content stays
+in its snapshot even though the composer is read-only.

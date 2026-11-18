@@ -402,3 +402,8 @@
  (name test_input_feedback)
  (modules test_input_feedback)
  (libraries factory_tui notty))
+
+(test
+ (name test_acceptance_summary)
+ (modules test_acceptance_summary)
+ (libraries factory_tui notty))

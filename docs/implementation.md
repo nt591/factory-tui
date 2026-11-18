@@ -833,3 +833,13 @@ is made. A shared private submission-success helper enforces that priority. Pure
 input/render checks cover all three submission paths, visible warnings after editor
 exit, retained local values and unchanged runs. Database failure injection is covered
 by persistence tests; this increment tests controller warning priority only.
+
+Acceptance_summary.ml/.mli discloses pending data retained when Ready becomes Done.
+The accepted detail border shows retained queued-message count and nonempty draft
+presence rather than advertising another turn; the status states retained work was
+not sent. Existing immutable messages/drafts/run records are unchanged. Acceptance
+continues to perform no merge/push/workspace deletion and exposes no execution or
+composer controls afterward. Storage-error status retains precedence. Pure state/
+codec/width tests and the board-history replay PTY verify acceptance with queued
+follow-ups and a draft, visible retained markers and read-only controls. Restart
+checks inspect the preserved archive rather than auto-resuming its pending work.

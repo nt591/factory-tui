@@ -210,6 +210,28 @@ def main():
                 tui.preview(
                     args.preview.with_stem(args.preview.stem + "-submitted-reply")
                 )
+            tui.send(b"i")
+            tui.send(b"\x1b[200~Retained unsent draft\x1b[201~")
+            tui.send(b"\x1b")
+            tui.send(b"a")
+            tui.wait(
+                "accepted pending work disclosure",
+                lambda: (
+                    "Accepted / read-only" in tui.text()
+                    and "2 queued retained" in tui.text()
+                    and "draft retained" in tui.text()
+                ),
+            )
+            tui.check(
+                "acceptance preserves queued chat without making pending work executable",
+                "Reply queued from old history" in tui.text()
+                and "i reply" not in tui.screen.display[-2]
+                and "s start" not in tui.screen.display[-2],
+            )
+            if args.preview:
+                tui.preview(
+                    args.preview.with_stem(args.preview.stem + "-accepted-pending")
+                )
             tui.send(b"q")
             tui.wait_exit()
             tui.check(

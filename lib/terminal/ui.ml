@@ -261,7 +261,11 @@ let render t ~width:cols ~height:rows =
       in
       paint r.x (r.y + chat_height)
         (border r.w composer_height
-           ~title:(Queue_summary.title ~width:(r.w - 5) task)
+           ~title:
+             (if task.state = Done then
+                Acceptance_summary.title ~width:(r.w - 5)
+                  (Acceptance_summary.make ~draft:(draft t) task)
+              else Queue_summary.title ~width:(r.w - 5) task)
            ~footer:
              (if task.state = Done then ""
               else Composer_layout.position ~width:(r.w - 5) window)
@@ -592,7 +596,11 @@ let render t ~width:cols ~height:rows =
   let input_text =
     match t.input with
     | Normal ->
-        (if draft t <> "" then " Draft saved. i to edit | " else " ")
+        (if draft t = "" then " "
+         else if
+           Option.fold ~none:false ~some:(fun (task : task) -> task.state = Done) task
+         then " Draft retained / read-only | "
+         else " Draft saved. i to edit | ")
         ^ (if pending_keys = "" then "" else "[" ^ pending_keys ^ "] ")
         ^ t.status
     | Chat_search ->
