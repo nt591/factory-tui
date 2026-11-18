@@ -4,6 +4,7 @@ val create : Model.task -> jj:string -> (t, string) result
 val task_id : t -> string
 val title : t -> string
 val executable : t -> string
+val executable_cursor_parts : t -> string * string
 val editing : t -> bool
 val state : t -> Changes.state
 val document : t -> Diff_document.t option

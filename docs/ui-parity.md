@@ -334,3 +334,10 @@ than hiding it behind a fixed right-aligned viewport. Whole graphemes are select
 for the display window; unfocused clipped values use an ellipsis. Paths and task
 instructions are never shortened in stored form data. Pure text/render and PTY
 Home/End checks cover this behavior without creating workspaces until submission.
+
+The jj executable field in changes review follows its cursor horizontally. Long
+path suffixes stay visible at End, prefixes at Home, and middle edits retain
+nearby context. Shared `Text_layout.cursor_window` preserves whole graphemes;
+`Review` exposes text parts without exposing its editor handle. The footer shows
+editing-specific instructions. Pure and PTY checks verify long-path navigation,
+full stored values, paste isolation, and inactive paging while editing.

@@ -232,3 +232,8 @@
  (name test_form_cursor)
  (modules test_form_cursor)
  (libraries factory_tui notty))
+
+(test
+ (name test_review_cursor)
+ (modules test_review_cursor)
+ (libraries factory_tui notty))

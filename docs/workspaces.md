@@ -107,7 +107,9 @@ wrapping.
 returns to the start. Ctrl-wheel also scrolls horizontally. The footer shows
 the current column offset. Cropping uses terminal cells, not UTF-8 byte offsets.
 Widening the terminal clamps any unneeded offset; refreshing resets the viewport.
-Path editing treats h/l as literal text and does not move the diff. Escape returns to the same task
+Path editing treats h/l as literal text and does not move the diff. A horizontal
+cursor window keeps long executable paths editable; Home/End reveals the
+prefix/suffix without changing the stored path or starting a command. Escape returns to the same task
 chat; it does not accept the task. During a bounded refresh, close waits for
 completion rather than abandoning a worker; shutdown joins it. Review blocks
 underlying board, run, and acceptance shortcuts. Its buttons are clickable.

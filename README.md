@@ -588,7 +588,8 @@ TOML workspace defaults. jj's path is explicit but can be configured once.
 
 Press `v` to open real changes review for the selected workspace task. Opening
 runs nothing: enter jj's absolute path if needed, then Enter/`r` refreshes in the
-background. `i` edits the path; `j/k`, Page Up/Down, and the wheel scroll; Escape
+background. `i` edits the path with a cursor-following viewport for long values;
+Home/End reveals its prefix/suffix. `j/k`, Page Up/Down, and the wheel scroll; Escape
 returns to chat. `]`/`[` jump to next/previous files; multi-file patches also have
 clickable Prev/Next buttons. The footer shows file position, and jumps reset the
 horizontal offset. Page keys move by the visible patch height; Ctrl-U/D moves a

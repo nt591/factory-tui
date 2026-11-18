@@ -496,6 +496,13 @@ try:
         send(b"\x02")
         check("review Ctrl-B returns by the current viewport", "Line 1 / 16" in text())
         send(b"i")
+        send(b"\x1b[200~" + b"x" * 140 + b"-END\x1b[201~")
+        check("long review executable shows tail cursor", "-END▏" in screen.display[3])
+        send(b"\x1b[H")
+        check("review executable Home reveals prefix cursor", "▏/opt/homebrew/" in screen.display[3])
+        send(b"\x1b[F")
+        check("review executable End returns to tail", "-END▏" in screen.display[3])
+        send(b"\x7f" * 144)
         path_before = screen.display[3]
         send(b"\x04\x15\x06\x02")
         check("review paging keys are inactive in executable editing", screen.display[3] == path_before

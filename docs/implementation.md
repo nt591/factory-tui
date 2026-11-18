@@ -341,3 +341,9 @@ cursor, rather than always right-aligning long values. Home/End and cursor movem
 expose the text being edited; unfocused values indicate clipping with an ellipsis.
 Original paths/instructions remain in the form. Text/form unit and actual PTY
 Home/End checks verify visible editing and no workspace side effects before submit.
+
+The changes-view executable editor uses the same grapheme-safe cursor window as
+workspace fields. Home/End reveals the beginning/end of long paths; editing does
+not truncate the stored executable or start a refresh. Editing instructions stay
+in the footer while the entire path row is available for cursor context. Pure
+review-editor and actual PTY long-path/Home/End/paste tests verify behavior.

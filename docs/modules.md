@@ -48,6 +48,8 @@ against these interfaces during the normal Dune build.
 - `Changes`: abstract background diff ownership for one task/workspace, with
   explicit refresh, poll, and join. Results never mutate another task.
 - `Review`: abstract changes-pane state, executable editing, and scrolling.
+  Cursor-separated executable text supports shared horizontal editor layout
+  without exposing the Text_edit handle.
 - `Review_view`: diff display, modal hitboxes, and visible patch scroll geometry;
   no process or task mutations. Path editing exposes no patch wheel target.
 - `Diff_display`: abstract prepared sanitized patch lines and maximum terminal-cell

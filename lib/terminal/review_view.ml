@@ -76,7 +76,15 @@ let render review ~width:cols ~height:rows =
            visible)
       |> vsnap ~align:`Top capacity)
   in
-  let executable = Review.executable review ^ if Review.editing review then "▏" else "" in
+  let executable_row =
+    if Review.editing review then
+      let before, after = Review.executable_cursor_parts review in
+      " jj: "
+      ^ Text_layout.cursor_window
+          (max 0 (cols - 5))
+          ~before:(clean before) ~after:(clean after)
+    else " jj: " ^ Review.executable review ^ "  [i edits / Enter refreshes]"
+  in
   let file_navigation =
     (not (Review.editing review))
     && Option.fold ~none:false
@@ -101,7 +109,7 @@ let render review ~width:cols ~height:rows =
           (" CHANGES / " ^ Review.task_id review ^ " / " ^ Review.title review);
         row A.lightyellow
           " Refresh snapshots the workspace. No merge, push, deletion, or acceptance.";
-        row A.white (" jj: " ^ executable ^ "  [i edits / Enter refreshes]");
+        row A.white executable_row;
         body;
         row A.lightyellow
           (Option.value
@@ -115,7 +123,12 @@ let render review ~width:cols ~height:rows =
           (" [Refresh / r]  [jj path / i]  [Close / Esc]"
           ^ if file_navigation then "  [Prev file]  [Next file]" else "");
         row A.white
-          " h/l: horizontal · j/k: scroll · Ctrl-U/D: half · Ctrl-B/F: page · [/]: files";
+          (if Review.editing review then
+             " Arrows/Home/End: edit path · Enter: refresh · Esc: chat · paste never \
+              refreshes"
+           else
+             " h/l: horizontal · j/k: scroll · Ctrl-U/D: half · Ctrl-B/F: page · [/]: \
+              files");
       ]
   in
   let hits = ref [] in

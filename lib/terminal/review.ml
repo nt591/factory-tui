@@ -34,6 +34,11 @@ let create (task : Model.task) ~jj =
 let task_id t = t.task_id
 let title t = t.title
 let executable t = Text_edit.text t.executable
+
+let executable_cursor_parts t =
+  let text = Text_edit.text t.executable and cursor = Text_edit.cursor t.executable in
+  (String.sub text 0 cursor, String.sub text cursor (String.length text - cursor))
+
 let editing t = t.editing
 let state t = Changes.state t.changes
 let document t = t.document
