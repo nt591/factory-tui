@@ -5,6 +5,7 @@ type t = {
   mutable executable : Text_edit.t;
   mutable editing : bool;
   mutable scroll : int;
+  mutable horizontal : int;
   mutable error : string option;
 }
 
@@ -20,6 +21,7 @@ let create (task : Model.task) ~jj =
           executable = Text_edit.create jj;
           editing = jj = "";
           scroll = 0;
+          horizontal = 0;
           error = None;
         }
 
@@ -30,6 +32,8 @@ let editing t = t.editing
 let state t = Changes.state t.changes
 let scroll t = t.scroll
 let set_scroll t value = t.scroll <- max 0 (min 1000000 value)
+let horizontal t = t.horizontal
+let set_horizontal t value = t.horizontal <- max 0 (min 2097152 value)
 
 let refresh t =
   let jj = executable t in
@@ -43,7 +47,8 @@ let refresh t =
     | Ok () ->
         t.error <- None;
         t.editing <- false;
-        t.scroll <- 0
+        t.scroll <- 0;
+        t.horizontal <- 0
 
 let status t = t.error
 let edit_executable t = if state t <> Changes.Loading then t.editing <- true
@@ -75,6 +80,9 @@ let key t (key, mods) =
     match key with
     | `ASCII 'r' | `Enter -> refresh t
     | `ASCII 'i' -> edit_executable t
+    | `ASCII 'h' | `Arrow `Left -> set_horizontal t (t.horizontal - 4)
+    | `ASCII 'l' | `Arrow `Right -> set_horizontal t (t.horizontal + 4)
+    | `ASCII '0' -> set_horizontal t 0
     | `ASCII 'j' | `Arrow `Down -> set_scroll t (t.scroll + 1)
     | `ASCII 'k' | `Arrow `Up -> set_scroll t (t.scroll - 1)
     | `Page `Down -> set_scroll t (t.scroll + 10)

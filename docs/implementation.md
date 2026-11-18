@@ -75,7 +75,9 @@ Acceptance does not merge, push, or delete a workspace.
    is configured. A bounded background job creates the workspace, then selects its
    Queued chat without starting an agent. Form and PTY checks verify input safety,
    persistence/reopening, and isolation. `v` opens explicit background diff review
-   with real patch/empty/error states and task-bound result ownership. Review never
+   with real patch/empty/error states and task-bound result ownership. Horizontal
+   scrolling uses terminal cells, with h/l, arrows, 0, and Ctrl-wheel verified on
+   long Unicode lines. Review never
    accepts, integrates, or deletes. `--live-ui` explicitly enables confirmed
    workspace-backed Codex execution with a durable Working checkpoint. Acceptance
    remains separate from merge and push. Live calls require explicit live mode;

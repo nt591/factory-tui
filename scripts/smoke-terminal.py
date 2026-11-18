@@ -346,7 +346,8 @@ try:
         task = next(t for t in saved["tasks"] if t.get("workspace"))
         check("created workspace identity persisted", task["workspace"]["source"] == str(source)
               and Path(task["workspace"]["directory"]).is_dir())
-        (Path(task["workspace"]["directory"]) / "review.txt").write_text("A real workspace addition\n")
+        (Path(task["workspace"]["directory"]) / "review.txt").write_text(
+            "A real workspace addition\n" + "x" * 180 + "界éLONG_LINE_END\n")
 
         check("created workspace task starts no run", task["state"] == "queued" and task["active"] is None
               and task["runs"] == [])
@@ -367,6 +368,18 @@ try:
             pump(0.05)
         check("real workspace patch appears in TUI", "+A real workspace addition" in text()
               and "review.txt" in text())
+        check("long diff end initially clipped", "LONG_LINE_END" not in text())
+        send(b"l" * 40)
+        pump(0.3)
+        check("horizontal keys reveal Unicode suffix", "界éLONG_LINE_END" in text())
+        if args.preview:
+            preview(args.preview.with_stem(args.preview.stem + "-review-horizontal"))
+        send(b"0")
+        check("zero restores patch start", "+A real workspace addition" in text() and "LONG_LINE_END" not in text())
+        send(b"\x1b[<81;10;10M")
+        check("Ctrl-wheel updates horizontal offset", "column +4" in text())
+        send(b"0")
+
         if args.preview:
             preview(args.preview.with_stem(args.preview.stem + "-review"))
         send(b"\x1b")

@@ -42,11 +42,12 @@ from `scripts/smoke-terminal.py --preview /tmp/factory-tui.png`.
 
 Confirmed `--live-ui` execution is implemented for workspace tasks. Fake-process
 UI checks cover startup inactivity, per-run confirmation, small-screen blocking,
-streaming, and cancellation; real gateway behavior is not verified. The `v` changes pane
-now shows real workspace patches with explicit refresh, empty/error/loading
-states, scrolling, and return to chat. The `W` creation form now creates isolated Queued tasks with persistent
-workspace identity and explicit source-snapshot disclosure. Simulation currently uses
+streaming, and cancellation; real gateway behavior is not verified.
+The `v` changes pane now shows real workspace patches with explicit refresh, empty/error/loading
+states, vertical/horizontal scrolling, and return to chat.
+The `W` creation form creates isolated Queued tasks with persistent workspace identity and explicit source-snapshot disclosure. Simulation currently uses
 fixture data only. Do not present a simulated tool result as real verification.
-The composer supports multiline drafts (Ctrl-L or Alt-Enter), Unicode codepoint cursor movement,
-insertion/deletion, and newline-preserving paste. Further refinements may include
-grapheme-aware cursor movement, configurable layouts, and transcript search. Changes review is implemented as a full-screen pane rather than a drawer.
+The composer supports multiline drafts (Ctrl-L or Alt-Enter), Unicode codepoint
+cursor movement, insertion/deletion, and newline-preserving paste. Further refinements may include
+grapheme-aware cursor movement, configurable layouts, and transcript search.
+Changes review is implemented as a full-screen pane rather than a drawer.

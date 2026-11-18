@@ -8,6 +8,8 @@ val editing : t -> bool
 val state : t -> Changes.state
 val scroll : t -> int
 val set_scroll : t -> int -> unit
+val horizontal : t -> int
+val set_horizontal : t -> int -> unit
 val refresh : t -> unit
 val status : t -> string option
 val edit_executable : t -> unit

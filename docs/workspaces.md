@@ -89,7 +89,11 @@ session after creation or review, not silently guessed from a global install.
 
 `j/k`, Page Up/Down, and the mouse wheel scroll; `g/G` goes to top/bottom. The diff
 uses addition/deletion/hunk colors and preserves line text without word wrapping.
-Long lines are clipped to the terminal width. Escape returns to the same task
+`h/l` or Left/Right scroll long lines horizontally in four-cell steps; `0`
+returns to the start. Ctrl-wheel also scrolls horizontally. The footer shows
+the current column offset. Cropping uses terminal cells, not UTF-8 byte offsets.
+Widening the terminal clamps any unneeded offset; refreshing resets the viewport.
+Path editing treats h/l as literal text and does not move the diff. Escape returns to the same task
 chat; it does not accept the task. During a bounded refresh, close waits for
 completion rather than abandoning a worker; shutdown joins it. Review blocks
 underlying board, run, and acceptance shortcuts. Its buttons are clickable.

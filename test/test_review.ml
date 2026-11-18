@@ -105,6 +105,54 @@ let () =
       check "scroll clamps to patch" (Review.scroll review < 1000000);
       Review.key review (`ASCII 'g', []);
       check "g returns to top" (Review.scroll review = 0);
+      let content = "+" ^ String.make 150 'x' ^ "界éLONG_LINE_END" in
+      let channel =
+        open_out (Filename.concat (Workspace.destination workspace) "long.txt")
+      in
+      output_string channel (String.sub content 1 (String.length content - 1) ^ "\n");
+      close_out channel;
+      Review.refresh review;
+      await review;
+      let rendered review width height =
+        let view = Review_view.render review ~width ~height in
+        let buffer = Buffer.create 8192 in
+        Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (width, height) view.image;
+        Buffer.contents buffer
+      in
+      let text = rendered review 80 24 in
+      check "long diff suffix initially clipped"
+        (not (Controller.contains text "LONG_LINE_END"));
+      Review.key review (`ASCII 'l', []);
+      check "l moves horizontal viewport" (Review.horizontal review = 4);
+      Review.key review (`Arrow `Left, []);
+      check "left arrow returns horizontal viewport" (Review.horizontal review = 0);
+      Review.set_horizontal review 1000000;
+      let text = rendered review 80 24 in
+      check "scroll reveals Unicode long-line suffix"
+        (Controller.contains text "界éLONG_LINE_END");
+      check "horizontal scroll clamps by terminal cells" (Review.horizontal review = 87);
+      check "horizontal viewport indicator visible"
+        (Controller.contains text "column +87");
+      Review.key review (`ASCII '0', []);
+      check "zero returns to beginning of diff" (Review.horizontal review = 0);
+      Review.key review (`ASCII 'h', []);
+      check "horizontal scroll cannot become negative" (Review.horizontal review = 0);
+      Review.set_horizontal review 100;
+      ignore (rendered review 180 24);
+      check "wide resize restores unneeded horizontal offset"
+        (Review.horizontal review = 0);
+      Review.set_horizontal review 50;
+      Review.refresh review;
+      check "refresh resets horizontal viewport" (Review.horizontal review = 0);
+      await review;
+      Review.edit_executable review;
+      Review.key review (`ASCII 'l', []);
+      check "path editing keeps navigation literal"
+        (String.ends_with ~suffix:"l" (Review.executable review)
+        && Review.horizontal review = 0);
+      Review.key review (`Backspace, []);
+      Review.key review (`Enter, []);
+      await review;
       controller.tasks <- [ task ];
       controller.selected <- task.id;
       controller.jj_executable <- jj;
@@ -127,6 +175,24 @@ let () =
                 (r.x >= 0 && r.y >= 0 && r.x + r.w <= width && r.y + r.h <= height))
             frame.hits)
         [ (1, 1); (20, 8); (60, 20); (120, 36); (180, 50) ];
+      let parser = Notty.Unescape.create () in
+      let bytes = Bytes.of_string "\027[<81;10;10M" in
+      Notty.Unescape.input parser bytes 0 (Bytes.length bytes);
+      (match Notty.Unescape.next parser with
+      | `Mouse mouse ->
+          Ui.mouse controller frame ~now:4. mouse;
+          check "terminal Ctrl-wheel moves horizontally" (Review.horizontal review = 4)
+      | _ -> failwith "Mouse scroll not decoded");
+      Review.set_horizontal review 0;
+      Ui.mouse controller frame ~now:5. (`Press (`Scroll `Down), (10, 10), [ `Ctrl ]);
+      check "Ctrl-wheel scrolls horizontally" (Review.horizontal review = 4);
+      Ui.mouse controller frame ~now:6. (`Press (`Scroll `Up), (10, 10), [ `Ctrl ]);
+      check "Ctrl-wheel returns left" (Review.horizontal review = 0);
+      Review.edit_executable review;
+      Ui.mouse controller frame ~now:7. (`Press (`Scroll `Down), (10, 10), [ `Ctrl ]);
+      check "wheel does not move diff while editing path" (Review.horizontal review = 0);
+      Review.key review (`Enter, []);
+      await review;
       check "real patch rendered"
         (Controller.contains (Buffer.contents buffer) "+a real addition");
       Review.refresh review;
@@ -151,6 +217,14 @@ let () =
       Controller.key controller (`Escape, []);
       check "escape returns to same chat"
         (controller.review = None && controller.selected = task.id);
+      let board_frame = Ui.render controller ~width:120 ~height:36 in
+      controller.focus <- Controller.Board;
+      Ui.mouse controller board_frame ~now:8. (`Press (`Scroll `Down), (10, 10), []);
+      check "plain wheel still scrolls board" (controller.board_scroll = 1);
+      controller.live_confirmation <- Some task.id;
+      Ui.mouse controller board_frame ~now:9. (`Press (`Scroll `Down), (10, 10), []);
+      check "confirmation blocks wheel behind modal" (controller.board_scroll = 1);
+      controller.live_confirmation <- None;
       let review = ok (Review.create task ~jj:"/absent/jj") in
       Review.refresh review;
       await review;

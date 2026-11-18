@@ -22,7 +22,7 @@ accessible help/settings. The staged native-app implementation remains the guide
 | Supervision | Bounded stdout/stderr/lines/events, monotonic timeout, cancellation/process-group cleanup, checkpoint-before-spawn, bounded queue/separate outcome. Fake-process tests plus confirmed live-mode PTY path. | Implemented within documented process-group limits |
 | Codex/provider/resume | Pure preview, explicit headless execution and live UI; exact thread ownership/mismatch checks. Installed Codex 0.166.0 execution/resume passed an isolated loopback Responses fixture. | Implemented; real gateway/UI provider behavior not verified |
 | Isolated workspaces | Explicit W form, existing jj source, new outside-source task workspace, exact base, no automatic conversion/fetch, disclosure of source snapshot. Temporary jj tests and PTY create/save/reopen. | Implemented |
-| Real changes review | Task-bound abstract background diff job, explicit refresh, actual patch/empty/loading/error states, scrolling and return to chat. PTY reads a real added file in a temporary workspace. | Implemented |
+| Real changes review | Task-bound abstract background diff job, explicit refresh, actual patch/empty/loading/error states, vertical/horizontal scrolling and return to chat. PTY reads a real added file in a temporary workspace. | Implemented |
 | Acceptance is separate | Only Ready can be accepted; no merge/push/delete in acceptance. Controller/review tests verify retained read-only chat and blocked background shortcuts. | Implemented |
 | Modularity and formatting | Every library `.ml` has a matching `.mli`. Subsystem folders and Demo namespace; abstract resource handles and native scoped let-bindings. `scripts/format.sh --check` and Dune compilation enforce formatting/interfaces. | Implemented; one Dune library and exposed controller state remain |
 | Editor | Project-switch LSP/Conform configuration, pinned editor tools, `.ml`/`.mli` attachment and formatting checks in actual Neovim config. | Verified locally |
@@ -47,9 +47,8 @@ accessible help/settings. The staged native-app implementation remains the guide
    against the existing switch; a completely new switch reconstruction, cross-OS
    support, signing, and notarization are not verified. The local archive is not
    represented as a public production release.
-4. **Additional usability refinements.** Grapheme-aware editing, horizontal diff
-   scrolling, configurable panes, transcript search, and fully abstract controller
-   view state remain candidates. They do not justify claiming current rendering
+4. **Additional usability refinements.** Grapheme-aware editing, configurable panes, transcript search,
+   and fully abstract controller view state remain candidates. They do not justify claiming current rendering
    or interaction quality from unit tests alone; keep inspecting PTY captures.
 5. **Operational limits.** Group cancellation does not contain descendants that
    deliberately escape their group. Abrupt application termination can lose

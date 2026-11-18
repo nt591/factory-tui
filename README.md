@@ -446,7 +446,9 @@ Press `v` to open real changes review for the selected workspace task. Opening
 runs nothing: enter jj's absolute path if needed, then Enter/`r` refreshes in the
 background. `i` edits the path; `j/k`, Page Up/Down, and the wheel scroll; Escape
 returns to chat. Empty and failed diffs are explicit states, not sample patches.
-Review does not accept, merge, push, or delete. Long diff lines are clipped.
+Review does not accept, merge, push, or delete. `h/l` or Left/Right scroll long
+diff lines horizontally; `0` returns to their start. Ctrl-wheel also scrolls
+horizontally. Offsets use terminal cells, preserving UTF-8 text.
 Creation requires durable storage;
 a save failure leaves the new directory for inspection instead of deleting it.
 See [docs/workspaces.md](docs/workspaces.md) for the API limits and next steps.

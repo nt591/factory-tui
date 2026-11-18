@@ -698,13 +698,20 @@ let mouse t frame ~now = function
             t.last_click <- None;
             act t action
         | None -> t.last_click <- None)
-  | `Press (`Scroll direction), (x, y), _ ->
-      if t.help then
+  | `Press (`Scroll direction), (x, y), mods ->
+      if t.live_confirmation <> None then ()
+      else if t.help then
         t.menu_scroll <-
           max 0 (min 10000 (t.menu_scroll + if direction = `Up then -3 else 3))
-      else if t.review <> None then
+      else if t.review <> None then (
         let review = Option.get t.review in
-        Review.set_scroll review (Review.scroll review + if direction = `Up then -3 else 3)
+        if not (Review.editing review) then
+          if List.mem `Ctrl mods then
+            Review.set_horizontal review
+              (Review.horizontal review + if direction = `Up then -4 else 4)
+          else
+            Review.set_scroll review
+              (Review.scroll review + if direction = `Up then -3 else 3))
       else if t.input = Normal && t.workspace_form = None then (
         reset_keys t;
         (match hit_at frame x y with

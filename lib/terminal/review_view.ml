@@ -34,6 +34,15 @@ let render review ~width:cols ~height:rows =
     | Changes.Patch "" -> [ "No changes relative to this task's recorded base." ]
     | Changes.Patch patch -> String.split_on_char '\n' patch
   in
+  let patch = match Review.state review with Changes.Patch _ -> true | _ -> false in
+  let widest =
+    if patch then
+      List.fold_left
+        (fun widest text -> max widest (I.width (I.string A.empty (clean text))))
+        0 lines
+    else 0
+  in
+  Review.set_horizontal review (min (Review.horizontal review) (max 0 (widest - cols)));
   Review.set_scroll review
     (min (Review.scroll review) (max 0 (List.length lines - capacity)));
   let visible =
@@ -49,7 +58,12 @@ let render review ~width:cols ~height:rows =
   in
   let body =
     I.(
-      vcat (List.map (fun text -> row (color text) text) visible)
+      vcat
+        (List.map
+           (fun text ->
+             let image = string (attr (color text)) (clean text) in
+             image |> hcrop (Review.horizontal review) 0 |> hsnap ~align:`Left cols)
+           visible)
       |> vsnap ~align:`Top capacity)
   in
   let executable = Review.executable review ^ if Review.editing review then "▏" else "" in
@@ -62,10 +76,17 @@ let render review ~width:cols ~height:rows =
           " Refresh snapshots the workspace. No merge, push, deletion, or acceptance.";
         row A.white (" jj: " ^ executable ^ "  [i edits / Enter refreshes]");
         body;
-        row A.lightyellow (Option.value ~default:"" (Review.status review));
+        row A.lightyellow
+          (Option.value
+             ~default:
+               (Printf.sprintf " Line %d / %d · column +%d%s"
+                  (if lines = [] then 0 else Review.scroll review + 1)
+                  (List.length lines) (Review.horizontal review)
+                  (if widest > cols then " · h/l to inspect long lines" else ""))
+             (Review.status review));
         row A.lightcyan " [Refresh / r]  [jj path / i]  [Close / Esc]";
         row A.white
-          " j/k: scroll · g/G: top/bottom · PgUp/PgDn: page · Escape: return to chat";
+          " h/l: horizontal · 0: line start · j/k: scroll · g/G: top/bottom · Esc: chat";
       ]
   in
   let hits = ref [] in
