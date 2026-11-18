@@ -230,15 +230,7 @@ let render t ~width:cols ~height:rows =
         else draft t
       in
       let prompt = (if editing then "> " else "  ") ^ prompt in
-      let selection = harness_label task.harness ^ " / " ^ task.model in
-      let instructions =
-        if task.state = Done then "Accepted / read-only"
-        else
-          selection ^ "  ·  "
-          ^
-          if editing then "Enter queues / Ctrl-L newline / Esc keeps draft"
-          else "m model / H harness"
-      in
+      let instructions = Composer_guidance.text ~mode ~editing task in
       let prompt_rows = wrap inner prompt in
       let capacity = composer_height - 3 in
       let cursor_row =

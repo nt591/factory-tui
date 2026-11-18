@@ -165,6 +165,9 @@ against these interfaces during the normal Dune build.
   anchoring remains in Chat_viewport and no position is persisted.
 - `Pane_layout`: pure board/detail split selection from body size and focus.
   It has no controller, persistence, terminal, or process dependency.
+- `Composer_guidance`: pure execution-mode-aware reply controls. Live Codex-only
+  and imported-harness recovery instructions stay separate from input dispatch;
+  editing labels Enter as queueing, never immediate steering.
 - `Input_line`: pure footer editor layout from label, hint, and Text_edit value.
   Long inputs prioritize cursor context over hints; it sanitizes a single-line
   display without changing the editable/submitted value.

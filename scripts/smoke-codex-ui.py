@@ -159,6 +159,11 @@ def main():
                     and workspace.parent == parent
                     and UiGateway.requests == 0,
                 )
+                tui.check(
+                    "live reply composer does not advertise unsupported harness cycling",
+                    "m model / live Codex only" in tui.text()
+                    and "H harness" not in tui.text(),
+                )
                 tui.send(b"?")
                 tui.wait(
                     "live help",
@@ -216,6 +221,12 @@ def main():
                 )
                 tui.wait("loopback request", UiGateway.received.is_set, timeout=30)
                 tui.check("confirmed run automatically moves the card to Working", True)
+                tui.send(b"i")
+                tui.check(
+                    "active live composer explicitly queues replies",
+                    "Enter queues" in tui.text(),
+                )
+                tui.send(b"\x1b")
                 UiGateway.release.set()
                 tui.wait(
                     "installed Codex completion",

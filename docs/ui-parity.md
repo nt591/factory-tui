@@ -421,3 +421,11 @@ replace it with footer navigation. The normal wide title/disclosure remains
 unchanged. Unit tests include 20-column one/two/three-row rendering in all modes,
 and PTY resize checks verify the 20x8 simulation and live-read badges. Mode display
 is not authorization; complete live-run confirmation must still fit before Run.
+
+Reply-composer selection guidance follows execution mode. Live Codex tasks display
+Codex-only controls instead of simulated harness cycling; imported Claude tasks
+offer explicit H selection of Codex. Editing always describes Enter as queuing a
+reply, including while Working. Pure mode/render/controller tests and the installed
+agent loopback UI check verify these instructions without changing active-run
+identity, captured settings, or per-run confirmation. Composer copy lives in the
+pure `Composer_guidance.ml/.mli` module.

@@ -640,6 +640,8 @@ The action bar follows task state: Working shows Stop, Ready shows Accept, and
 accepted tasks show inspection rather than run/edit controls. Live Start says
 `s confirm`; it still opens the per-run confirmation. Keyboard shortcuts retain
 validation even when their actions are absent from the bar.
+The reply composer also uses mode-correct controls: live tasks display Codex-only
+selection, and Enter queues the next turn even while a run is active.
 
 Help/Settings shows the visible row range and indicates more content above or
 below. Its instructions reflect simulation, fake-process, replay, or live mode;

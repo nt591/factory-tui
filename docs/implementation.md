@@ -421,3 +421,11 @@ headers stay unchanged. `Session_header.ml/.mli` generates the text; unit and PT
 resize checks cover simulation and live-policy visibility without starting runs.
 Extremely narrow terminals can still truncate text; live authorization retains
 its independent complete-disclosure geometry gate.
+
+Reply-composer selection guidance follows execution mode. Live Codex tasks display
+Codex-only controls instead of simulated harness cycling; imported Claude tasks
+offer explicit H selection of Codex. Editing always describes Enter as queuing a
+reply, including while Working. Pure mode/render/controller tests and the installed
+agent loopback UI check verify these instructions without changing active-run
+identity, captured settings, or per-run confirmation. Composer copy lives in the
+pure `Composer_guidance.ml/.mli` module.
