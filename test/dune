@@ -102,3 +102,8 @@
  (name test_run_serialization)
  (modules test_run_serialization)
  (libraries factory_tui notty sqlite3 unix))
+
+(test
+ (name test_command)
+ (modules test_command)
+ (libraries factory_tui unix threads))

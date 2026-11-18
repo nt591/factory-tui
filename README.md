@@ -592,3 +592,7 @@ python3 scripts/smoke-codex-sandbox.py --codex /absolute/path/to/codex
 The local probe verifies denial of read-only writes, workspace + temporary-directory
 access in write mode, denial of ordinary sibling writes, and never-approval
 escalation refusal. See `docs/harness.md` for the tested scope and exclusions.
+
+Test boundaries and the native command-fixture investigation are documented in
+[docs/testing.md](docs/testing.md). Normal tests keep parallel scheduling and
+production timeout limits; plain I/O checks do not time freshly created scripts.

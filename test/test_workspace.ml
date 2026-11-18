@@ -162,28 +162,6 @@ let () =
            (Workspace.create ~jj ~source:git_only
               ~destination:(Filename.concat directory "git-task")
               ~revision:"@"));
-      let fixture = Filename.concat directory "command-fixture" in
-      let write script =
-        let channel = open_out fixture in
-        output_string channel ("#!/bin/sh\n" ^ script);
-        close_out channel;
-        Unix.chmod fixture 0o700
-      in
-      let command ~timeout ~max_output =
-        Command.run ~executable:fixture ~arguments:[] ~directory ~timeout ~max_output
-      in
-      write "printf 'stdout'; printf 'stderr' >&2\n";
-      let output = require "plain command fixture" (command ~timeout:1. ~max_output:32) in
-      check "command captures output and drains stderr"
-        (output.stdout = "stdout" && output.stderr_bytes = 6);
-      write "printf '%0100d' 0\n";
-      check "command output cap enforced"
-        (Result.is_error (command ~timeout:1. ~max_output:32));
-      write "sleep 10\n";
-      let before = Unix.gettimeofday () in
-      check "command timeout enforced"
-        (Result.is_error (command ~timeout:0.1 ~max_output:32));
-      check "command timeout cleanup bounded" (Unix.gettimeofday () -. before < 1.);
       check "invalid relative source refused"
         (Result.is_error
            (Workspace.create ~jj ~source:"relative"

@@ -40,8 +40,9 @@ JSONL decoding. It is not a security sandbox for an arbitrary supplied executabl
 `test_workspace` initializes temporary jj repositories only. It verifies exact
 parents, distinct task workspaces, inclusion of new files in patches, untouched
 source files, rejection of existing/nested destinations, multi-commit revsets,
-option-like revisions, and Git-only/relative sources. It also checks plain command
-stdout/stderr handling, output limits, and bounded timeout cleanup.
+option-like revisions, and Git-only/relative sources. Plain command stdout/stderr,
+output limits, literal arguments, and timeout/reaping checks use the separate
+compiled `test_command` fixture; see `docs/testing.md` for their scope.
 
 No tests create a workspace in a real repository or start an agent. The test's
 jj executable is the installed `/opt/homebrew/bin/jj`; application APIs require

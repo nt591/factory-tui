@@ -35,3 +35,7 @@ module basenames must remain unique. Update documented paths with file moves.
 
 Keep factory_tui.opam.locked current when application dependencies change.
 Package/install tests must use temporary destinations, not the user's PATH.
+
+Use native child fixtures for plain process I/O checks. Keep shell/jj integration
+tests where that behavior is the tested boundary. Do not increase timeouts or
+serialize the full suite to hide a launch failure; document its evidence and scope.

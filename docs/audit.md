@@ -58,11 +58,13 @@ accessible help/settings. The staged native-app implementation remains the guide
    emoji rendering and fully abstract controller view state remain
    candidates. They do not justify claiming current rendering or interaction
    quality from unit tests alone; keep inspecting PTY captures.
-5. **Intermittent command-fixture timeout.** Full test runs have occasionally
-   hit the successful plain-command fixture's one-second limit. Isolated and
-   subsequent full runs pass, but the root cause is not established. Keep the
-   failure visible and investigate it; a rerun is not evidence of a fix. Runtime
-   limits and timeout assertions have not been relaxed for this result.
+5. **Fresh executable startup limits.** The unreliable one-second fresh shell
+   script fixture is replaced with a native child fixture using the same public
+   command API and unchanged deadlines. Three parallel suites and package checks
+   pass. A separate launch probe supports fresh script startup as a confounding
+   factor, but its precise OS cause remains unproven. See `docs/testing.md`.
+   Production command timeouts remain reported errors; no silent retries or
+   increased runtime limits are introduced.
 6. **Operational limits.** Group cancellation does not contain descendants that
    deliberately escape their group. Abrupt application termination can lose
    writes since the last checkpoint and leave an unassociated created workspace.
