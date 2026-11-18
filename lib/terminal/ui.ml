@@ -166,7 +166,16 @@ let render t ~width:cols ~height:rows =
     let title, rows =
       match task with
       | None ->
-          ("Conversation", [ (muted, "Select a task. Enter or e expands it.", None, 0) ])
+          ( "Conversation",
+            List.map
+              (fun line -> (muted, line, None, 0))
+              (if t.live_config = None then [ "Select a task. Enter or e expands it." ]
+               else
+                 [
+                   "A task's conversation will appear here.";
+                   "Create a workspace task with W or n.";
+                   "Messages and drafts are saved to your configured SQLite database.";
+                 ]) )
       | Some task ->
           Chat_search.sync t.chat_search task.messages;
           let rows =
@@ -372,7 +381,36 @@ let render t ~width:cols ~height:rows =
   in
   let board r =
     let tasks = visible t in
-    if r.w < 88 || t.archive then (
+    if tasks = [] then (
+      let guidance =
+        Board_guidance.empty ~live:(t.live_config <> None) ~has_tasks:(t.tasks <> [])
+          ~archived:t.archive
+          ~filtered:(t.query <> "" || t.repository <> None)
+      in
+      let inner = max 1 (r.w - 4) in
+      let lines = List.concat_map (wrap_title inner) guidance.lines in
+      let content =
+        I.vcat
+          ([ line inner (emphasis accent) guidance.title; line inner (attr muted) "" ]
+          @ List.map (line inner (attr text)) lines
+          @ [ line inner (emphasis accent) guidance.button ])
+        |> I.hpad 1 1
+      in
+      paint r.x r.y
+        (border r.w r.h ~title:"Session board" ~color:accent ~focused:(t.focus = Board)
+           content);
+      if r.h > 3 && r.w > 4 then
+        (* The button exists only if its actual row is inside the pane. *)
+        let actual_row = List.length lines + 2 in
+        if actual_row < r.h - 2 then
+          hit (r.x + 2)
+            (r.y + 1 + actual_row)
+            (r.w - 4) 1
+            (match guidance.action with
+            | Board_guidance.Create_workspace -> Begin_workspace
+            | Board_guidance.Create_demo -> Begin_new
+            | Board_guidance.Clear_filters | Board_guidance.Open_board -> Session_board))
+    else if r.w < 88 || t.archive then (
       let content_width = max 1 (r.w - 2) in
       let capacity = max 0 (r.h - 2) in
       if t.focus = Board then t.page_rows <- max 1 capacity;
@@ -491,7 +529,7 @@ let render t ~width:cols ~height:rows =
        [
          ("Session board", Session_board);
          ("Archive", Archive_view);
-         ("+ Demo task", Begin_new);
+         ((if t.live_config = None then "+ Demo task" else "+ New task"), Begin_new);
          ("+ Workspace task", Begin_workspace);
          ("? Help / settings", Help);
          ("", Help);
@@ -566,7 +604,7 @@ let render t ~width:cols ~height:rows =
       ("H harness", Next_harness);
       ("v changes", Open_review);
       ("W workspace", Begin_workspace);
-      ("n demo", Begin_new);
+      ((if t.live_config = None then "n demo" else "n task"), Begin_new);
       ("d archive", Toggle_archive);
       ("f pause", Toggle_pause);
       ("q quit", Quit);
@@ -604,7 +642,7 @@ let render t ~width:cols ~height:rows =
         "";
         "i composes a reply. Enter queues; Ctrl-L/Alt-Enter adds a line.";
         "Arrows edit; Home/End move within a line; Escape keeps the draft.";
-        "n creates a demo task. W opens workspace task creation (SQLite).";
+        "n creates a demo, or a workspace task in live mode. W: workspace.";
         "m edits next-run model. H cycles Codex / Claude.";
         "s starts a demo or asks for live confirmation; x stops; a accepts.";
         "b returns to all tasks. R cycles repositories. d opens Archive.";

@@ -143,3 +143,8 @@ so fixture implementation does not depend on the terminal controller.
 `docs/audit.md` maps the original UI/product requirements to inspected source,
 tests, terminal behavior, and packaged execution. Read-only execution, real gateway
 compatibility, and fresh-machine release validation are not claimed complete.
+
+First-run live initialization starts with no seed tasks and persists an empty
+board before displaying it. `n` opens workspace creation in live mode, while
+simulation retains demo task creation. Existing snapshots are preserved rather
+than reseeded. Archive/filter empty states provide distinct recovery actions.

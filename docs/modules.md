@@ -77,6 +77,8 @@ against these interfaces during the normal Dune build.
   Its mutable state record is public because the current renderer and app loop
   read and update it. Navigation algorithms and command dispatch helpers remain
   private. This is not yet an abstract controller with a read-only view model.
+- `Board_guidance`: pure empty-state copy and action selection for live, demo,
+  archive, and filtered boards. It starts no jobs and owns no persistence.
 - `Tool_activity`: pure summaries of actual harness command, MCP, and file-change
   fields, with raw payload access. It does not execute tools or infer success.
 - `Chat_viewport`: abstract reading anchor keyed by task/message and wrapped row.

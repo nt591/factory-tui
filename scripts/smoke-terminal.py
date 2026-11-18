@@ -646,6 +646,80 @@ printf '%s\\n' '{"type":"turn.completed"}'
         wait_exit(5)
         check("defaults test exits cleanly", process.returncode==0)
 
+    with tempfile.TemporaryDirectory(prefix="factory-live-onboarding-") as temporary:
+        directory=Path(temporary).resolve()
+        source=directory / "source"
+        source.mkdir()
+        subprocess.run(["/opt/homebrew/bin/jj", "git", "init", "--colocate", str(source)],
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        parent=directory / "workspaces"
+        parent.mkdir()
+        executable=directory / "no-auto-run"
+        marker=directory / "unexpected-run"
+        executable.write_text("#!/bin/sh\ntouch '" + str(marker) + "'\nexit 1\n")
+        executable.chmod(0o700)
+        config=directory / "config.toml"
+        config.write_text('[storage]\ndatabase="new-board.sqlite"\n[workspace]\n'
+                          'jj="/opt/homebrew/bin/jj"\nsource="source"\nparent="workspaces"\n'
+                          'revision="@"\nmodel="fixture-model"\n')
+        command=[str(binary), "--live-ui", "--config", str(config),
+                 "--codex-executable", str(executable)]
+        screen.reset()
+        process=subprocess.Popen(command, stdin=slave, stdout=slave, stderr=slave, env=env)
+        wait_ready()
+        check("first live launch is an empty real board", "Your factory starts here" in text()
+              and "T-101" not in text())
+        check("first live launch explains confirmed workflow", "Create workspace task" in text()
+              and "Nothing runs until you explicitly confirm" in text())
+        check("first live launch creates no workspace or agent", list(parent.iterdir())==[] and not marker.exists())
+        with sqlite3.connect(directory / "new-board.sqlite") as db:
+            saved=json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
+        check("initial live checkpoint contains no demos", saved["tasks"]==[] and saved["drafts"]==[])
+        if args.preview:
+            preview(args.preview.with_stem(args.preview.stem + "-onboarding"))
+        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 50, 180, 0, 0))
+        screen.resize(lines=50, columns=180)
+        os.kill(process.pid, signal.SIGWINCH)
+        pump(0.2)
+        check("wide onboarding keeps sidebar and guidance", "Your factory starts here" in text()
+              and "REPOSITORIES" in text())
+        if args.preview:
+            preview(args.preview.with_stem(args.preview.stem + "-onboarding-wide"))
+        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
+        screen.resize(lines=rows, columns=cols)
+        os.kill(process.pid, signal.SIGWINCH)
+        pump(0.2)
+        send(b"n")
+        check("live new-task key opens workspace form", "NEW WORKSPACE TASK" in text() and not marker.exists())
+        send(b"\t"*4)
+        send(b"My first real task")
+        pump(0.2)
+        send(b"\x13")
+        deadline=time.monotonic()+5
+        while "Workspace task created" not in text() and time.monotonic()<deadline:
+            pump(0.05)
+        check("onboarding creates a real queued chat", "My first real task" in text()
+              and "Workspace task created" in text() and not marker.exists())
+        send(b"s")
+        check("first task still requires run confirmation", "Confirm live run" in text() and not marker.exists())
+        send(b"\x1b")
+        send(b"q")
+        wait_exit(5)
+        with sqlite3.connect(directory / "new-board.sqlite") as db:
+            saved=json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
+        check("first live workflow stores only the created task", len(saved["tasks"])==1
+              and saved["tasks"][0]["messages"][0]["text"]=="My first real task"
+              and saved["tasks"][0]["runs"]==[])
+        screen.reset()
+        process=subprocess.Popen(command, stdin=slave, stdout=slave, stderr=slave, env=env)
+        wait_ready()
+        send(b"e")
+        check("reopening live board preserves its real chat without reseeding", "My first real task" in text()
+              and "T-101" not in text() and not marker.exists())
+        send(b"q")
+        wait_exit(5)
+        check("first live onboarding exits cleanly", process.returncode==0)
+
 
 finally:
     if process.poll() is None:

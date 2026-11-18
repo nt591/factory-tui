@@ -385,6 +385,13 @@ and gateway compatibility remain unverified.
 ./scripts/run.sh --live-ui --codex-executable /absolute/path/to/codex
 ```
 
+A new live database starts with an empty real board, not sample cards. The
+onboarding panel explains workspace creation, task chat, confirmed runs, review,
+and acceptance. `n` or `W` opens the workspace form in live mode; neither starts
+an agent. Existing database tasks and chats are preserved, including any demo
+cards previously saved there. Fresh simulation launches still include sample
+cards. Empty archive and filtered-board states explain what to do next.
+
 SQLite must be configured through TOML or `--database`. Optional `--gateway PATH`
 selects an explicit non-secret provider file. **A real Codex executable can use
 existing authentication and incur model usage.** Launch starts no process; the

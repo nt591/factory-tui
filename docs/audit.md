@@ -9,6 +9,7 @@ accessible help/settings. The staged native-app implementation remains the guide
 
 | Requirement | Current implementation and verification | Result |
 | --- | --- | --- |
+| Live first-run UX | New live databases begin empty with workspace/chat/run/review guidance; live n/W creates a workspace task. Existing snapshots are preserved; demo launches retain samples. Unit and PTY verify creation and restart without reseeding. | Implemented |
 | Four self-updating columns | `Model.apply` derives Queued/Working/Needs you/Ready. Factory and PTY tests verify automatic movement from both timer and supervised process events. | Implemented |
 | Open and explore a task | Controller/Ui selection, split chat/activity, Enter/e and double-click expansion; PTY verifies click, expansion, Escape, and selected identity after movement. | Implemented |
 | Reading position | Transient task/message/row viewport preserves history position on append and earlier stream growth; End follows updates. Unit/PTY verify reading anchors and no saved mutations from layout. | Implemented; approximate wrapped-row retention on width reflow |

@@ -65,3 +65,10 @@ messages preserve a task/message/row anchor. End explicitly resumes following.
 The paused-history label appears in the chat header. Height changes retain the
 anchor when it fits; column reflow preserves the approximate wrapped row within
 the message. Viewport state is transient and never rewrites saved chats/drafts.
+
+New live databases show an empty real board with an actionable workspace/chat/run/
+review walkthrough rather than demo seed tasks. Live `n` opens workspace creation;
+demo `n` remains a simulated task. Existing saved tasks are preserved. Empty
+archives explain acceptance; filtered boards expose an explicit clear-filters
+button that keeps the selected chat available. Unit/frame tests and the PTY smoke
+verify first creation, confirmation cancellation, and restart without reseeding.

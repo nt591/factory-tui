@@ -27,28 +27,26 @@ let interactive ?(fake_harness = false) ?live
         match Persistence.start database with
         | Error error -> Error error
         | Ok (worker, loaded) -> (
-            Option.iter (Controller.restore t) loaded;
             t.retain_events <- true;
-            match Persistence.submit worker (Controller.snapshot t) ~events:[] with
+            match Controller.initialize_board t ~saved:loaded ~live with
             | Error error ->
                 ignore (Persistence.close worker);
                 Error error
             | Ok () -> (
-                match Persistence.flush worker with
+                match Persistence.submit worker (Controller.snapshot t) ~events:[] with
                 | Error error ->
                     ignore (Persistence.close worker);
                     Error error
-                | Ok () -> Ok (Some worker)))
+                | Ok () -> (
+                    match Persistence.flush worker with
+                    | Error error ->
+                        ignore (Persistence.close worker);
+                        Error error
+                    | Ok () -> Ok (Some worker))))
     in
     match opened with
     | Error error -> Error error
     | Ok worker -> (
-        Option.iter
-          (fun config ->
-            match Controller.enable_live t config with
-            | Ok () -> ()
-            | Error error -> invalid_arg error)
-          live;
         let final_error = ref None in
         let () =
           let@ () =

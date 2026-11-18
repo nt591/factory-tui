@@ -87,3 +87,8 @@
  (name test_tool_activity)
  (modules test_tool_activity)
  (libraries factory_tui notty yojson))
+
+(test
+ (name test_board_guidance)
+ (modules test_board_guidance)
+ (libraries factory_tui notty))

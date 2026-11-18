@@ -117,3 +117,6 @@ val finish_creation : t -> storage:Persistence.t option -> unit
 val enable_live : t -> Live_runner.config -> (unit, string) result
 val live_context : t -> Live_runner.context
 val set_workspace_defaults : t -> Workspace_defaults.t -> unit
+
+val initialize_board :
+  t -> saved:Snapshot.t option -> live:Live_runner.config option -> (unit, string) result

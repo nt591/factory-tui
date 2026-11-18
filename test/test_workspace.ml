@@ -8,6 +8,10 @@ let check name value =
 
 let ok = function Ok value -> value | Error error -> failwith error
 
+let require label = function
+  | Ok value -> value
+  | Error error -> failwith (label ^ ": " ^ error)
+
 let () =
   let directory = Filename.temp_file "factory-workspace" "" in
   Sys.remove directory;
@@ -27,7 +31,8 @@ let () =
       Unix.mkdir source 0o700;
       let run args =
         let output =
-          ok
+          require
+            ("jj fixture " ^ String.concat " " args)
             (Command.run ~executable:jj ~arguments:args ~directory:source ~timeout:15.
                ~max_output:2097152)
         in
@@ -168,7 +173,7 @@ let () =
         Command.run ~executable:fixture ~arguments:[] ~directory ~timeout ~max_output
       in
       write "printf 'stdout'; printf 'stderr' >&2\n";
-      let output = ok (command ~timeout:1. ~max_output:32) in
+      let output = require "plain command fixture" (command ~timeout:1. ~max_output:32) in
       check "command captures output and drains stderr"
         (output.stdout = "stdout" && output.stderr_bytes = 6);
       write "printf '%0100d' 0\n";

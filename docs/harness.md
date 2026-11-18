@@ -238,8 +238,13 @@ Foreground writes remain asynchronous; abrupt termination can lose updates since
 the last acknowledged write. Ready comes from validated completion plus process
 exit, not from a claim that every asynchronous update is already on disk.
 
-The UI displays LIVE ENABLED / CONFIRMED CALLS throughout. Demo seed cards may
-remain visible, but tasks without isolated workspaces cannot run in live mode.
+The UI displays LIVE ENABLED / CONFIRMED CALLS throughout (LIVE WRITE for explicit
+write mode). A newly initialized live database contains no demo tasks; its empty
+board provides actionable onboarding. `n` and `W` both open workspace creation
+in live mode. Previously saved tasks are never deleted or silently replaced by
+this initialization; saved demo cards may remain, but unattached tasks cannot
+run live. Fresh simulation boards retain sample cards. Empty archived/filter
+states have separate guidance and explicit return/clear actions.
 Acceptance still changes only task state; it never merges, pushes, or deletes.
 The exec adapter defaults to read-only sandboxing and provides no interactive
 approval channel. An explicit workspace-write option is described below. This is not a verified code-writing workflow or proof of platform sandbox

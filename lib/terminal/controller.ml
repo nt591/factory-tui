@@ -225,7 +225,7 @@ let tick t now =
     t.schedules <- later;
     List.iter (fun (_, event) -> receive t event) due)
 
-let act t action =
+let rec act t action =
   reset_keys t;
   match action with
   | Select id ->
@@ -261,6 +261,7 @@ let act t action =
       t.board_scroll <- 0;
       t.focus <- Board
   | Session_board ->
+      t.query <- "";
       t.archive <- false;
       t.repository <- None;
       t.board_scroll <- 0;
@@ -426,6 +427,7 @@ let act t action =
                       model = value Workspace_form.Model;
                       instruction = value Workspace_form.Task;
                     }))
+  | Begin_new when t.live_config <> None -> act t Begin_workspace
   | Begin_new ->
       t.input <- New_task;
       t.new_title <- "";
@@ -948,3 +950,16 @@ let live_context t : Live_runner.context =
 let set_workspace_defaults t defaults =
   t.workspace_defaults <- defaults;
   t.jj_executable <- Option.value ~default:t.jj_executable defaults.Workspace_defaults.jj
+
+let initialize_board t ~saved ~live =
+  (match saved with
+  | Some saved -> restore t saved
+  | None when live <> None ->
+      t.tasks <- [];
+      t.drafts <- [];
+      t.selected <- "";
+      t.schedules <- [];
+      Chat_search.clear t.chat_search;
+      Chat_viewport.reset t.chat_viewport
+  | None -> ());
+  match live with None -> Ok () | Some config -> enable_live t config
