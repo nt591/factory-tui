@@ -156,6 +156,39 @@ printf '%s\n' '{"type":"turn.completed"}'
                 List.map
                   (fun (task : task) -> ok (Model.set_model task "next-model"))
                   controller.tasks;
+              let captured_id =
+                (Option.get (Option.get (Controller.selected controller)).active).id
+              in
+              Controller.receive controller
+                { task_id = task.id; run_id = captured_id; event = Turn_started };
+              check "captured prompt survives acknowledgement before spawn"
+                (not
+                   (List.exists
+                      (fun (message : Model.message) ->
+                        message.text = "Fixture instruction" && message.queued)
+                      (Option.get (Controller.selected controller)).messages));
+              let future_messages =
+                List.init 17 (fun index ->
+                    {
+                      Model.id = Printf.sprintf "future-%d" index;
+                      author = "You";
+                      text = String.make 65536 'f';
+                      queued = true;
+                    })
+              in
+              controller.tasks <-
+                List.map
+                  (fun (task : task) ->
+                    { task with messages = task.messages @ future_messages })
+                  controller.tasks;
+              check "later queue exceeds next-run preflight bound"
+                (Result.is_error
+                   (Live_runner.prepare config
+                      {
+                        (Option.get (Controller.selected controller)) with
+                        state = Needs_you;
+                        active = None;
+                      }));
               Live_runner.poll runner (Controller.live_context controller) ~storage:worker;
               Controller.act controller Controller.Begin_compose;
               Controller.set_input controller "Later reply";
@@ -168,6 +201,39 @@ printf '%s\n' '{"type":"turn.completed"}'
                    (List.filter (fun (m : message) -> m.author = "Codex") result.messages)
                 = 1);
               check "thread recorded" (result.thread_id = Some "fixture-thread");
+              let channel =
+                open_in (Filename.concat (Workspace.destination workspace) "prompt.txt")
+              in
+              let prompt = really_input_string channel (in_channel_length channel) in
+              close_in channel;
+              check "confirmed run sends only original captured instruction"
+                (prompt = "Fixture instruction");
+              check "later large replies remain queued after earlier turn"
+                (List.length
+                   (List.filter
+                      (fun (message : Model.message) ->
+                        String.starts_with ~prefix:"future-" message.id)
+                      result.messages)
+                 = 17
+                && List.for_all
+                     (fun (message : Model.message) -> message.queued)
+                     (List.filter
+                        (fun (message : Model.message) ->
+                          String.starts_with ~prefix:"future-" message.id)
+                        result.messages));
+              controller.tasks <-
+                List.map
+                  (fun (task : task) ->
+                    {
+                      task with
+                      messages =
+                        List.filter
+                          (fun (message : Model.message) ->
+                            not (String.starts_with ~prefix:"future-" message.id))
+                          task.messages;
+                    })
+                  controller.tasks;
+
               check "late message stays queued"
                 (List.exists
                    (fun (m : message) -> m.text = "Later reply" && m.queued)

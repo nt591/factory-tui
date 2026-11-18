@@ -600,3 +600,12 @@ covers queue/captured-ID selection, exact separators/byte length, later-reply
 exclusion, queued text/ID authorization invalidation and unchanged sent-history
 compatibility. Preparation caching retains these checks and avoids prompt assembly
 solely for redraw counters.
+
+The live-runner integration test now acknowledges captured instructions and adds
+17 later 64-KiB replies before the first process poll. Public next-run preflight
+rejects that oversized queue, while the already confirmed fixture sends its exact
+original instruction and reaches Ready. All later replies remain queued. This
+runs only a temporary fake executable/workspace and does not use a model.
+One parallel process-suite attempt in this increment hit the existing callback
+teardown timing assertion; its isolated rerun passed. Deadlines and process code
+were unchanged. A passing rerun does not diagnose the cause.

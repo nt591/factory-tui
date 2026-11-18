@@ -663,3 +663,13 @@ verify exact Unicode/multiline assembly, capture selection and changed-message
 refusal. The full-disclosure fake-run PTY now uses an old sent instruction plus two
 new queued replies and checks the exact bytes received by the temporary harness.
 No real model, credential or workspace access is introduced.
+
+Live_runner's pre-spawn check validates the captured submitted prompt, not the
+current aggregate queue. Replies posted after confirmation belong to later turns
+and cannot make a valid earlier run fail its 1-MiB prompt bound. Captured messages
+are selected by run IDs even after their queued flags are acknowledged. Public
+next-run preflight still checks the whole current queue and rejects over-limit
+instructions. A temporary live-run integration test adds 17 full later replies
+before poll, verifies next-run rejection, then confirms the earlier fixture receives
+only its original instruction and reaches Ready with later replies still queued.
+Model/sandbox/checkpoint/workspace-slot validation remain unchanged.

@@ -841,3 +841,8 @@ are not part of the next-run prompt. Changing queued instructions or captured ID
 requires reviewing the new disclosure. The runner assembles queued messages in
 transcript order with blank-line separators; it sends only the confirmed run's
 captured messages, excluding replies queued later.
+
+Replies queued after confirmation do not alter or block that captured run's prompt.
+The current queue can exceed a future run's combined limit without invalidating
+an earlier confirmed run that is waiting to start. Next-run preflight still checks
+its full queued prompt; captured instructions remain selected after acknowledgement.

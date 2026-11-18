@@ -174,3 +174,9 @@ prompt byte count through the shared Run_prompt selection/assembly module. Pure
 raw-change invalidation and fake-run PTY checks verify exact next-run prompt bytes,
 multiline/Unicode retention, sent-history exclusion and later-reply capture rules.
 This remains fixture verification, not real-provider compatibility.
+
+Captured-prompt pre-spawn validation is covered by a fake-run integration check
+with acknowledged instructions and an oversized future queue. Earlier exact stdin
+and completion remain independent of next-turn queue limits. An intermittent
+process callback-teardown timing assertion still has no diagnosed cause; no deadline
+or cleanup code was changed to pass it.

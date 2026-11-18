@@ -363,3 +363,8 @@ run submitted IDs exclude future replies. Live_confirmation uses tagged single-l
 metadata and multiline instruction blocks. Its prepared cache/coverage key includes
 raw queued text and IDs, so a title-only confirmation cannot authorize changed
 instructions. It does not include unsubmitted history or editor drafts.
+
+Live_runner.prepare_prompt is the private common invocation/preflight boundary.
+Public prepare supplies queued text; poll supplies captured submitted text. Both
+retain the same state, workspace, harness, model, sandbox and prompt-size checks,
+without letting later queued replies affect an earlier confirmed prompt.

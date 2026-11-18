@@ -593,3 +593,9 @@ invalidate confirmation; sent history and unsubmitted drafts are omitted. Run_pr
 shares exact chronological selection/assembly with live preflight and captured-run
 execution. Pure and fake-run PTY checks verify two distinct queued replies, complete
 line breaks/Unicode and exact harness stdin without historical/title substitution.
+
+Instructions queued after run confirmation cannot invalidate the earlier captured
+prompt while it waits for checkpoint/spawn. Next-run aggregate limits still apply.
+Temporary live-runner tests cover acknowledged capture, an oversized future queue,
+exact earlier stdin, Ready completion and retained queued replies. This preserves
+the UI contract that replies during work queue for the next turn.

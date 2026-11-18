@@ -31,7 +31,7 @@ let policy_label config =
   | Read_only -> "Read-only"
   | Workspace_write -> "Workspace-write"
 
-let prepare config (task : task) =
+let prepare_prompt config (task : task) prompt =
   if task.harness <> Codex then Error "Live mode supports Codex only."
   else if task.state = Working || task.state = Done then
     Error "Task cannot start in this state."
@@ -43,7 +43,6 @@ let prepare config (task : task) =
       when not (Sys.file_exists (Filename.concat workspace.directory ".jj")) ->
         Error "Recorded workspace is no longer a jj checkout."
     | Some workspace -> (
-        let prompt = Run_prompt.text (Run_prompt.queued task) in
         if String.trim prompt = "" then
           Error "Post an instruction before starting another run."
         else if String.length prompt > 1048576 then
@@ -63,6 +62,9 @@ let prepare config (task : task) =
                   | None -> invocation
                   | Some gateway -> Codex.with_gateway invocation gateway),
                   prompt ))
+
+let prepare config task =
+  prepare_prompt config task (Run_prompt.text (Run_prompt.queued task))
 
 type context = {
   tasks : unit -> Model.task list;
@@ -165,7 +167,10 @@ let poll runner context ~storage =
                 harness = captured.harness;
               }
             in
-            match prepare (with_policy runner.config captured.policy) inspect with
+            let prompt = Run_prompt.text (Run_prompt.submitted task active.submitted) in
+            match
+              prepare_prompt (with_policy runner.config captured.policy) inspect prompt
+            with
             | Error error ->
                 context.receive
                   { task_id = task.id; run_id = active.id; event = Failed error };
@@ -180,10 +185,7 @@ let poll runner context ~storage =
                      runner.runs ->
                 (* A stopped run keeps its workspace slot until output and cleanup finish. *)
                 runner.waiting <- runner.waiting @ [ task.id ]
-            | Ok (invocation, _) ->
-                let prompt =
-                  Run_prompt.text (Run_prompt.submitted task active.submitted)
-                in
+            | Ok (invocation, prompt) ->
                 let snapshot = context.snapshot () in
                 let submitted =
                   Persistence.submit storage snapshot ~events:(context.pending_events ())
