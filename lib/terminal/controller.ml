@@ -77,6 +77,7 @@ type t = {
   mutable raw_tools : bool;
   mutable database_path : string option;
   mutable input : input;
+  mutable input_limit : int option;
   mutable query : string;
   chat_search : Chat_search.t;
   chat_viewport : Chat_viewport.t;
@@ -142,6 +143,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     raw_tools = false;
     database_path = None;
     input = Normal;
+    input_limit = None;
     query = "";
     chat_search = Chat_search.create ();
     chat_viewport = Chat_viewport.create ();
@@ -315,6 +317,7 @@ let report_creation t text =
 
 let rec act t action =
   reset_keys t;
+  t.input_limit <- None;
   match action with
   | Select id ->
       select t id;
@@ -640,12 +643,23 @@ let remove_last text =
   Uutf.String.fold_utf_8 (fun () i _ -> last := i) () text;
   String.sub text 0 !last
 
-let set_input t text =
-  if t.input = Chat_search && String.length text > 256 then
-    t.status <- "Chat search is limited to 256 bytes."
-  else if String.length text <= 65536 then (
-    t.editor <- Text_edit.create text;
-    match t.input with
+let reject_input t limit =
+  t.input_limit <- Some limit;
+  if not (String.starts_with ~prefix:"Storage error:" t.status) then
+    t.status <-
+      (if limit = 256 then "Chat search is limited to 256 bytes."
+       else "Input is limited to 64 KiB. The edit was not applied.")
+
+let accept_input t editor =
+  let text = Text_edit.text editor in
+  let limit = if t.input = Chat_search then 256 else 65536 in
+  if String.length text > limit then (
+    reject_input t limit;
+    false)
+  else (
+    if Text_edit.text editor <> Text_edit.text t.editor then t.input_limit <- None;
+    t.editor <- editor;
+    (match t.input with
     | Search ->
         t.query <- text;
         t.board_scroll <- 0;
@@ -658,21 +672,18 @@ let set_input t text =
     | Compose -> set_draft t text
     | Edit_model -> t.model_text <- text
     | New_task -> t.new_title <- text
-    | Normal -> ())
+    | Normal -> ());
+    true)
 
-let edit t fn =
-  let editor = fn t.editor in
-  let text = Text_edit.text editor in
-  if t.input = Chat_search && String.length text > 256 then
-    t.status <- "Chat search is limited to 256 bytes."
-  else (
-    set_input t text;
-    t.editor <- editor)
+let set_input t text = ignore (accept_input t (Text_edit.create text))
+let edit t fn = ignore (accept_input t (fn t.editor))
 
 let insert_text t value =
   if t.input <> Normal then
-    edit t (fun editor ->
-        Text_edit.insert editor (clean ~newlines:(t.input = Compose) value))
+    let value = clean ~newlines:(t.input = Compose) value in
+    let editor = Text_edit.insert t.editor value in
+    if value <> "" && editor == t.editor then reject_input t 65536
+    else ignore (accept_input t editor)
 
 let paste_key t (key, mods) =
   if t.live_confirmation <> None then ()

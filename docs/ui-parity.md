@@ -553,3 +553,12 @@ cropping. Long IDs use a state-first fallback with abbreviated identity/title;
 short rows keep column spacing. Pure and compact-filtered-board PTY checks cover
 visible ID/state, omission, Unicode widths, exact click identity and full title in
 expanded chat. Preview changes do not affect stored text or list navigation order.
+
+
+Over-limit input edits expose an “Edit not applied” warning on the shortcut footer
+while preserving the edit cursor row. Editor and backing saved draft/query are
+updated together after repaired-UTF-8 length validation. Limits remain 64 KiB and
+256 bytes for chat search. Cursor-only movement retains the warning; valid text
+edits clear it. Pure and full-draft SQLite PTY checks verify exact rejection,
+Unicode normalization/cluster bounds, visible feedback, recovery and unchanged
+run/message state. Submission queues only retained text.

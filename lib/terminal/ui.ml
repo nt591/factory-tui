@@ -613,8 +613,14 @@ let render t ~width:cols ~height:rows =
     paint 0 (rows - 1)
       (line cols
          A.(fg muted ++ bg background)
-         " hjkl: move · gg/G: first/last · Ctrl-W hjkl: pane · Ctrl-U/D: half-page · \
-          Ctrl-B/F: page · e: zoom · Esc: back");
+         (match t.input_limit with
+         | Some limit when t.input <> Normal ->
+             Printf.sprintf
+               " Edit not applied / limit %s · delete text or paste a smaller value"
+               (if limit = 256 then "256 bytes" else "64 KiB")
+         | _ ->
+             " hjkl: move · gg/G: first/last · Ctrl-W hjkl: pane · Ctrl-U/D: half-page · \
+              Ctrl-B/F: page · e: zoom · Esc: back"));
   if t.help then (
     let w = min 86 cols and h = min 31 rows in
     let x = (cols - w) / 2 and y = (rows - h) / 2 in

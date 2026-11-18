@@ -534,3 +534,23 @@ The filtered-board summary PTY also verifies compact task title omission and
 visible task ID/state at 60 columns. test_task_row covers cell bounds, grapheme
 sequences, controls, long IDs, exact hit identity and expanded complete titles.
 These are display changes only; full stored task/run data remains unchanged.
+
+
+## Input-limit feedback fixture
+
+```sh
+uv run --with pyte --with pillow python scripts/smoke-input-limit.py \
+  --preview /tmp/factory-input-limit.png
+```
+
+A temporary SQLite snapshot holds a full 64-KiB queued-task draft. The real TUI
+rejects an added paste, shows the warning without moving its cursor, retains the
+warning during cursor motion, then deletes one byte and accepts one replacement.
+Final draft bytes are exact; no message/run is added. An empty replay and isolated
+HOME/XDG avoid agents, credentials and workspace access. `--binary` avoids rebuilding.
+Pure test_input_limits also covers chat query limits, malformed UTF-8 expansion,
+editor/backing-value synchronization, whole-cluster rejection and storage errors.
+
+An initial parallel run in this increment hit test_process's existing
+`invalid event cleanup bounded` timing assertion. The full rerun passed without
+changing deadlines or runtime process code. The cause remains undiagnosed.

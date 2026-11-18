@@ -599,3 +599,17 @@ and abbreviates ID/title. Ui still registers the exact task ID over the visible
 row. No task text, order, selection semantics or saved state is rewritten. Pure
 width/Unicode/control tests and the compact filtered-board PTY verify omission
 markers, ID/state visibility, exact hit identity and full expanded instruction.
+
+
+Controller input updates now validate normalized Text_edit text before changing
+editor and backing draft/query/model/title together. Oversized values, including
+UTF-8 repairs that increase byte length, are rejected atomically. Text_edit's
+bounded insert rejection is disclosed with transient input_limit feedback instead
+of silent success. The lower shortcut footer shows the warning while editing
+without taking the edit cursor row; cursor-only movement retains it, and actual
+valid text changes clear it. Existing storage errors are not overwritten. No
+persisted schema change is required. Pure tests cover 64-KiB/256-byte limits,
+Unicode whole-cluster rejection, normalization synchronization, recovery, visible
+warning, exact retained submission and saved-state isolation. A temporary SQLite
+PTY verifies over-limit paste, unchanged cursor/tail, cursor-only warning retention,
+delete/insert recovery and exact saved draft without submission or a new run.

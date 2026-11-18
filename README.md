@@ -813,3 +813,10 @@ Compact task lists mark shortened titles with a grapheme-safe ellipsis. Ordinary
 rows retain task ID/state columns; when identities are too long or space is tight,
 the state takes priority and the ID/title are abbreviated. Mouse targets still
 select the exact stored task, and opening chat shows the complete instruction.
+
+
+Input-limit rejection is visible while editing: a footer warning states that the
+edit was not applied. Reply/footer values are capped at 64 KiB after UTF-8 repair;
+chat search remains capped at 256 bytes. Rejected edits leave the cursor, editor
+text and saved draft/query unchanged. Cursor motion keeps the warning; deleting
+text or making a valid text change clears it. Enter queues the retained text only.

@@ -97,6 +97,12 @@ restoration and later streaming. Header anchors remain row-relative and end boun
 can clamp. An isolated rerun passed an intermittent process teardown timing failure;
 its cause is not diagnosed and no timeout was relaxed.
 
+Input-limit rejection now preserves normalized editor/backing-value synchronization
+and exposes transient feedback while editing. Pure and full-draft SQLite PTY
+checks verify rejection, recovery and exact retained text. One process cleanup
+timing assertion failed in an initial parallel run; the rerun passed unchanged,
+which does not diagnose its cause.
+
 Run confirmations also support long disclosures in a bounded scrollable viewport.
 Pure and temporary-harness PTY checks cover shown-row coverage, skipped gaps,
 resize/new-dialog reset, fixed button targets and an explicitly confirmed fake run.

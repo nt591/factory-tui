@@ -77,6 +77,7 @@ type t = {
   mutable raw_tools : bool;
   mutable database_path : string option;
   mutable input : input;
+  mutable input_limit : int option;
   mutable query : string;
   chat_search : Chat_search.t;
   chat_viewport : Chat_viewport.t;

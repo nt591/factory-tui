@@ -324,3 +324,11 @@ Task_row owns single-line compact task preview text. It sanitizes display ID/tit
 uses terminal-cell widths and grapheme-safe ellipsis, and reserves state visibility
 when a long identity cannot fit normal spacing. Controller and Ui keep exact task
 IDs for selection/hit dispatch; the module does not mutate tasks or filters.
+
+
+Controller.accept_input is the private editor/backing-value commit boundary. It
+validates repaired UTF-8 bytes before applying any draft/query/model/title update.
+Transient input_limit stores only a rejected byte limit; Ui shows it on the lower
+shortcut footer in edit mode. Cursor movement cannot silently clear feedback,
+while valid text changes clear it. Text_edit's public immutable API and insertion
+bound remain unchanged. No input-limit feedback is stored in snapshots.
