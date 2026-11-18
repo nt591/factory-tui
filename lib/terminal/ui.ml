@@ -767,15 +767,16 @@ let render t ~width:cols ~height:rows =
         | None -> Model.Read_only
         | Some config -> Live_runner.policy config
       in
+      let reasoning = Option.bind t.live_config Live_runner.reasoning in
       let height =
         min rows
-          (Live_confirmation.required_height ~policy ~viewport:t.confirmation_viewport
-             task ~width)
+          (Live_confirmation.required_height ?reasoning ~policy
+             ~viewport:t.confirmation_viewport task ~width)
       in
       let x = (cols - width) / 2 and y = (rows - height) / 2 in
       let view =
-        Live_confirmation.render ~policy ~viewport:t.confirmation_viewport task ~width
-          ~height
+        Live_confirmation.render ?reasoning ~policy ~viewport:t.confirmation_viewport task
+          ~width ~height
       in
       if view.content_rows > 0 then
         modal_scroll :=

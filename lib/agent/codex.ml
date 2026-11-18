@@ -88,3 +88,15 @@ let with_jj_workspace config =
       | rest -> rest
     in
     { config with Process.arguments }
+
+let with_reasoning (config : Process.config) effort =
+  let override =
+    [ "-c"; "model_reasoning_effort=\"" ^ Reasoning_effort.label effort ^ "\"" ]
+  in
+  let arguments =
+    match config.arguments with
+    | "exec" :: "resume" :: rest -> [ "exec"; "resume" ] @ override @ rest
+    | "exec" :: rest -> ("exec" :: override) @ rest
+    | rest -> override @ rest
+  in
+  { config with arguments }

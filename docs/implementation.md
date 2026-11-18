@@ -982,3 +982,12 @@ picker opening, and replacing/cancelling the form prevents stale choices from
 changing a different form. No task/workspace/process starts from model selection.
 Manual field editing and cached/request-free catalogue opening remain available.
 Pure and loopback tests verify form selection and continued creation isolation.
+
+Live UI supports --reasoning-effort low|medium|high as an explicit launch request.
+Reasoning_effort.ml/.mli supplies validated choices; Codex invocation overrides
+preserve stdin and exact new/resume argument boundaries. Omission preserves the
+existing default. Confirmation includes the request and its nonpersisted-history
+limitation, and effort changes invalidate reviewed details. This is not per-task
+reasoning configuration or provider capability inference. Pure validation/invocation/
+confirmation tests and the fake two-turn workflow verify requested low effort
+without an executable wrapper. No new paid calls or snapshot schema changes.

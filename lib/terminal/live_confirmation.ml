@@ -58,7 +58,7 @@ let visit t first last =
 
 let reviewed t = t.visited = [ (0, t.total) ]
 
-let disclosure ~policy task =
+let disclosure ~reasoning ~policy task =
   [
     Line "Real Codex process / may incur model usage.";
     Line "Configured credentials or existing Codex auth may be used.";
@@ -69,6 +69,15 @@ let disclosure ~policy task =
           "WRITE ACCESS: workspace + temp directories; no approvals.");
     Line "";
   ]
+  @ (match reasoning with
+    | None -> []
+    | Some effort ->
+        [
+          Line ("Requested reasoning effort: " ^ Reasoning_effort.label effort);
+          Line
+            "Model support is unverified. This launch setting is not saved in run \
+             history.";
+        ])
   @
   match task with
   | None -> [ Line "Task no longer exists. Cancel and select another task." ]
@@ -97,9 +106,9 @@ let wrap_detail width = function
   | Instruction text ->
       Text_layout.wrap (max 1 (width - 2)) (Terminal_text.multiline text)
 
-let prepare viewport ~policy task width =
+let prepare viewport ~reasoning ~policy task width =
   let width = max 1 width in
-  let disclosed = disclosure ~policy task in
+  let disclosed = disclosure ~reasoning ~policy task in
   match viewport.prepared with
   | Some prepared when prepared.width = width && prepared.disclosed = disclosed ->
       prepared
@@ -112,21 +121,22 @@ let prepare viewport ~policy task width =
       viewport.prepared <- Some prepared;
       prepared
 
-let required_height ?(policy = Model.Read_only) ?viewport task ~width =
+let required_height ?reasoning ?(policy = Model.Read_only) ?viewport task ~width =
   let viewport = Option.value ~default:(create ()) viewport in
-  max 13 (Array.length (prepare viewport ~policy task width).rows + 4)
+  max 13 (Array.length (prepare viewport ~reasoning ~policy task width).rows + 4)
 
-let can_confirm t ~policy task =
+let can_confirm ?reasoning t ~policy task =
   match t.layout with
   | Some (disclosed, cols, rows) ->
       cols >= 64 && rows >= 13 && task <> None && reviewed t
-      && disclosure ~policy task = disclosed
+      && disclosure ~reasoning ~policy task = disclosed
   | None -> false
 
-let render ?(policy = Model.Read_only) ?viewport task ~width:cols ~height:rows =
+let render ?reasoning ?(policy = Model.Read_only) ?viewport task ~width:cols ~height:rows
+    =
   let cols = max 1 cols and rows = max 1 rows in
   let viewport = Option.value ~default:(create ()) viewport in
-  let prepared = prepare viewport ~policy task cols in
+  let prepared = prepare viewport ~reasoning ~policy task cols in
   let layout = (prepared.disclosed, cols, rows) in
   if viewport.layout <> Some layout then (
     clear_coverage viewport;

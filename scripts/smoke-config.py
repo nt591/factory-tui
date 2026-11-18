@@ -106,6 +106,7 @@ with tempfile.TemporaryDirectory(prefix="factory-check-config-") as temporary:
     )
     for extra in (
         ["--list-models"],
+        ["--reasoning-effort", "low"],
         ["--live-ui"],
         ["--run-codex"],
         ["--dry-run-codex"],

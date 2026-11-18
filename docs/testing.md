@@ -878,3 +878,10 @@ The model-picker fixture additionally opens the workspace form, clicks Models,
 filters the cached catalogue and applies a model to that form without creating
 a task. Pure tests cover the Ctrl-G path, exact-form identity, unchanged other
 fields/history, blocked Ctrl-S under the picker and stale replacement rejection.
+
+Reasoning-effort checks validate strict low/medium/high choices, unchanged default,
+new/resume argument shape, stdin markers, confirmation disclosure and review
+invalidation when effort changes. The continuous fake workflow requests low via
+the CLI and checks both invocations rather than using a wrapper. Invalid/non-live
+CLI combinations fail before resource access. No additional real-model call is
+required for this integration increment; model support remains independently scoped.

@@ -1,6 +1,8 @@
 type config
 
 val configure : executable:string -> gateway_file:string option -> (config, string) result
+val with_reasoning : config -> Reasoning_effort.t -> config
+val reasoning : config -> Reasoning_effort.t option
 val with_policy : config -> Model.execution_policy -> config
 val gateway : config -> Gateway.t option
 val policy : config -> Model.execution_policy

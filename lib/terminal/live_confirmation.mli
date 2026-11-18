@@ -7,9 +7,16 @@ val create : unit -> t
 val reset : t -> unit
 val scroll : t -> int -> unit
 val key : t -> Notty.Unescape.key -> unit
-val can_confirm : t -> policy:Model.execution_policy -> Model.task option -> bool
+
+val can_confirm :
+  ?reasoning:Reasoning_effort.t ->
+  t ->
+  policy:Model.execution_policy ->
+  Model.task option ->
+  bool
 
 val render :
+  ?reasoning:Reasoning_effort.t ->
   ?policy:Model.execution_policy ->
   ?viewport:t ->
   Model.task option ->
@@ -18,4 +25,9 @@ val render :
   view
 
 val required_height :
-  ?policy:Model.execution_policy -> ?viewport:t -> Model.task option -> width:int -> int
+  ?reasoning:Reasoning_effort.t ->
+  ?policy:Model.execution_policy ->
+  ?viewport:t ->
+  Model.task option ->
+  width:int ->
+  int

@@ -43,7 +43,7 @@ with tempfile.TemporaryDirectory(prefix="factory-preview-") as temp:
           and "explicit-thread" in preview["arguments"])
     check("environment reference preserved", 'model_providers.factory_gateway.env_key="FACTORY_UNSET_KEY"'
           in preview["arguments"])
-    for extra in [["--list-models"], ["--workspace-write"], ["--database", str(directory / "forbidden.sqlite")], ["--snapshot"],
+    for extra in [["--reasoning-effort", "low"], ["--list-models"], ["--workspace-write"], ["--database", str(directory / "forbidden.sqlite")], ["--snapshot"],
                   ["--fake-harness"], ["--live-ui"], ["--config", str(directory / "missing.toml")],
                   ["--resume", "--last"], ["--model", "-bad"]]:
         result = subprocess.run(base + extra, capture_output=True, text=True, timeout=3)
@@ -56,5 +56,11 @@ with tempfile.TemporaryDirectory(prefix="factory-preview-") as temp:
           and "accidental-secret" not in result.stdout + result.stderr)
     result = subprocess.run([str(binary), "--model", "fixture-model"], capture_output=True, text=True, timeout=3)
     check("live options cannot silently fall back to simulation", result.returncode != 0)
+
+for effort in ("bad", "LOW", "xhigh", "low\n"):
+    result = subprocess.run([str(binary), "--live-ui", "--reasoning-effort", effort],
+                            capture_output=True, text=True, timeout=3)
+    check("invalid live reasoning rejected before requiring resources", result.returncode == 2
+          and "Reasoning effort must be" in result.stderr and result.stdout == "")
 
 print(f"Passed {checks} CLI invocation checks. No agent or gateway calls.")

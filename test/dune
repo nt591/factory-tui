@@ -432,3 +432,8 @@
  (name test_model_picker)
  (modules test_model_picker)
  (libraries factory_tui notty threads))
+
+(test
+ (name test_reasoning_effort)
+ (modules test_reasoning_effort)
+ (libraries factory_tui notty unix))

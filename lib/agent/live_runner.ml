@@ -4,9 +4,11 @@ type config = {
   executable : string;
   gateway : Gateway.t option;
   policy : Model.execution_policy;
+  reasoning : Reasoning_effort.t option;
 }
 
 let configure ~executable ~gateway_file =
+  let reasoning = None in
   if Filename.is_relative executable || String.contains executable '\000' then
     Error "Live Codex executable must be an absolute path."
   else
@@ -16,16 +18,19 @@ let configure ~executable ~gateway_file =
         Error "Codex executable must be a regular file."
       else
         match gateway_file with
-        | None -> Ok { executable; gateway = None; policy = Read_only }
+        | None -> Ok { executable; gateway = None; policy = Read_only; reasoning }
         | Some file ->
             Result.map
-              (fun gateway -> { executable; gateway = Some gateway; policy = Read_only })
+              (fun gateway ->
+                { executable; gateway = Some gateway; policy = Read_only; reasoning })
               (Gateway.load file)
     with Unix.Unix_error _ -> Error "Cannot access live Codex executable."
 
+let with_reasoning config reasoning = { config with reasoning = Some reasoning }
 let with_policy config policy = { config with policy }
 let policy config = config.policy
 let gateway config = config.gateway
+let reasoning config = config.reasoning
 
 let policy_label config =
   match config.policy with
@@ -55,6 +60,11 @@ let prepare_prompt config (task : task) prompt =
           with
           | Error error -> Error error
           | Ok invocation ->
+              let invocation =
+                match config.reasoning with
+                | None -> invocation
+                | Some effort -> Codex.with_reasoning invocation effort
+              in
               let invocation =
                 Codex.with_policy (Codex.with_jj_workspace invocation) config.policy
               in

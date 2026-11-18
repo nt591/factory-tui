@@ -158,3 +158,24 @@ An additional `/analytics/codex/turn-costs` POST returned 404; it overlapped the
 Responses call, so its latency must not be added to the completion latency.
 These are single-call observations with extra proxy/network overhead, not pure
 inference or stable percentile measurements. No further paid calls were needed.
+
+## Requested reasoning effort
+
+Live UI launch can explicitly request reasoning effort without an executable wrapper:
+
+```sh
+./scripts/run.sh --live-ui --no-config \
+  --database "$HOME/factory-live-test.sqlite" \
+  --codex-executable /opt/homebrew/bin/codex \
+  --gateway examples/litellm.toml \
+  --reasoning-effort low
+```
+
+Supported choices are `low`, `medium` and `high`. Omitting the option leaves
+Codex's default unchanged. This option applies to every new/resumed run in this
+launch and is shown in confirmation. Changed effort invalidates previously
+reviewed confirmation details. It supplies `model_reasoning_effort` to Codex;
+model/provider support is not inferred from the model catalogue. It is currently
+a launch option only, not a task setting or stored run-history field. Restart
+must repeat the desired option; old run records do not claim an effort value.
+Headless/dry-run and configuration-check modes reject this live-only option.

@@ -441,3 +441,11 @@ gateway address is retained in the reports. These narrow real-call results do no
 replace the fixture suite or general provider/security verification.
 The form-picker preview was inspected. Separate model-discovery CLI (31), setup
 CLI (35), invocation (21), fake execution (19) and package (17) checks passed.
+
+Launch reasoning verification passed 23 pure invocation/confirmation checks,
+format/build/unit gates and all 19 fixture UI cases. Evidence:
+`/tmp/factory-reasoning-option-ui-20261118/report.json`. The continuous fake
+workflow checks low effort on both new/resumed invocations, with confirmation
+review binding. Setup CLI (36), invocation (26), fake execution (19) and package
+(17) checks passed. No additional paid calls; effort is launch-only and not
+persisted in historical run records.

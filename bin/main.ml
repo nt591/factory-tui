@@ -15,6 +15,7 @@ let () =
   and run_codex = ref false
   and live_ui = ref false
   and workspace_write = ref false
+  and reasoning = ref None
   and executable = ref None
   and directory = ref None
   and model = ref None
@@ -22,6 +23,9 @@ let () =
   and gateway_file = ref None in
   Arg.parse
     [
+      ( "--reasoning-effort",
+        Arg.String (fun value -> reasoning := Some value),
+        "EFFORT Request low, medium or high reasoning for live UI runs" );
       ( "--workspace-write",
         Arg.Set workspace_write,
         " Explicit write access in live UI task workspaces; confirmation required" );
@@ -86,6 +90,15 @@ let () =
     "factory-tui [--config PATH | --no-config] [--database PATH]\n\
      See --help for snapshot, fixture, preview, and explicit live execution modes.";
   try
+    let reasoning =
+      match !reasoning with
+      | None -> None
+      | Some value -> (
+          if not !live_ui then invalid_arg "--reasoning-effort requires --live-ui.";
+          match Reasoning_effort.parse value with
+          | Ok effort -> Some effort
+          | Error error -> invalid_arg error)
+    in
     if !list_models then (
       if
         !workspace_write || !live_ui || !run_codex || !dry_run || !snapshot
@@ -227,6 +240,9 @@ let () =
       let live =
         match Live_runner.configure ~executable ~gateway_file:!gateway_file with
         | Ok config ->
+            let config =
+              Option.fold ~none:config ~some:(Live_runner.with_reasoning config) reasoning
+            in
             Live_runner.with_policy config
               (if !workspace_write then Model.Workspace_write else Model.Read_only)
         | Error error -> invalid_arg error

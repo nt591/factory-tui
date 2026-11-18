@@ -120,6 +120,8 @@ for event in [
             str(binary),
             "--live-ui",
             "--workspace-write",
+            "--reasoning-effort",
+            "low",
             "--config",
             str(config),
             "--codex-executable",
@@ -143,6 +145,7 @@ for event in [
             tui.check(
                 "confirmation names write policy and queued instruction",
                 "WRITE ACCESS" in tui.text()
+                and "Requested reasoning effort: low" in tui.text()
                 and "Implement the fixture task" in tui.text()
                 and not marker.exists(),
             )
@@ -170,6 +173,10 @@ for event in [
             tui.check(
                 "confirmed invocation carries requested workspace-write policy",
                 'sandbox_mode="workspace-write"' in calls[0]["arguments"],
+            )
+            tui.check(
+                "confirmed invocation receives low reasoning without a wrapper",
+                'model_reasoning_effort="low"' in calls[0]["arguments"],
             )
             workspace = Path(calls[0]["cwd"])
             tui.check(
@@ -263,6 +270,10 @@ for event in [
                 and calls[1]["arguments"][-2:] == ["workflow-thread", "-"]
                 and calls[1]["prompt"] == "Add the follow-up file"
                 and calls[1]["cwd"] == str(workspace),
+            )
+            tui.check(
+                "resumed invocation retains launch reasoning effort",
+                'model_reasoning_effort="low"' in calls[1]["arguments"],
             )
             model_index = calls[1]["arguments"].index("--model")
             tui.check(

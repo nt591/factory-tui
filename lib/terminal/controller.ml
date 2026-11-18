@@ -548,8 +548,9 @@ let rec act t action =
           let task = List.find_opt (fun (task : task) -> task.id = id) t.tasks in
           if
             not
-              (Live_confirmation.can_confirm t.confirmation_viewport
-                 ~policy:(Live_runner.policy config) task)
+              (Live_confirmation.can_confirm
+                 ?reasoning:(Live_runner.reasoning config)
+                 t.confirmation_viewport ~policy:(Live_runner.policy config) task)
           then (
             t.confirmation_readable <- false;
             t.status <- "Run details changed. Review the confirmation again.")
