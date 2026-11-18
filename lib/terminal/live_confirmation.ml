@@ -3,11 +3,12 @@ open Notty
 type action = Run | Cancel
 type hit = { x : int; y : int; width : int; action : action }
 type view = { image : Notty.image; hits : hit list; readable : bool; content_rows : int }
-type prepared = { disclosed : string list; width : int; rows : string array; fits : bool }
+type detail = Line of string | Instruction of string
+type prepared = { disclosed : detail list; width : int; rows : string array; fits : bool }
 
 type t = {
   mutable prepared : prepared option;
-  mutable layout : (string list * int * int) option;
+  mutable layout : (detail list * int * int) option;
   mutable offset : int;
   mutable capacity : int;
   mutable total : int;
@@ -59,24 +60,42 @@ let reviewed t = t.visited = [ (0, t.total) ]
 
 let disclosure ~policy task =
   [
-    "Real Codex process / may incur model usage.";
-    "Configured credentials or existing Codex auth may be used.";
-    (match policy with
-    | Model.Read_only -> "Read-only sandbox requested / no interactive approvals."
-    | Model.Workspace_write -> "WRITE ACCESS: workspace + temp directories; no approvals.");
-    "";
+    Line "Real Codex process / may incur model usage.";
+    Line "Configured credentials or existing Codex auth may be used.";
+    Line
+      (match policy with
+      | Model.Read_only -> "Read-only sandbox requested / no interactive approvals."
+      | Model.Workspace_write ->
+          "WRITE ACCESS: workspace + temp directories; no approvals.");
+    Line "";
   ]
   @
   match task with
-  | None -> [ "Task no longer exists. Cancel and select another task." ]
+  | None -> [ Line "Task no longer exists. Cancel and select another task." ]
   | Some task ->
+      let queued = Run_prompt.queued task in
       [
-        task.Model.id ^ " / " ^ task.title;
-        "Model: " ^ task.model;
-        ("Workspace: "
-        ^ match task.workspace with None -> "missing" | Some w -> w.directory);
-        "Thread: " ^ Option.value ~default:"new thread" task.thread_id;
+        Line (task.Model.id ^ " / " ^ task.title);
+        Line ("Model: " ^ task.model);
+        Line
+          ("Workspace: "
+          ^ Option.fold ~none:"missing" ~some:(fun w -> w.Model.directory) task.workspace
+          );
+        Line "";
+        Line
+          (Printf.sprintf "Queued instructions: %d / %d bytes" (List.length queued)
+             (Run_prompt.byte_length queued));
       ]
+      @ List.concat_map
+          (fun (message : Model.message) ->
+            [ Line ("Message: " ^ message.id); Instruction message.text; Line "" ])
+          queued
+      @ [ Line ("Thread: " ^ Option.value ~default:"new thread" task.thread_id) ]
+
+let wrap_detail width = function
+  | Line text -> Text_layout.wrap (max 1 (width - 2)) (Terminal_text.line text)
+  | Instruction text ->
+      Text_layout.wrap (max 1 (width - 2)) (Terminal_text.multiline text)
 
 let prepare viewport ~policy task width =
   let width = max 1 width in
@@ -85,12 +104,7 @@ let prepare viewport ~policy task width =
   | Some prepared when prepared.width = width && prepared.disclosed = disclosed ->
       prepared
   | _ ->
-      let rows =
-        List.concat_map
-          (fun text -> Text_layout.wrap (max 1 (width - 2)) (Terminal_text.line text))
-          disclosed
-        |> Array.of_list
-      in
+      let rows = List.concat_map (wrap_detail width) disclosed |> Array.of_list in
       let fits =
         Array.for_all (fun row -> I.width (I.string A.empty row) <= width - 2) rows
       in

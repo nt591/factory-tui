@@ -66,7 +66,26 @@ def main():
                     "name": "fixture",
                 },
             )
-            task["messages"][0].update(text=task["title"], queued=True)
+            task["messages"][0].update(text="OLD_SENT_INSTRUCTION", queued=False)
+            task["messages"] += [
+                {
+                    "id": "queued-first",
+                    "author": "You",
+                    "text": "Actual next-run instruction\n"
+                    + "Requested work " * 70
+                    + "QUEUED_END",
+                    "queued": True,
+                },
+                {
+                    "id": "queued-second",
+                    "author": "You",
+                    "text": "Second queued reply é 👩🏽‍💻",
+                    "queued": True,
+                },
+            ]
+            expected_prompt = "\n\n".join(
+                message["text"] for message in task["messages"] if message["queued"]
+            )
             snapshot.update(tasks=[task], selected=task["id"], drafts=[])
             db.execute("UPDATE snapshot SET payload=?", (json.dumps(snapshot),))
         executable = directory / "fake-codex"
@@ -108,6 +127,7 @@ def main():
                 not marker.exists() and "Confirm live run" in tui.text(),
             )
             tui.send(b"G")
+            end_seen = tui.text()
             tui.check(
                 "End exposes the complete thread tail but leaves gaps locked",
                 "THREAD_END" in tui.text()
@@ -125,14 +145,23 @@ def main():
                 "wheel over buttons does not scroll details", tui.text() == before
             )
             tui.send(b"g")
-            for _ in range(8):
+            seen = end_seen + "\n" + tui.text()
+            for _ in range(20):
                 tui.send(b"\x06")
+                seen += "\n" + tui.text()
                 if "[Run / Enter or y]" in tui.text():
                     break
             tui.wait("all rows disclosed", lambda: "[Run / Enter or y]" in tui.text())
             tui.check(
                 "intermediate page exposes title and model tails",
-                "TITLE_END" in tui.text() and "MODEL_END" in tui.text(),
+                "TITLE_END" in seen and "MODEL_END" in seen,
+            )
+            tui.check(
+                "confirmation shows actual queued replies instead of only old task title",
+                "Actual next-run instruction" in seen
+                and "QUEUED_END" in seen
+                and "Second queued reply" in seen
+                and "OLD_SENT_INSTRUCTION" not in seen,
             )
             tui.send(b"G")
             tui.check(
@@ -151,7 +180,7 @@ def main():
             )
             resize(tui, 88, 20)
             tui.wait("restored dialog", lambda: "1-16/" in tui.text())
-            for _ in range(8):
+            for _ in range(20):
                 tui.send(b"\x06")
                 if "[Run / Enter or y]" in tui.text():
                     break
@@ -164,7 +193,7 @@ def main():
                 "reopening does not reuse earlier authorization",
                 "[Run / Enter or y]" not in tui.text(),
             )
-            for _ in range(8):
+            for _ in range(20):
                 tui.send(b"\x06")
                 if "[Run / Enter or y]" in tui.text():
                     break
@@ -189,7 +218,7 @@ def main():
         assert saved["state"] == "ready" and len(saved["runs"]) == 1
         assert saved["title"] == task["title"] and saved["model"] == task["model"]
         assert saved["thread"] == thread
-        assert (workspace / "prompt.txt").read_text().strip() == task["title"]
+        assert (workspace / "prompt.txt").read_text() == expected_prompt
         print("PASS: exact task, model, thread and prompt survive disclosure scrolling")
     print("Temporary fake harness only. No model, credentials or real checkout access.")
 

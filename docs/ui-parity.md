@@ -584,3 +584,12 @@ retained; only visible row images are built. This changes no layout or interacti
 Coverage remains separate and invalidates on dimensions/details, reset drops both,
 and preparation cannot enable Run. Pure view-equivalence/invalidation checks and
 the existing full-disclosure/fake-run PTY cover the authorization boundary.
+
+
+Live confirmation discloses each queued message ID and multiline instruction with
+combined prompt count/bytes. It no longer relies on a task title as the next-run
+instruction. All disclosure rows must still be shown. Raw queued text/ID changes
+invalidate confirmation; sent history and unsubmitted drafts are omitted. Run_prompt
+shares exact chronological selection/assembly with live preflight and captured-run
+execution. Pure and fake-run PTY checks verify two distinct queued replies, complete
+line breaks/Unicode and exact harness stdin without historical/title substitution.

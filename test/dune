@@ -342,3 +342,8 @@
  (name test_confirmation_cache)
  (modules test_confirmation_cache)
  (libraries factory_tui notty unix))
+
+(test
+ (name test_run_prompt)
+ (modules test_run_prompt)
+ (libraries factory_tui notty))

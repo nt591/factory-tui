@@ -167,3 +167,10 @@ Confirmation preparation reuse has pure cached/uncached layout equivalence and
 invalidation checks plus complete-disclosure and fake-run PTY coverage. A scoped
 local component measurement shows reduced wrapping/allocation, not whole-app or
 cross-machine performance. Cache presence does not grant review coverage.
+
+
+Live confirmation now includes the actual queued instruction IDs/text and combined
+prompt byte count through the shared Run_prompt selection/assembly module. Pure
+raw-change invalidation and fake-run PTY checks verify exact next-run prompt bytes,
+multiline/Unicode retention, sent-history exclusion and later-reply capture rules.
+This remains fixture verification, not real-provider compatibility.

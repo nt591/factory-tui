@@ -832,3 +832,12 @@ Mouse-wheel scrolling acts on pane interiors, not titles, side borders or row-ra
 borders. Those borders remain clickable to focus panes. Chat's search strip also
 ignores wheel input; scrolling below it still navigates the transcript. Column
 headers keep their visible ranges when the pointer is over the header itself.
+
+
+Live run confirmation includes the actual queued instructions, their message IDs,
+and combined prompt byte count—not just the task title. Multiline text keeps its
+line breaks in the scrollable disclosure. Sent history and unsent editor drafts
+are not part of the next-run prompt. Changing queued instructions or captured IDs
+requires reviewing the new disclosure. The runner assembles queued messages in
+transcript order with blank-line separators; it sends only the confirmed run's
+captured messages, excluding replies queued later.

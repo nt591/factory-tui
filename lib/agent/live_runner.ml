@@ -43,12 +43,7 @@ let prepare config (task : task) =
       when not (Sys.file_exists (Filename.concat workspace.directory ".jj")) ->
         Error "Recorded workspace is no longer a jj checkout."
     | Some workspace -> (
-        let prompt =
-          String.concat "\n\n"
-            (List.filter_map
-               (fun (m : message) -> if m.queued then Some m.text else None)
-               task.messages)
-        in
+        let prompt = Run_prompt.text (Run_prompt.queued task) in
         if String.trim prompt = "" then
           Error "Post an instruction before starting another run."
         else if String.length prompt > 1048576 then
@@ -187,11 +182,7 @@ let poll runner context ~storage =
                 runner.waiting <- runner.waiting @ [ task.id ]
             | Ok (invocation, _) ->
                 let prompt =
-                  String.concat "\n\n"
-                    (List.filter_map
-                       (fun (m : message) ->
-                         if List.mem m.id active.submitted then Some m.text else None)
-                       task.messages)
+                  Run_prompt.text (Run_prompt.submitted task active.submitted)
                 in
                 let snapshot = context.snapshot () in
                 let submitted =

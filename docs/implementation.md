@@ -644,6 +644,22 @@ and invalidate coverage at render. New-dialog reset drops both cache and coverag
 Authorization still checks current raw details and shown dimensions, not cache
 presence. Pure cached/uncached equality and invalidation tests, complete-disclosure
 checks and the fake-run PTY verify the safety boundary. A scoped local 60-KiB-title
-measurement (20 height/render frames, including image construction) reported 1.65 ms
-and 5.9 MB allocation with reuse versus 114.51 ms and 308.1 MB without reuse. This
+measurement (20 height/render frames, including image construction) reported 0.77 ms
+and 6.0 MB allocation with reuse versus 209.19 ms and 609.7 MB without reuse
+with both the title and initial queued instruction displayed. This
 excludes full Ui, terminal output and process work and is not a timing test gate.
+
+
+Run_prompt.ml/.mli is the pure prompt selection/assembly boundary shared by live
+preflight, confirmed execution and the confirmation disclosure. Queued messages
+retain transcript order; submitted messages are selected by captured IDs, with
+later replies excluded. Text assembly keeps exact bytes and uses two LF separators.
+Combined byte count is computed without assembling a large prompt on redraw.
+Live_confirmation distinguishes single-line metadata from LF-preserving instruction
+blocks, shows queued count/bytes and each captured message ID/text, and compares
+these raw details before authorization. Queued text/ID changes invalidate cache
+and coverage; sent history is omitted. Unsent drafts are not included. Pure tests
+verify exact Unicode/multiline assembly, capture selection and changed-message
+refusal. The full-disclosure fake-run PTY now uses an old sent instruction plus two
+new queued replies and checks the exact bytes received by the temporary harness.
+No real model, credential or workspace access is introduced.

@@ -354,3 +354,12 @@ viewport argument; Ui passes the same viewport to height selection and render.
 Row-width validation is prepared once, and visible rows are sliced directly.
 Coverage remains separate, resets with dimensions/details, and is not granted by
 preparation. Public reset drops both retained rows and authorization coverage.
+
+
+Run_prompt selects queued or captured-ID messages and assembles exact prompt text
+in transcript order. Its byte_length accessor avoids constructing a prompt for
+confirmation counters. Live_runner uses it in preflight and submission; immutable
+run submitted IDs exclude future replies. Live_confirmation uses tagged single-line
+metadata and multiline instruction blocks. Its prepared cache/coverage key includes
+raw queued text and IDs, so a title-only confirmation cannot authorize changed
+instructions. It does not include unsubmitted history or editor drafts.

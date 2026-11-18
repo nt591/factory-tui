@@ -585,7 +585,18 @@ fake execution. To measure only disclosure height/render work:
 opam exec --switch=. -- dune exec test/test_confirmation_cache.exe -- --measure
 ```
 
-One local run with a 60-KiB title and 20 frames reported 1.65 ms / 5,927,040 allocated
-bytes with reuse versus 114.51 ms / 308,112,384 without reuse. It includes image
+One local run with a 60-KiB title and 20 frames reported 0.77 ms / 5,971,488 allocated
+bytes with reuse versus 209.19 ms / 609,733,312 without reuse, including disclosure
+of both the title and its initial queued instruction. It includes image
 construction, but not full Ui, terminal output or process work. Measurement uses
 no model or workspace. No elapsed-time or allocation ratio is a unit-test gate.
+
+
+The smoke-confirmation PTY now discloses two actual queued replies beside a long
+old title. Sent history is excluded; multiline/Unicode queued content is visible
+across reviewed pages. The fake harness receives exactly the queued texts joined
+by two LF bytes, not the task title or historical instruction. Pure test_run_prompt
+covers queue/captured-ID selection, exact separators/byte length, later-reply
+exclusion, queued text/ID authorization invalidation and unchanged sent-history
+compatibility. Preparation caching retains these checks and avoids prompt assembly
+solely for redraw counters.
