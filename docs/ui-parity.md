@@ -262,7 +262,7 @@ independence, history retention during stream growth, and unchanged snapshots.
 
 Unfocused Activity keeps its last visible position rather than displaying the first
 metadata row again. Its remembered offset clamps on resize, and only visible rows
-become Notty images. This does not cache tool parsing or discard logical history.
+become Notty images without discarding logical history.
 A zero-height pane does not replace its remembered position. Unit/frame checks and
 a streaming PTY fixture with long tool output verify that chat focus and new output
 preserve the displayed tool window. Snapshots contain neither pane offset.
@@ -383,3 +383,11 @@ values retain shortcut hints, while long ones use the row for cursor context.
 `Input_line` shares the whole-grapheme window helper and flattens controls/newlines
 only for display. The complete editor value is unchanged for submission. Pure
 layout and PTY long-model checks cover width limits, cursor placement, and editing.
+
+Unchanged expanded tool payloads reuse their decoded summary/details and raw text.
+`Tool_cache.ml/.mli` retains one task's current entries, keyed by scoped tool ID
+and immutable payload identity; removed/replaced items do not accumulate. Readable
+and raw views are lazy, so collapsed tool output does not parse JSON. Origin labels
+still use the task's current recorded history, never cached next-run settings.
+Wrapping and Activity row assembly remain separate. Unit equality/reuse/lifecycle
+checks and existing raw/readable/streaming terminal checks cover the integration.

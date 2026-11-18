@@ -40,12 +40,22 @@ let tool_origin runs id =
       | Read_only -> " / read-only"
       | Workspace_write -> " / workspace-write")
 
-let tool_lines ~runs ~raw (id, payload) =
-  let activity = Tool_activity.describe ~id payload in
-  (activity.summary :: (if raw then Tool_activity.raw payload else activity.details))
-  @ [ tool_origin runs id; "" ]
+let tool_lines ~tools ~runs ~raw (id, payload) =
+  let activity =
+    match tools with
+    | None -> Tool_activity.describe ~id payload
+    | Some tools -> Tool_cache.describe tools ~id ~payload
+  in
+  let details =
+    if not raw then activity.details
+    else
+      match tools with
+      | None -> Tool_activity.raw payload
+      | Some tools -> Tool_cache.raw tools ~id ~payload
+  in
+  (activity.summary :: details) @ [ tool_origin runs id; "" ]
 
-let lines ~now ~expanded ~raw ~waiting = function
+let lines ?tools ~now ~expanded ~raw ~waiting = function
   | None -> [ "No task selected." ]
   | Some (task : task) ->
       [ task.title; "repo: " ^ task.repository ]
@@ -64,7 +74,7 @@ let lines ~now ~expanded ~raw ~waiting = function
          else if expanded then
            Printf.sprintf "▾ %d tool items / %s / T toggles raw" (List.length task.tools)
              (if raw then "raw" else "readable")
-           :: List.concat_map (tool_lines ~runs:task.runs ~raw) task.tools
+           :: List.concat_map (tool_lines ~tools ~runs:task.runs ~raw) task.tools
          else [ Printf.sprintf "▸ %d tool items / t expands" (List.length task.tools) ])
       @
       if task.runs = [] then []

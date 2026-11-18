@@ -117,8 +117,14 @@ against these interfaces during the normal Dune build.
   never changes lifecycle state or reads the clock. Invalid/reversed times remain
   unavailable instead of being represented as zero duration.
 - `Activity_content`: pure logical task metadata, tool groups, and captured-run
-  rows. It has no controller, rendering, process, or storage dependency. The UI
+  rows. It has no controller, rendering, process, or storage dependency. An optional
+  prepared Tool_cache document supplies decoded rows while run attribution stays
+  tied to current task history. The UI
   wraps each row at the actual pane width before computing scroll bounds.
+- `Tool_cache`: abstract selected-task payload cache with lazy readable/raw
+  decoding. Immutable scoped IDs and payload identity control entry reuse;
+  replacements/removals/task changes discard obsolete entries. Origin labels
+  remain outside the cache and use current captured run records.
 - `Tool_activity`: pure summaries of actual harness command, MCP, and file-change
   fields, with raw payload access. It does not execute tools or infer success.
 - `Chat_layout`: abstract single-entry transcript cache keyed by task, pane width,

@@ -79,6 +79,7 @@ type t = {
   chat_search : Chat_search.t;
   chat_viewport : Chat_viewport.t;
   chat_layout : Chat_layout.t;
+  tool_cache : Tool_cache.t;
   mutable new_title : string;
   mutable model_text : string;
   mutable editor : Text_edit.t;
@@ -141,6 +142,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     chat_search = Chat_search.create ();
     chat_viewport = Chat_viewport.create ();
     chat_layout = Chat_layout.create ();
+    tool_cache = Tool_cache.create ();
     new_title = "";
     model_text = "";
     editor = Text_edit.create "";

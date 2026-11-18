@@ -275,8 +275,15 @@ let render t ~width:cols ~height:rows =
   in
   let activity r =
     let inner = max 1 (r.w - 4) in
+    let tools =
+      match task with
+      | None ->
+          Tool_cache.clear t.tool_cache;
+          None
+      | Some task -> Some (Tool_cache.update t.tool_cache ~task_id:task.id task.tools)
+    in
     let rows =
-      Activity_content.lines ~now:(Unix.gettimeofday ()) ~expanded:t.tools_expanded
+      Activity_content.lines ?tools ~now:(Unix.gettimeofday ()) ~expanded:t.tools_expanded
         ~raw:t.raw_tools
         ~waiting:(List.mem t.selected t.live_waiting_tasks)
         task

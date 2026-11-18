@@ -79,6 +79,7 @@ type t = {
   chat_search : Chat_search.t;
   chat_viewport : Chat_viewport.t;
   chat_layout : Chat_layout.t;
+  tool_cache : Tool_cache.t;
   mutable new_title : string;
   mutable model_text : string;
   mutable editor : Text_edit.t;

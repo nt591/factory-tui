@@ -252,3 +252,8 @@
  (name test_input_line)
  (modules test_input_line)
  (libraries factory_tui notty))
+
+(test
+ (name test_tool_cache)
+ (modules test_tool_cache)
+ (libraries factory_tui yojson notty unix))

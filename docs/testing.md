@@ -305,3 +305,32 @@ PTY smoke using the fresh binary. The compiler's generated runtime header also
 showed the requested pipe2/dup3/accept4 functions disabled. No project switch or
 opam sandbox change was made; temporary resources were removed. The compact
 committed evidence is `docs/verification/fresh-switch-macos.json`.
+
+## Tool-payload decoding cache
+
+`test_tool_cache` verifies reused descriptions/raw lines, replacement updates,
+removal/reappearance, task changes, stale-document safety, and decoder equivalence
+for commands, MCP, file changes, future kinds, and legacy text. Cached Activity
+rows are compared with uncached rows, and source-run labels remain tied to the
+current records rather than the cached payload. Renderer checks confirm reuse and
+unchanged snapshots. Existing terminal and installed-agent loopback tests cover
+raw/readable toggles and retained historical tool attribution after resume.
+
+```sh
+opam exec --switch=. -- dune exec test/test_tool_cache.exe -- --measure
+```
+
+On November 18, 2026, 200 tools with 100 output lines each took 42.060 ms total for
+twenty full readable-decoding passes and 0.072 ms for cached descriptions. The
+cache was warm for the second path. This component measurement excludes wrapping,
+row assembly, source-run labels, image construction, and terminal output; it is
+not a whole-TUI or GUI comparison. The cache retains decoded text in addition to
+raw payloads, and representations are forced only when expanded inspection needs
+them. Large-output wrapping and aggregate Activity rows are still rebuilt.
+
+During the tool-cache increment, one parallel suite reported `working directory:
+Command timeout exceeded.` in the native command fixture. Tool-cache and other
+checks completed, but that suite was not successful. Case-specific context now
+shows the reliability issue is not confined to the previously observed repeated
+output case. Production Command code, one-second success deadlines, and test
+parallelism remain unchanged; later passing reruns do not prove this issue fixed.

@@ -620,8 +620,9 @@ at confirmation (including pre-spawn waits), not process spawn; wall-clock anoma
 show unavailable time rather than invented values. Workspace tasks show their
 exact review base. Expanded tools identify their recorded source run and its
 captured settings, including simulation/live origin and policy. Unmatched legacy
-items report an unrecorded origin rather than using current settings. Focus
-Activity and press `e` to inspect full-width metadata, tools, and run history;
+items report an unrecorded origin rather than using current settings. Unchanged
+tool payloads reuse readable/raw decoding; collapsed groups do not force parsing.
+Focus Activity and press `e` to inspect full-width metadata, tools, and run history;
 scroll as needed. Overflowing Activity shows the visible wrapped-row range and
 above/below arrows in its border without consuming an output row. Inspection does
 not change the task or its workspace.

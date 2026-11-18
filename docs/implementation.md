@@ -386,3 +386,11 @@ actual cursor through a grapheme-safe horizontal window. Short values retain key
 hints; long values prioritize editable context over hints instead of clipping the
 cursor. `Input_line.ml/.mli` sanitizes display only and changes no values. Unit
 cursor/width/submission checks and PTY long-model/Home/End coverage verify behavior.
+
+Expanded Activity reuses decoded readable/raw tool content while scoped item IDs
+and immutable payloads are unchanged. `Tool_cache` retains only the rendered task's
+current tools and prepares each representation lazily; collapsed groups do not
+force parsing. Replaced payloads rebuild their entry, while removed items leave
+the index. Current recorded source-run labels are not cached with the payload.
+Unit decoder/lifecycle/render checks and full raw/readable PTY and installed-agent
+resume coverage verify unchanged content and snapshot isolation.
