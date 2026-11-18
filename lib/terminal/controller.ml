@@ -513,7 +513,7 @@ let rec act t action =
         match t.workspace_form with
         | None -> ()
         | Some form -> (
-            match Workspace_form.validate form with
+            match Workspace_form.validate_submission form with
             | Error error -> report_creation t error
             | Ok () ->
                 let value = Workspace_form.value form in

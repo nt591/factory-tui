@@ -367,3 +367,9 @@ erase the form's validation/error message. Submission and bounded creation failu
 update both status channels; successful creation closes the form. Cancelling drops
 the form-local status and leaves task data unchanged. Unit event/render tests,
 real-jj failed-destination tests, and the PTY creation workflow cover this isolation.
+
+Submitting an invalid workspace form focuses the first failing field in displayed
+field order. Path errors identify the field; model/revision/instruction failures
+also move directly to their editor. Ordinary validation remains side-effect-free,
+and submitted values are not changed by recovery. Unit and Ctrl-S PTY checks
+verify focused correction without a creation request or agent invocation.

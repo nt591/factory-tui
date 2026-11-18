@@ -242,3 +242,8 @@
  (name test_form_status)
  (modules test_form_status)
  (libraries factory_tui notty))
+
+(test
+ (name test_form_validation)
+ (modules test_form_validation)
+ (libraries factory_tui notty))

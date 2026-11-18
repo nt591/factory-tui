@@ -362,3 +362,10 @@ erase the form's validation/error message. Submission and bounded creation failu
 update both status channels; successful creation closes the form. Cancelling drops
 the form-local status and leaves task data unchanged. Unit event/render tests,
 real-jj failed-destination tests, and the PTY creation workflow cover this isolation.
+
+Ctrl-S validation focuses the first invalid workspace field so the user can correct
+it immediately, including on compact screens. Errors for absolute paths identify
+the affected field. Field values remain intact, and ordinary validation does not
+move focus. The submission-specific helper owns this behavior; invalid submission
+starts no workspace job. Pure recovery tests and the terminal creation workflow
+verify correction from an empty form through successful explicit submission.

@@ -97,22 +97,38 @@ let paste_key t (key, _) =
       insert t (Buffer.contents buffer)
   | _ -> ()
 
-let validate t =
+let validation_error t =
   let invalid_path field =
     let path = value t field in
     path = "" || Filename.is_relative path || String.contains path '\000'
   in
-  if List.exists invalid_path [ Jj; Source; Parent ] then
-    Error "Use absolute paths for jj, source, and workspace parent."
-  else if String.trim (value t Revision) = "" || (value t Revision).[0] = '-' then
-    Error "Enter an explicit base revision."
-  else if String.trim (value t Task) = "" then Error "Enter a task instruction."
-  else if String.length (value t Task) > 65536 then Error "Task exceeds 64 KiB."
-  else
-    match
-      Model.set_model
-        (Model.make ~id:"validation" ~title:"" ~repository:"")
-        (value t Model)
-    with
-    | Error error -> Error error
-    | Ok _ -> Ok ()
+  match List.find_opt invalid_path [ Jj; Source; Parent ] with
+  | Some field ->
+      Some
+        (field, label field ^ ": Use absolute paths for jj, source, and workspace parent.")
+  | None -> (
+      if String.trim (value t Revision) = "" || (value t Revision).[0] = '-' then
+        Some (Revision, "Enter an explicit base revision.")
+      else
+        match
+          Model.set_model
+            (Model.make ~id:"validation" ~title:"" ~repository:"")
+            (value t Model)
+        with
+        | Error error -> Some (Model, error)
+        | Ok _ ->
+            if String.trim (value t Task) = "" then
+              Some (Task, "Enter a task instruction.")
+            else if String.length (value t Task) > 65536 then
+              Some (Task, "Task exceeds 64 KiB.")
+            else None)
+
+let validate t =
+  match validation_error t with None -> Ok () | Some (_, error) -> Error error
+
+let validate_submission t =
+  match validation_error t with
+  | None -> Ok ()
+  | Some (field, error) ->
+      t.current <- field;
+      Error error

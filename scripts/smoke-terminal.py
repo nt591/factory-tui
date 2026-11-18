@@ -421,7 +421,8 @@ try:
         check("workspace dialog opens", "NEW WORKSPACE TASK" in text())
         check("creation disclosure visible", "snapshot source files" in text() and "no automatic agent run" in text())
         check("workspace form shows setup guidance rather than prior-run status", "Fill the fields; Ctrl-S creates a queued task." in text())
-        send(b"\x1b[Z")
+        send(b"\x13")
+        check("invalid workspace submission selects the executable field", "jj executable: Use absolute paths" in text())
         send(b"/opt/homebrew/bin/jj\t")
         send(str(source).encode())
         send(b"\x1b[H")
@@ -434,7 +435,7 @@ try:
         pump(0.5)
         check("workspace form remains explicit", "Task instruction" in text()
               and "Create an isolated task through the TUI" in text())
-        check("form-local guidance survives background demo updates", "Fill the fields; Ctrl-S creates a queued task." in text())
+        check("form-local validation survives background demo updates", "jj executable: Use absolute paths" in text())
         if args.preview:
             preview(args.preview.with_stem(args.preview.stem + "-workspace"))
         send(b"\x13")
