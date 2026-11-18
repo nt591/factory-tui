@@ -86,6 +86,9 @@ against these interfaces during the normal Dune build.
   private. This is not yet an abstract controller with a read-only view model.
   The renderer supplies transient board list/column mode so navigation follows
   the displayed task order; this mode is not a persisted task preference.
+- `Board_window`: pure visible-item selection, selection/manual-scroll offsets,
+  and card/list range cues. The renderer uses one window definition for content
+  and overflow labels; the helper changes no task or viewport state.
 - `Board_guidance`: pure empty-state copy and action selection for live, demo,
   archive, and filtered boards. It starts no jobs and owns no persistence.
 - `Activity_content`: pure logical task metadata, tool groups, and captured-run

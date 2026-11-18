@@ -134,6 +134,10 @@ Acceptance does not merge, push, or delete a workspace.
    arrows/counts/gg/G/pages. Four-column layouts keep state-local vertical and
    cross-column horizontal motion. Rendering updates transient navigation mode;
    resize/filter/state-change unit and PTY checks verify selection consistency.
+   Board overflow shows visible card/list ranges and above/below arrows rather
+   than a generic scroll label. Pure `Board_window` computes both visible items
+   and cues; paging/selection tests verify matching ranges and retained task hits.
+   Short columns with tasks request resize instead of falsely claiming emptiness.
    UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,

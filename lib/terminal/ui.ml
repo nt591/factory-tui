@@ -335,12 +335,10 @@ let render t ~width:cols ~height:rows =
         in
         find 0 tasks
       in
-      let offset =
-        if t.board_scroll > 0 then
-          min t.board_scroll (max 0 (List.length tasks - capacity))
-        else max 0 (selected_index - capacity + 1)
+      let window =
+        Board_window.make ~capacity ~selected:selected_index ~scroll:t.board_scroll tasks
       in
-      let tasks = List.filteri (fun i _ -> i >= offset && i < offset + capacity) tasks in
+      let tasks = window.items in
       let rows =
         List.mapi
           (fun i (task : task) ->
@@ -355,9 +353,12 @@ let render t ~width:cols ~height:rows =
                  task.id (label task.state) task.title))
           tasks
       in
+      let title =
+        if Board_window.cue window = "" then "Tasks / click to focus / e expand"
+        else "Tasks / click · " ^ Board_window.cue window ^ " · e expand"
+      in
       paint r.x r.y
-        (border r.w r.h ~title:"Tasks / click to focus / e expand" ~color:accent
-           ~focused:(t.focus = Board) (I.vcat rows)))
+        (border r.w r.h ~title ~color:accent ~focused:(t.focus = Board) (I.vcat rows)))
     else
       let col_w = r.w / 4 in
       List.iteri
@@ -375,14 +376,11 @@ let render t ~width:cols ~height:rows =
             in
             find 0 items
           in
-          let offset =
-            if t.board_scroll > 0 then
-              min t.board_scroll (max 0 (List.length items - capacity))
-            else max 0 (selected_index - capacity + 1)
+          let window =
+            Board_window.make ~capacity ~selected:selected_index ~scroll:t.board_scroll
+              items
           in
-          let shown =
-            List.filteri (fun i _ -> i >= offset && i < offset + capacity) items
-          in
+          let shown = window.items in
           let cards =
             List.mapi
               (fun index (task : task) ->
@@ -423,11 +421,14 @@ let render t ~width:cols ~height:rows =
               shown
           in
           let content =
-            if shown = [] then line (w - 2) (attr muted) "  No tasks" else I.vcat cards
+            if items = [] then line (w - 2) (attr muted) "  No tasks"
+            else if shown = [] then line (w - 2) (attr muted) "  Resize to show cards"
+            else I.vcat cards
           in
           let title =
             Printf.sprintf "%s %d%s" (label state) (List.length items)
-              (if List.length items > capacity then " / scroll" else "")
+              (if Board_window.cue window = "" then ""
+               else " / " ^ Board_window.cue window)
           in
           paint x r.y
             (border w r.h ~title ~color:(state_color state)

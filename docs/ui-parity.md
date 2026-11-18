@@ -170,3 +170,11 @@ state-local j/k and cross-column h/l. The renderer updates transient navigation
 mode when the board layout changes; filters and automatic state updates keep the
 same list ordering as the display. Tests cover resizing, filtering, paging,
 state changes, and actual compact-terminal key input. No layout mode is persisted.
+
+Overflowing columns and compact/archive lists show the visible item range, total,
+and above/below arrows in their headers. The same `Board_window.ml/.mli` result
+selects displayed cards/rows and computes the cue. Selection follows into view;
+manual scrolling can inspect another window, and offsets clamp to a full final
+page. A column too short for one card requests resize rather than saying there
+are no tasks. Unit tests cover ranges, paging, last selection, manual scrolling,
+compact lists, and short columns; PTY checks verify initial/last card ranges.

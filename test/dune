@@ -162,3 +162,8 @@
  (name test_board_navigation)
  (modules test_board_navigation)
  (libraries factory_tui notty))
+
+(test
+ (name test_board_window)
+ (modules test_board_window)
+ (libraries factory_tui notty))
