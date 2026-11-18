@@ -80,6 +80,7 @@ def main():
             f"parent={json.dumps(str(parent))}\nrevision='@'\nmodel='fixture-model'\n"
         )
         marker = directory / "invocations.jsonl"
+        release = directory / "release-followup"
         executable = directory / "fake-runner"
         executable.write_text(
             "#!/usr/bin/env python3\n"
@@ -87,11 +88,19 @@ def main():
 import json
 import pathlib
 import sys
+import time
 arguments = sys.argv[1:]
 prompt = sys.stdin.read()
 with pathlib.Path({str(marker)!r}).open('a') as output:
     output.write(json.dumps({{'arguments': arguments, 'prompt': prompt, 'cwd': str(pathlib.Path.cwd())}}) + '\\n')
 resumed = arguments[:2] == ['exec', 'resume']
+if resumed:
+    print(json.dumps({{'type': 'turn.started'}}), flush=True)
+    deadline = time.monotonic() + 15
+    while not pathlib.Path({str(release)!r}).exists():
+        if time.monotonic() >= deadline:
+            raise RuntimeError('The workflow did not release the follow-up fixture.')
+        time.sleep(0.01)
 if resumed:
     pathlib.Path('followup.txt').write_text('Reviewed follow-up implementation\\n')
 else:
@@ -197,6 +206,49 @@ for event in [
             )
             tui.send(b"\x1b[6~" * 20 + b"y")
             tui.wait(
+                "follow-up run is Working",
+                lambda: (
+                    "/ Working / conversation" in tui.text()
+                    and len(marker.read_text().splitlines()) == 2
+                ),
+            )
+            tui.send(b"iQueue this for a later turn\r")
+            tui.wait(
+                "reply queued during work",
+                lambda: (
+                    "Queue this for a later turn" in tui.text()
+                    and "/ Working / conversation" in tui.text()
+                ),
+            )
+            tui.wait(
+                "working queued reply saved",
+                lambda: any(
+                    message["text"] == "Queue this for a later turn"
+                    for message in snapshot(database)["tasks"][0]["messages"]
+                ),
+            )
+            working_task = snapshot(database)["tasks"][0]
+            late_message = next(
+                message
+                for message in working_task["messages"]
+                if message["text"] == "Queue this for a later turn"
+            )
+            tui.check(
+                "Working checkpoint retains reply outside active submission",
+                working_task["state"] == "working"
+                and late_message["queued"]
+                and late_message["id"] not in working_task["active"]["submitted"],
+            )
+            tui.check(
+                "working reply does not spawn another process or alter captured prompt",
+                len(marker.read_text().splitlines()) == 2
+                and json.loads(marker.read_text().splitlines()[1])["prompt"]
+                == "Add the follow-up file",
+            )
+            if args.preview:
+                tui.preview(args.preview.with_stem(args.preview.stem + "-working"))
+            release.touch()
+            tui.wait(
                 "follow-up run completes",
                 lambda: (
                     "Fixture follow-up ready for review" in tui.text()
@@ -233,8 +285,9 @@ for event in [
                 "explicit acceptance", lambda: "/ Done / conversation" in tui.text()
             )
             tui.check(
-                "accepted task retains read-only draft",
-                "draft retained" in tui.text()
+                "accepted task retains queued reply and read-only draft",
+                "1 queued retained" in tui.text()
+                and "draft retained" in tui.text()
                 and "i reply" not in tui.screen.display[-2],
             )
             tui.send(b"q")
@@ -259,6 +312,11 @@ for event in [
         ).read_text() == "Reviewed follow-up implementation\n"
         assert not (source / "followup.txt").exists()
 
+        queued = [message for message in task["messages"] if message["queued"]]
+        assert len(queued) == 1 and queued[0]["text"] == "Queue this for a later turn"
+        assert len({message["id"] for message in task["messages"]}) == len(
+            task["messages"]
+        )
         assert saved["drafts"] == [[task["id"], "Retained unsent draft"]]
         with Terminal(command, env, columns=180, rows=50) as tui:
             tui.ready()
@@ -275,8 +333,10 @@ for event in [
                 len(marker.read_text().splitlines()) == 2,
             )
             tui.check(
-                "restored task stays read-only",
-                "draft retained" in tui.text()
+                "restored task stays read-only with queued reply retained",
+                "1 queued retained" in tui.text()
+                and "Queue this for a later turn" in tui.text()
+                and "draft retained" in tui.text()
                 and "s confirm" not in tui.screen.display[-2]
                 and "i reply" not in tui.screen.display[-2],
             )

@@ -844,3 +844,10 @@ next-model editing/queued follow-up with exact same-thread resume. It checks the
 second invocation's prompt/arguments/workspace, first-run record and message-prefix
 immutability, both reviewable files and read-only restart without another process.
 A fake executable supplies answers; no installed agent or real provider is used.
+
+The workflow's resumed fake process now waits behind a temporary release file
+with a 15-second failure deadline. While it is Working, the PTY queues another
+reply and waits for SQLite to retain it outside the active submitted-ID set.
+Only the test releases completion. The accepted/reopened task retains exactly one
+queued late reply, the draft and both completed runs without a third invocation.
+This checks queue isolation across the real UI/process/persistence boundary.

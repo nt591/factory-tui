@@ -942,3 +942,11 @@ byte-for-byte JSON-equivalent. Real jj review includes the second file. Accepted
 restart preserves both turns and the unsent draft without a third invocation.
 This strengthens fake-process workflow evidence, not installed-agent/provider
 resume compatibility or sandbox enforcement.
+
+The continuous workflow holds its second fake process behind a bounded release
+file, queues a reply while Working, and inspects the durable checkpoint before
+releasing completion. The late reply remains queued outside the active run's
+submitted IDs; no third process starts and the captured prompt stays unchanged.
+Acceptance and restart retain that exact queued reply plus the unsent draft in a
+read-only conversation. This verifies the next-turn queue boundary end to end,
+not live provider delivery or sandbox enforcement. No runtime behavior changes.

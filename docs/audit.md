@@ -387,3 +387,13 @@ on the exact same thread/workspace; cancellation, draft acceptance and restart
 remain explicit and preserve source/history. Separate setup (34), invocation (20),
 fake execution (19) and package (16) checks passed. This is fake-process integration,
 not installed-agent or real-provider resume compatibility.
+
+Working-reply isolation verification on 2026-11-18 passed all 18 fixture UI cases
+and format/build/unit gates with 64 previews. Evidence:
+`/tmp/factory-working-reply-ui-20261118/report.json`. The accepted restart preview
+shows the late queued instruction and retained-draft/read-only disclosure. Before
+completion, SQLite retains that reply outside the active submitted IDs; the fake
+process keeps its original prompt and no third invocation starts. Both run records,
+source preservation and exact restart history remain verified. Separate setup (34),
+invocation (20), fake execution (19) and package (16) checks passed. No runtime
+change, model call, provider-delivery claim or sandbox security claim is made.
