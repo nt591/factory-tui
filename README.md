@@ -552,6 +552,10 @@ Creation requires durable storage;
 a save failure leaves the new directory for inspection instead of deleting it.
 See [docs/workspaces.md](docs/workspaces.md) for the API limits and next steps.
 
+In short terminals, the focused pane fills the body: `i` shows the chat/composer,
+Tab cycles to Activity and the board, and Ctrl-W moves focus as usual. Drafts and
+selection survive these layout changes; explicit `e` zoom remains separate.
+
 ## Module interfaces
 
 All core modules have explicit `.mli` interfaces. Database, persistence worker,

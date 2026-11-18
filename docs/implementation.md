@@ -101,7 +101,10 @@ Acceptance does not merge, push, or delete a workspace.
    transcript search,
    readable/raw tool activity with focused full-width expansion, Help/Settings tabs,
    and terminal smoke tests
-   exist. UI guidance and visual verification are in `docs/ui-parity.md`.
+   exist. Short terminal bodies show the focused pane so composing and searching
+   do not hide behind the board. A pure `Pane_layout` module selects splits;
+   unit/PTY tests cover compact compose/focus cycling without changing drafts.
+   UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,
    notarization, and fresh-machine lock reconstruction are not verified. Local

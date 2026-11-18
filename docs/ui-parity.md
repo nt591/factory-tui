@@ -95,3 +95,10 @@ keys use the actual visible patch height. The immutable `Diff_document` index
 lives beside review input/rendering with an explicit interface. Pure parser tests,
 real-jj review tests, and PTY keyboard/mouse checks cover multi-file navigation.
 No task, draft, database, or workspace is changed by navigation.
+
+Short terminal bodies show the focused pane rather than hiding the editor behind
+the board. `i` and chat search expose the conversation; Tab/Ctrl-W can select
+Activity or return to the board. This does not enable zoom or alter saved drafts.
+`Pane_layout` chooses the split without a controller dependency. Compact input,
+focus cycling, and frame/hit bounds are covered by unit tests and a 60x20 PTY
+compose/focus sequence. Larger stacked/side-by-side layouts keep their thresholds.

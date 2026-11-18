@@ -93,6 +93,8 @@ against these interfaces during the normal Dune build.
 - `Text_edit`: abstract bounded UTF-8 text and cursor state, with insertion,
   deletion, line navigation, and extended-grapheme movement. Segmentation uses
   Uuseg; cached boundaries are private and malformed UTF-8 is normalized. It performs no UI actions.
+- `Pane_layout`: pure board/detail split selection from body size and focus.
+  It has no controller, persistence, terminal, or process dependency.
 - `Ui`: frame/hitbox data, render, mouse dispatch, and tested text wrapping. Theme,
   borders, image composition, and pane rendering helpers stay private. Activity
   expansion preserves the previous task layout and exposes full-width output.

@@ -568,19 +568,27 @@ let render t ~width:cols ~height:rows =
      in
      paint 0 body_y
        (border sidebar_width body_h ~title:"Factory" ~color:accent ~focused:false content));
-  if body_h > 0 then
-    if t.zoom && t.activity_expanded then
-      activity { x = 0; y = body_y; w = cols; h = body_h }
-    else if t.zoom then details { x = 0; y = body_y; w = cols; h = body_h }
-    else if main_width >= 155 then (
-      let left = max 88 (main_width * 58 / 100) in
-      board { x = sidebar_width; y = body_y; w = left; h = body_h };
-      details { x = sidebar_width + left; y = body_y; w = main_width - left; h = body_h })
-    else if body_h >= 17 then (
-      let top = max (if body_h >= 27 then 16 else 9) (body_h * 52 / 100) in
-      board { x = sidebar_width; y = body_y; w = main_width; h = top };
-      details { x = sidebar_width; y = body_y + top; w = main_width; h = body_h - top })
-    else board { x = sidebar_width; y = body_y; w = main_width; h = body_h };
+  (if body_h > 0 then
+     if t.zoom && t.activity_expanded then
+       activity { x = 0; y = body_y; w = cols; h = body_h }
+     else if t.zoom then details { x = 0; y = body_y; w = cols; h = body_h }
+     else
+       match
+         Pane_layout.choose ~width:main_width ~height:body_h
+           ~detail_focused:(t.focus <> Board)
+       with
+       | Pane_layout.Board ->
+           board { x = sidebar_width; y = body_y; w = main_width; h = body_h }
+       | Pane_layout.Detail ->
+           details { x = sidebar_width; y = body_y; w = main_width; h = body_h }
+       | Pane_layout.Side_by_side left ->
+           board { x = sidebar_width; y = body_y; w = left; h = body_h };
+           details
+             { x = sidebar_width + left; y = body_y; w = main_width - left; h = body_h }
+       | Pane_layout.Stacked top ->
+           board { x = sidebar_width; y = body_y; w = main_width; h = top };
+           details
+             { x = sidebar_width; y = body_y + top; w = main_width; h = body_h - top });
   let pending_keys =
     (if t.count = 0 then "" else string_of_int t.count)
     ^ match t.prefix with No_prefix -> "" | Go -> "g" | Window -> "Ctrl-W "
