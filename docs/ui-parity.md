@@ -152,4 +152,13 @@ row before choosing that window, and hidden panes construct no chat row images.
 Full logical message rows remain available for history anchoring and search;
 streaming, seeking, and End-follow behavior stay unchanged. Pure bounded-window
 checks and existing streaming/search/PTY coverage verify this boundary. Scoped
-image-construction measurements are in `docs/testing.md`; wrapping is not cached.
+image-construction measurements are in `docs/testing.md`.
+
+`Chat_layout` caches wrapped transcript rows and message/row anchors for the current
+selected task and content width. Unchanged immutable message lists reuse the layout;
+streaming replacements, acknowledgements, task changes, and width changes rebuild
+it. Height-only resize and next-run setting changes reuse the rows. Only one
+transcript/width is retained, and the cache is never serialized. Search styling,
+viewport selection, and visible image construction remain separate. Pure and UI
+checks cover invalidation, retained labels/text, stable anchors, and persistence
+isolation; terminal streaming/search/history checks cover the complete behavior.

@@ -123,46 +123,36 @@ let render t ~width:cols ~height:rows =
     in
     let chat_height = r.h - composer_height in
     let inner = max 1 (r.w - 4) in
-    let title, rows =
+    let title, rows, anchors =
       match task with
       | None ->
-          ( "Conversation",
+          Chat_layout.clear t.chat_layout;
+          let rows =
             List.map
-              (fun line -> (muted, line, None, 0))
+              (fun text -> { Chat_layout.id = ""; index = 0; text; tone = Spacer })
               (if t.live_config = None then [ "Select a task. Enter or e expands it." ]
                else
                  [
                    "A task's conversation will appear here.";
                    "Create a workspace task with W or n.";
                    "Messages and drafts are saved to your configured SQLite database.";
-                 ]) )
+                 ])
+          in
+          ("Conversation", rows, List.map (fun _ -> ("", 0)) rows)
       | Some task ->
           Chat_search.sync t.chat_search task.messages;
-          let rows =
-            List.concat_map
-              (fun (m : message) ->
-                let body = wrap inner m.text in
-                ( (if m.queued then state_color Needs_you else accent),
-                  (m.author
-                  ^
-                  if m.queued then " / queued"
-                  else if m.author = "You" then " / sent"
-                  else ""),
-                  Some m.id,
-                  0 )
-                :: (List.mapi (fun index row -> (text, row, Some m.id, index + 1)) body
-                   @ [ (muted, "", Some m.id, 1 + List.length body) ]))
-              task.messages
+          let document =
+            Chat_layout.update t.chat_layout ~task_id:task.id ~width:inner task.messages
           in
-          (task.id ^ " / " ^ label task.state ^ " / conversation", rows)
+          ( task.id ^ " / " ^ label task.state ^ " / conversation",
+            Chat_layout.rows document,
+            Chat_layout.anchors document )
     in
     let searching = t.input = Chat_search || Chat_search.query t.chat_search <> "" in
     let available = max 0 (chat_height - 2 - if searching then 1 else 0) in
     if t.focus = Conversation then t.page_rows <- max 1 available;
     let view =
-      Chat_viewport.update t.chat_viewport ~task_id:t.selected
-        ~rows:
-          (List.map (fun (_, _, id, index) -> (Option.value ~default:"" id, index)) rows)
+      Chat_viewport.update t.chat_viewport ~task_id:t.selected ~rows:anchors
         ~height:available
         ~distance:
           (if t.focus = Activity then Chat_viewport.distance t.chat_viewport else t.scroll)
@@ -176,16 +166,23 @@ let render t ~width:cols ~height:rows =
     let content =
       I.vcat
         (List.map
-           (fun (color, text, id, _) ->
+           (fun (row : Chat_layout.row) ->
+             let color =
+               match row.tone with
+               | Author true -> state_color Needs_you
+               | Author false -> accent
+               | Body -> text
+               | Spacer -> muted
+             in
              let attribute =
-               match id with
-               | Some id when Chat_search.current t.chat_search = Some id ->
+               match row.id with
+               | id when Chat_search.current t.chat_search = Some id ->
                    A.(attr color ++ bg (color_rgb 38 57 72) ++ st bold)
-               | Some id when Chat_search.matches t.chat_search id ->
+               | id when Chat_search.matches t.chat_search id ->
                    A.(attr color ++ st underline)
                | _ -> attr color
              in
-             I.hpad 1 1 (line inner attribute text))
+             I.hpad 1 1 (line inner attribute row.text))
            rows)
     in
     paint r.x r.y

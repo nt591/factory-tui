@@ -126,8 +126,10 @@ Acceptance does not merge, push, or delete a workspace.
    checks cover compact paging and bottom instructions.
    Chat image construction is bounded to the actual visible row window, including
    search-row space. Full logical rows remain available for history anchoring and
-   search; this does not claim cached transcript wrapping. Pure window and existing
-   streaming/search/PTY tests verify retained behavior.
+   search. `Chat_layout` caches wrapped rows/anchors for the current task and width,
+   invalidating on immutable message-list replacement. Height/model changes reuse
+   it; new stream text and delivery acknowledgements rebuild. The single cache is
+   transient, with unit/streaming/search/PTY verification and scoped measurements.
    UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,

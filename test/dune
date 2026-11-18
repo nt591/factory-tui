@@ -152,3 +152,8 @@
  (name test_chat_window)
  (modules test_chat_window)
  (libraries factory_tui notty unix))
+
+(test
+ (name test_chat_layout)
+ (modules test_chat_layout)
+ (libraries factory_tui unix notty))

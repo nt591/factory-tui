@@ -135,3 +135,26 @@ indexing, viewport anchoring, other panes, and terminal output. It is a single-r
 component measurement, not a whole-TUI latency or native-GUI comparison. Full
 logical chat rows are still generated to preserve anchors and search; no large-chat
 wrapping-cache claim is made.
+
+## Unchanged transcript layout
+
+`Chat_layout` caches the current task's wrapped rows and anchor list. The key is
+task ID, content width, and physical identity of the immutable message list. New
+stream text or queued-message acknowledgements create a new list and rebuild;
+task/width changes rebuild even with the same list. Height-only resize and changes
+to next-run settings reuse the document. Structurally equal replacement lists
+rebuild conservatively. The single-entry cache is transient and is not a snapshot
+field. Unit/UI tests check these cases and sanitized body text; existing terminal
+streaming, search, and history checks exercise the integration.
+
+```sh
+opam exec --switch=. -- dune exec test/test_chat_layout.exe -- --measure
+```
+
+On November 18, 2026, a local synthetic transcript of 2,000 messages (8,000 wrapped
+rows) took 229.677 ms total for twenty forced layout/anchor rebuilds. Twenty cache
+hits took 0.000954 ms total. This timer-resolution-sensitive number is not a
+whole-TUI latency claim: it excludes search matching, viewport scans, image
+construction, and terminal output. The cache retains extra wrapped text and
+anchors, and a changed message list still rebuilds the full transcript. Incremental
+per-message wrapping and whole-application performance are not verified here.

@@ -157,6 +157,8 @@ plugins, modify shell startup files, or require global OCaml tool installations.
   history reading; resizing width preserves the message and approximate wrapped
   row, not a byte-exact text position. Only visible chat rows become terminal
   images; the full logical history remains available for anchors and search.
+  Wrapped rows are reused while the current task's messages and pane width stay
+  unchanged. Streaming replacements and width changes rebuild this transient cache.
 - `/` searches the focused pane: title/repository/task ID on the board, or message
   text and author in chat. `S` opens chat search from any pane. Enter finishes the
   query; `n/N` selects the next/previous matching message while focused in chat.
