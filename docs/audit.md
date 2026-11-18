@@ -11,6 +11,7 @@ accessible help/settings. The staged native-app implementation remains the guide
 | --- | --- | --- |
 | Four self-updating columns | `Model.apply` derives Queued/Working/Needs you/Ready. Factory and PTY tests verify automatic movement from both timer and supervised process events. | Implemented |
 | Open and explore a task | Controller/Ui selection, split chat/activity, Enter/e and double-click expansion; PTY verifies click, expansion, Escape, and selected identity after movement. | Implemented |
+| Reading position | Transient task/message/row viewport preserves history position on append and earlier stream growth; End follows updates. Unit/PTY verify reading anchors and no saved mutations from layout. | Implemented; approximate wrapped-row retention on width reflow |
 | Transcript search | Contextual / or S, literal matching by text/author, n/N cycling, stable message identity, visible counts/highlighting, no saved-draft mutations. Unit and PTY checks. | Implemented |
 | Readable mock-inspired layout | Bordered cards with wrapped titles, repository sidebar, selected card tint, persistent transcript/composer, collapsed tool output. Rendered PTY captures were inspected at 120x36 and 180x50. | Implemented; user visual preference still matters |
 | Help/settings | `?` opens tabbed modal, keyboard/mouse tabs, scrolling, current storage and next-run settings; tests verify modal isolation and content. | Implemented |

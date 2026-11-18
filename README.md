@@ -148,7 +148,11 @@ plugins, modify shell startup files, or require global OCaml tool installations.
     Navigation keys are literal text while composing or searching.
   - Pending counts and `g` / Ctrl-W prefixes appear in the status line.
 - Arrow keys or `hjkl` navigate. Mouse wheel and Page Up/Down scroll.
-  Conversations follow new messages until you scroll back; End resumes following.
+  Conversations follow new messages until you scroll back. A message/row anchor
+  then preserves the reading position as output arrives; End resumes following.
+  Search seeking and explicit navigation move the anchor. The chat header marks
+  history reading; resizing width preserves the message and approximate wrapped
+  row, not a byte-exact text position.
 - `/` searches the focused pane: title/repository/task ID on the board, or message
   text and author in chat. `S` opens chat search from any pane. Enter finishes the
   query; `n/N` selects the next/previous matching message while focused in chat.

@@ -166,46 +166,49 @@ let render t ~width:cols ~height:rows =
     let title, rows =
       match task with
       | None ->
-          ("Conversation", [ (muted, "Select a task. Enter or e expands it.", None) ])
+          ("Conversation", [ (muted, "Select a task. Enter or e expands it.", None, 0) ])
       | Some task ->
           Chat_search.sync t.chat_search task.messages;
           let rows =
             List.concat_map
               (fun (m : message) ->
+                let body = wrap inner m.text in
                 ( (if m.queued then state_color Needs_you else accent),
                   (m.author
                   ^
                   if m.queued then " / queued"
                   else if m.author = "You" then " / sent"
                   else ""),
-                  Some m.id )
-                :: List.map (fun row -> (text, row, Some m.id)) (wrap inner m.text)
-                @ [ (muted, "", None) ])
+                  Some m.id,
+                  0 )
+                :: (List.mapi (fun index row -> (text, row, Some m.id, index + 1)) body
+                   @ [ (muted, "", Some m.id, 1 + List.length body) ]))
               task.messages
           in
           (task.id ^ " / " ^ label task.state ^ " / conversation", rows)
     in
     let searching = t.input = Chat_search || Chat_search.query t.chat_search <> "" in
     let available = max 0 (chat_height - 2 - if searching then 1 else 0) in
-    if t.focus = Conversation then (
-      t.page_rows <- max 1 available;
-      t.scroll <- min t.scroll (max 0 (List.length rows - available)));
-    (match Chat_search.seek t.chat_search with
-    | None -> ()
-    | Some id ->
-        let rec find index = function
-          | [] -> 0
-          | (_, _, Some row_id) :: _ when row_id = id -> index
-          | _ :: rest -> find (index + 1) rest
-        in
-        let offset = min (find 0 rows) (max 0 (List.length rows - available)) in
-        t.scroll <- max 0 (List.length rows - available - offset));
-    let offset = max 0 (List.length rows - available - t.scroll) in
+    if t.focus = Conversation then t.page_rows <- max 1 available;
+    let view =
+      Chat_viewport.update t.chat_viewport ~task_id:t.selected
+        ~rows:
+          (List.map (fun (_, _, id, index) -> (Option.value ~default:"" id, index)) rows)
+        ~height:available
+        ~distance:
+          (if t.focus = Activity then Chat_viewport.distance t.chat_viewport else t.scroll)
+        ~seek:(Chat_search.seek t.chat_search)
+    in
+    if available > 0 && t.focus <> Activity then t.scroll <- view.distance;
+    let offset = view.offset in
+    let title =
+      title ^ if view.following then "" else " / reading history · End follows"
+    in
     let rows = List.filteri (fun i _ -> i >= offset) rows in
     let content =
       I.vcat
         (List.map
-           (fun (color, text, id) ->
+           (fun (color, text, id, _) ->
              let attribute =
                match id with
                | Some id when Chat_search.current t.chat_search = Some id ->

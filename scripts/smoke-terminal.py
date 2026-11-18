@@ -542,6 +542,47 @@ printf '%s\\n' '{"type":"turn.completed"}'
         check("write policy saved per run", write_task["runs"][-1]["policy"] == "workspace-write")
         check("earlier runs stay read-only", all(run["policy"] == "read-only" for run in write_task["runs"][:-1]))
 
+    with tempfile.TemporaryDirectory(prefix="factory-history-scroll-") as directory:
+        replay = Path(directory) / "events.jsonl"
+        def replay_event(item, text):
+            return json.dumps({"task_id":"T-102", "run_id":"demo-102", "type":"message",
+                               "item_id":item, "text":text}) + "\n"
+        replay.write_text("".join(replay_event(f"history-{i}", f"History item {i:02d}") for i in range(24)))
+        screen.reset()
+        process = subprocess.Popen([str(binary), "--no-config", "--events", str(replay)],
+                                   stdin=slave, stdout=slave, stderr=slave, env=env)
+        wait_ready()
+        pump(0.3)
+        send(b"e")
+        check("chat initially follows latest replay output", "History item 23" in text())
+        send(b"\x1b[H")
+        send(b"6j")
+        def top_chat_line():
+            return screen.display[5].split("│")[1].strip()
+        check("scroll reveals older message", top_chat_line() == "History item 01")
+        check("paused history is disclosed", "reading history" in text())
+        with replay.open("a") as output:
+            output.write(replay_event("later", "New output while reading history"))
+        pump(0.3)
+        check("incoming output does not move reading position", top_chat_line() == "History item 01"
+              and "New output while reading history" not in text())
+        with replay.open("a") as output:
+            output.write(replay_event("history-0", "Earlier streamed message now has more text\n" * 5))
+        pump(0.3)
+        check("earlier stream growth keeps anchored message visible", top_chat_line() == "History item 01")
+        if args.preview:
+            preview(args.preview.with_stem(args.preview.stem + "-history-anchor"))
+        send(b"\x1b[F")
+        check("End resumes following current output", "New output while reading history" in text()
+              and "reading history" not in screen.display[3])
+        with replay.open("a") as output:
+            output.write(replay_event("newest", "Following resumed successfully"))
+        pump(0.3)
+        check("following tracks subsequent output", "Following resumed successfully" in text())
+        send(b"q")
+        wait_exit(5)
+        check("anchored history UI exits cleanly", process.returncode == 0)
+
 
 finally:
     if process.poll() is None:

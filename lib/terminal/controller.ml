@@ -67,6 +67,7 @@ type t = {
   mutable input : input;
   mutable query : string;
   chat_search : Chat_search.t;
+  chat_viewport : Chat_viewport.t;
   mutable new_title : string;
   mutable model_text : string;
   mutable editor : Text_edit.t;
@@ -117,6 +118,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     input = Normal;
     query = "";
     chat_search = Chat_search.create ();
+    chat_viewport = Chat_viewport.create ();
     new_title = "";
     model_text = "";
     editor = Text_edit.create "";
@@ -185,6 +187,7 @@ let reset_keys t =
 let select t id =
   if t.selected <> id then Chat_search.clear t.chat_search;
   t.selected <- id;
+  Chat_viewport.reset t.chat_viewport;
   t.scroll <- 0;
   t.board_scroll <- 0
 
@@ -227,6 +230,7 @@ let act t action =
   | Zoom ->
       t.zoom <- not t.zoom;
       t.focus <- Conversation;
+      Chat_viewport.reset t.chat_viewport;
       t.scroll <- 0
   | Quit -> t.quit <- true
   | Help ->
@@ -655,6 +659,7 @@ let cycle_focus t backwards =
     | Activity, false | Conversation, true -> Board);
   if t.zoom && t.focus = Board then
     t.focus <- (if backwards then Activity else Conversation);
+  Chat_viewport.reset t.chat_viewport;
   t.scroll <- 0
 
 let window_focus t direction =
@@ -669,6 +674,7 @@ let window_focus t direction =
     | `Down -> if t.focus = Board then Conversation else Activity
   in
   t.focus <- focus;
+  Chat_viewport.reset t.chat_viewport;
   t.scroll <- 0
 
 let repeat count fn =
@@ -727,6 +733,7 @@ let normal_key t (key, mods) =
             else if t.zoom then (
               t.zoom <- false;
               t.focus <- Board;
+              Chat_viewport.reset t.chat_viewport;
               t.scroll <- 0)
             else (
               t.query <- "";

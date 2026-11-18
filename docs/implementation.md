@@ -86,7 +86,8 @@ Acceptance does not merge, push, or delete a workspace.
    workspace creation and review require explicit user actions.
 8. **Local distribution and lifecycle — implemented; release portability pending.**
    Vim navigation, repository sidebar,
-   bordered cards, grapheme-aware multiline editing/paste, transcript search,
+   bordered cards, grapheme-aware multiline editing/paste, anchored reading views,
+   transcript search,
    Help/Settings tabs,
    and terminal smoke tests
    exist. UI guidance and visual verification are in `docs/ui-parity.md`.

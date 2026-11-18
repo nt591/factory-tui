@@ -75,6 +75,9 @@ against these interfaces during the normal Dune build.
   Its mutable state record is public because the current renderer and app loop
   read and update it. Navigation algorithms and command dispatch helpers remain
   private. This is not yet an abstract controller with a read-only view model.
+- `Chat_viewport`: abstract reading anchor keyed by task/message and wrapped row.
+  Appended output and earlier stream growth do not move a paused reading view.
+  Explicit scrolling/search seeking changes the anchor; End resumes following.
 - `Chat_search`: abstract transient query/matching-message selection, anchored
   by stable message ID. It searches content/authors without modifying tasks.
 - `Text_edit`: abstract bounded UTF-8 text and cursor state, with insertion,

@@ -56,3 +56,9 @@ Changes review is implemented as a full-screen pane rather than a drawer.
 Live workspace-write must be explicit on launch; the banner and confirmation
 disclose it. Run history shows requested policy. Fixture tests demonstrate a
 reviewable file change, not installed Codex sandbox enforcement.
+
+While reading earlier chat, appended output and growth in previous streamed
+messages preserve a task/message/row anchor. End explicitly resumes following.
+The paused-history label appears in the chat header. Height changes retain the
+anchor when it fits; column reflow preserves the approximate wrapped row within
+the message. Viewport state is transient and never rewrites saved chats/drafts.
