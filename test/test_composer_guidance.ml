@@ -41,6 +41,30 @@ let () =
         (Composer_guidance.text ~mode ~editing:false { task with state = Done }
         = "Accepted / read-only"))
     [ Menu_content.Simulation; Fake; Replay ];
+  let long = { task with model = String.make 200 'm' ^ "MODEL_END" } in
+  List.iter
+    (fun width ->
+      let editing =
+        Composer_guidance.text ~width ~mode:(Live Read_only) ~editing:true long
+      in
+      check "long model cannot hide queue instructions"
+        (String.starts_with ~prefix:"Enter queues" editing);
+      check "bounded composer hints fit terminal cells"
+        (Notty.I.width (Notty.I.string Notty.A.empty editing) <= width);
+      let idle =
+        Composer_guidance.text ~width ~mode:(Live Workspace_write) ~editing:false long
+      in
+      check "idle long model keeps live mode boundary visible"
+        (Controller.contains idle "live Codex only"
+        && not (Controller.contains idle "H harness")))
+    [ 20; 36; 56; 76 ];
+  check "ample space retains full selected model and hints"
+    (Composer_guidance.text ~width:400 ~mode:Simulation ~editing:true long
+    = Composer_guidance.text ~mode:Simulation ~editing:true long);
+  check "zero-width guidance is empty"
+    (Composer_guidance.text ~width:0 ~mode:Simulation ~editing:true long = "");
+  check "single-cell guidance remains bounded"
+    (Composer_guidance.text ~width:1 ~mode:Simulation ~editing:true long = "…");
   let controller = Controller.create () in
   controller.schedules <- [];
   controller.database_path <- Some "/fixture/db";
@@ -76,6 +100,11 @@ let () =
     (Controller.snapshot controller = saved && controller.live_confirmation = None);
   Controller.act controller Controller.Begin_compose;
   Controller.set_input controller "Follow-up for the next turn";
+  controller.tasks <- [ { working with model = long.model } ];
+  check "rendered long-model composer keeps queue and newline hints visible"
+    (Controller.contains (render ()) "Enter queues / Ctrl-L newline / Esc keeps draft");
+  controller.tasks <- [ working ];
+
   check "working composer still displays explicit queue instruction"
     (Controller.contains (render ()) "Enter queues");
   Controller.key controller (`Enter, []);

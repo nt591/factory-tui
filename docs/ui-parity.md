@@ -429,3 +429,10 @@ reply, including while Working. Pure mode/render/controller tests and the instal
 agent loopback UI check verify these instructions without changing active-run
 identity, captured settings, or per-run confirmation. Composer copy lives in the
 pure `Composer_guidance.ml/.mli` module.
+
+Composer guidance is fitted to its visible content width. When a model identifier
+is long, editing/queue or live-harness controls precede an abbreviated selection
+instead of being clipped behind it. Short values keep their existing selection
+and hints; very narrow panes use compact instructions. Whole-grapheme clipping
+changes display only. Unit/active-run and long-model PTY checks verify queue
+visibility, unchanged captured run identity, and complete stored model values.

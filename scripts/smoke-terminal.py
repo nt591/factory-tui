@@ -950,6 +950,15 @@ printf '%s\\n' '{"type":"turn.completed"}'
     check("model End reveals complete tail in footer", "coding-large▏" in screen.display[-3])
     if args.preview:
         preview(args.preview.with_stem(args.preview.stem + "-model-footer"))
+    send(b"\r")
+    deadline = time.monotonic() + 5
+    while "Next-run model updated" not in text() and time.monotonic() < deadline:
+        pump(0.05)
+    send(b"i")
+    check("long selected model cannot hide composer queue instructions",
+          any("Enter queues / Ctrl-L newline / Esc keeps draft" in row for row in screen.display[4:-4]))
+    if args.preview:
+        preview(args.preview.with_stem(args.preview.stem + "-long-model-compose"))
     send(b"\x1b")
     send(b"q")
     wait_exit(5)

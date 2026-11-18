@@ -230,7 +230,7 @@ let render t ~width:cols ~height:rows =
         else draft t
       in
       let prompt = (if editing then "> " else "  ") ^ prompt in
-      let instructions = Composer_guidance.text ~mode ~editing task in
+      let instructions = Composer_guidance.text ~width:inner ~mode ~editing task in
       let prompt_rows = wrap inner prompt in
       let capacity = composer_height - 3 in
       let cursor_row =
