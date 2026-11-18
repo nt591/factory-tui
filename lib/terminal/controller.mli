@@ -13,6 +13,7 @@ type action =
   | Start
   | Stop
   | Accept
+  | Restore_task
   | Repository of string option
   | Session_board
   | Archive_view

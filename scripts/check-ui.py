@@ -25,6 +25,7 @@ CASES = (
     "composer",
     "direct-send",
     "default-mode",
+    "archive-safety",
     "layout-config",
     "input-limit",
     "input-feedback",

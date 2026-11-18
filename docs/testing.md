@@ -870,3 +870,9 @@ while replay/fake fixtures keep their own modes. Default-mode tests verify setup
 guidance and preservation/refusal of demo history. PATH tests verify Codex/jj
 lookup without execution; setup config stores provider/model defaults but no
 mandatory executable location. New tasks discover jj unless an override exists.
+
+The archive-safety UI case checks plain-a refusal, Ctrl-A archiving, visible
+return/restore controls and u restoration after a SQLite restart. The restored
+Ready task retains exact history, pending reply, draft and identity with no run.
+Pure tests additionally cover disabled function key, editor isolation, other-state
+refusal, read-only transition and storage-warning priority. Catalogue: 23 UI cases.

@@ -213,7 +213,7 @@ def main():
             tui.send(b"i")
             tui.send(b"\x1b[200~Retained unsent draft\x1b[201~")
             tui.send(b"\x1b")
-            tui.send(b"a")
+            tui.send(b"\x01")
             tui.wait(
                 "accepted pending work disclosure",
                 lambda: (

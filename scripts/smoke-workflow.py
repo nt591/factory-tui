@@ -258,7 +258,7 @@ for event in [
                 tui.preview(args.preview.with_stem(args.preview.stem + "-followup"))
             tui.send(b"\x1b")
             tui.send(b"iRetained unsent draft\x1b")
-            tui.send(b"a")
+            tui.send(b"\x01")
             tui.wait(
                 "explicit acceptance", lambda: "/ Done / conversation" in tui.text()
             )

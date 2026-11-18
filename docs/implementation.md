@@ -1077,3 +1077,11 @@ Demo cleanup makes simulation explicit in each fixture, moves live default/resta
 coverage to direct-send/default-mode checks, and preserves Demo namespace isolation.
 Documentation sections describing earlier confirmation behavior are historical;
 current commands follow the direct-send/default-real behavior described above.
+
+Archive removal uses Ctrl-A instead of plain a or the old function-key shortcut.
+Only Ready work becomes Done; editing/modal input isolates this command. Archived
+tasks expose u Restore, which reduces Done to Ready while preserving identity,
+messages, pending replies, drafts and run/workspace history. Controller restores
+the visible active board with cleared filters and no process start. Storage errors
+retain priority. Pure shortcut/reducer/codec/mouse tests and temporary SQLite PTYs
+verify accidental-key refusal, explicit archive, restart and exact-data restore.

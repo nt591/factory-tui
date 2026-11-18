@@ -389,7 +389,7 @@ let () =
       Controller.key controller (`ASCII 's', []);
       check "review cannot start agent"
         ((Option.get (Controller.selected controller)).active = None);
-      Controller.key controller (`ASCII 'a', []);
+      Controller.key controller (`ASCII 'a', [ `Ctrl ]);
       check "review cannot accept task"
         ((Option.get (Controller.selected controller)).state = Model.Queued);
       Controller.key controller (`Escape, []);

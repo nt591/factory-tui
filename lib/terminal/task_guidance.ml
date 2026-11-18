@@ -5,9 +5,12 @@ let selection ~live ~replay (task : task) =
     match task.state with
     | Done ->
         if task.workspace <> None then
-          "Accepted task. Chat is read-only; v reviews retained workspace changes."
-        else "Accepted task. Chat is read-only; d opens the archive."
-    | Ready -> "Ready for review. a accepts without merging; i queues a follow-up."
+          "Archived task. Chat is read-only; u restores to Ready; v reviews retained \
+           changes."
+        else
+          "Archived task. Chat is read-only; u restores to Ready; b returns to the \
+           session board."
+    | Ready -> "Ready for review. Ctrl-A archives without merging; i queues a follow-up."
     | Working ->
         if replay then
           "Replay updates are active. i queues a reply; no process can start."

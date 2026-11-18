@@ -68,6 +68,7 @@ val start :
 
 val send : task -> id:string -> string -> (task, string) result
 val accept : task -> (task, string) result
+val restore : task -> (task, string) result
 val apply : task -> envelope -> task option
 val reduce : task list -> envelope -> task list
 val attach_workspace : task -> workspace_ref -> (task, string) result

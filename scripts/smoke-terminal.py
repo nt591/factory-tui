@@ -200,16 +200,16 @@ try:
     send(b"s")
     check("fixture start automatically moves card", "T-101 / Working / conversation" in text())
     check("working footer offers stop but not start or acceptance", "x stop" in screen.display[-2]
-          and "s start" not in screen.display[-2] and "a accept" not in screen.display[-2])
+          and "s start" not in screen.display[-2] and "Ctrl-A archive" not in screen.display[-2])
     pump(8.0)
     check("completion automatically moves card to Ready", "T-101 / Ready / conversation" in text())
-    check("ready footer offers acceptance without stale stop", "a accept" in screen.display[-2]
+    check("ready footer offers acceptance without stale stop", "Ctrl-A archive" in screen.display[-2]
           and "x stop" not in screen.display[-2])
-    send(b"a")
+    send(b"\x01")
     send(b"d")
     check("accepted tasks appear in archive", "T-101" in text() and "Done" in text())
     check("accepted footer omits run and editing actions", all(label not in screen.display[-2]
-          for label in ("s start", "x stop", "a accept", "i reply", "m model", "H harness")))
+          for label in ("s start", "x stop", "Ctrl-A archive", "i reply", "m model", "H harness")))
     send(b"?")
     check("help opens", "Help / Settings" in text())
     menu_rows = screen.display[2:33]

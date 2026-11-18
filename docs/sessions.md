@@ -99,3 +99,17 @@ two confirmed runs and real diff review, then creates a greenfield task without
 running it. Pure tests cover root identity, codec/recovery, mode validation,
 project selection, new-repository creation and retained partial failures.
 No real repository, gateway credential or model call is used in these fixtures.
+
+## Archive and restore
+
+Only Ready tasks can be accepted/archived. Use **Ctrl-A**, not plain `a`; the old
+function-key shortcut is disabled. The action bar labels the stronger shortcut.
+Archived tasks keep their conversation, run history, working directory, queued
+replies and draft. They are read-only until restored. No merge, push or deletion
+occurs on archiving.
+
+Press `d` to open Archive. Select the task and press **`u`** or click **Restore**
+to put it back in Ready and return to the visible session board. This clears board
+filters that could hide the restored card, but does not send any retained message
+or start an agent. The next send is a separate action. `b` returns to the session
+board without restoring a task. Restoration persists across SQLite restart.

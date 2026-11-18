@@ -32,7 +32,7 @@ let empty ~live ~has_tasks ~archived ~filtered =
           "1. Describe a task in the current folder or an isolated workspace.";
           "2. Enter sends the task and starts its agent.";
           "3. Reply with i then Enter; x stops a run.";
-          "4. Review changes with v; accept Ready work with a.";
+          "4. Review changes with v; archive Ready work with Ctrl-A.";
           "Enter sends work; startup starts no agent.";
           "? opens help and settings. Workspace defaults live in TOML.";
         ];

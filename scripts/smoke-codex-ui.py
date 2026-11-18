@@ -233,7 +233,7 @@ def main():
                 tui.check(
                     "completion footer offers review and acceptance, not a stale checkpoint",
                     "Run complete." in tui.text()
-                    and "a accepts without merging" in tui.text()
+                    and "Ctrl-A archives without merging" in tui.text()
                     and "Waiting for the durable checkpoint" not in tui.text(),
                 )
                 tui.send(b"e")
@@ -302,7 +302,7 @@ def main():
                 if args.preview:
                     tui.preview(args.preview.with_stem(args.preview.stem + "-history"))
                 tui.send(b"\x1b")
-                tui.send(b"a")
+                tui.send(b"\x01")
                 tui.send(b"d")
                 tui.wait(
                     "accepted archive", lambda: "/ Done / conversation" in tui.text()

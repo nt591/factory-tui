@@ -8,8 +8,9 @@ let items ~archive ~task ~live ~replay ~fake ~storage ~expanded =
     | None -> []
     | Some task ->
         [ ((if expanded then "e return" else "e expand"), Zoom) ]
+        @ (if task.state = Done then [ ("u restore", Restore_task) ] else [])
         @ (if task.workspace <> None then [ ("v changes", Open_review) ] else [])
-        @ (if task.state = Ready then [ ("a accept", Accept) ] else [])
+        @ (if task.state = Ready then [ ("Ctrl-A archive", Accept) ] else [])
         @ (if task.state = Working && not replay then [ ("x stop", Stop) ] else [])
         @ (if task.state <> Done then [ ("i reply", Begin_compose) ] else [])
         @ (if

@@ -37,7 +37,7 @@ let () =
   check "validated exit offers review and acceptance"
     (has controller "Run complete."
     && has controller "v reviews changes"
-    && has controller "a accepts without merging");
+    && has controller "Ctrl-A archives without merging");
   let completed = controller.status in
   receive controller (Failed "late failure");
   check "late failure does not replace completion guidance" (controller.status = completed);
@@ -60,7 +60,7 @@ let () =
   check "acceptance replaces completion guidance with read-only status"
     (has controller "Task accepted."
     && has controller "Chat is read-only."
-    && not (has controller "a accepts"));
+    && not (has controller "Ctrl-A archives"));
   let stopped = running () in
   receive stopped Interrupted;
   check "interruption offers a retry without claiming completion"

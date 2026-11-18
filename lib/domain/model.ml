@@ -253,6 +253,11 @@ let accept task =
   if task.state <> Ready then Error "Only Ready tasks can be accepted."
   else Ok { task with state = Done; revision = task.revision + 1 }
 
+let restore task =
+  if task.state <> Done || task.active <> None then
+    Error "Only an archived task can be restored."
+  else Ok { task with state = Ready; revision = task.revision + 1 }
+
 let apply task (envelope : envelope) =
   match task.active with
   | Some run

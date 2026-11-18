@@ -31,7 +31,7 @@ let () =
   check "empty queue requires new instruction"
     (has (text { task with messages = [] }) "i queues an instruction");
   check "Ready offers acceptance without merging"
-    (has (text { task with state = Ready }) "a accepts without merging");
+    (has (text { task with state = Ready }) "Ctrl-A archives without merging");
   check "Working explains queued reply and stop"
     (has (text { task with state = Working }) "x stops");
   check "Done is explicitly read-only"

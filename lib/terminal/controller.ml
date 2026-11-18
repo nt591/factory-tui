@@ -13,6 +13,7 @@ type action =
   | Start
   | Stop
   | Accept
+  | Restore_task
   | Repository of string option
   | Session_board
   | Archive_view
@@ -287,8 +288,9 @@ let receive t event =
     | Exited _, Some task when task.state = Ready ->
         t.status <-
           (if task.session_root <> None then
-             "Run complete. Review files in the session root; a accepts without merging."
-           else "Run complete. v reviews changes; a accepts without merging.")
+             "Run complete. Review files in the session root; Ctrl-A archives without \
+              merging."
+           else "Run complete. v reviews changes; Ctrl-A archives without merging.")
     | Exited _, Some task when task.state = Needs_you ->
         t.status <- "Run needs attention. Inspect the chat; i queues a reply."
     | Interrupted, Some _ -> t.status <- "Run stopped. i queues a reply; s retries."
@@ -759,6 +761,19 @@ let rec act t action =
                "Live cancellation requested. Stale updates are ignored."
              else "Simulated run interrupted. Stale updates are ignored.")
       | _ -> t.status <- "There is no active run to stop.")
+  | Restore_task -> (
+      match selected t with
+      | None -> ()
+      | Some task -> (
+          match Model.restore task with
+          | Error error -> t.status <- error
+          | Ok task ->
+              replace t task;
+              act t Session_board;
+              if not (String.starts_with ~prefix:"Storage error:" t.status) then
+                t.status <-
+                  "Task restored to Ready. History and pending replies retained; no run \
+                   starts."))
   | Accept -> (
       match selected t with
       | None -> ()
@@ -1008,6 +1023,7 @@ let normal_key t (key, mods) =
   if List.mem `Ctrl mods then
     command (fun () ->
         match key with
+        | `ASCII 'a' when prefix <> Window -> act t Accept
         | `ASCII 'w' ->
             if prefix = Window then cycle_focus t false
             else (
@@ -1086,7 +1102,11 @@ let normal_key t (key, mods) =
     | `ASCII 'n' -> command (fun () -> act t Begin_new)
     | `ASCII 's' | `Function 5 -> command (fun () -> act t Start)
     | `ASCII 'x' | `Function 6 -> command (fun () -> act t Stop)
-    | `ASCII 'a' | `Function 7 -> command (fun () -> act t Accept)
+    | `ASCII 'a' ->
+        command (fun () ->
+            t.status <-
+              "Use Ctrl-A to accept and archive Ready work; u restores archived work.")
+    | `ASCII 'u' -> command (fun () -> act t Restore_task)
     | `ASCII 'd' -> command (fun () -> act t Toggle_archive)
     | `ASCII 'f' -> command (fun () -> act t Toggle_pause)
     | `ASCII 'j' | `Arrow `Down ->

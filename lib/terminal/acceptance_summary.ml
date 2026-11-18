@@ -16,7 +16,8 @@ let pending summary =
   @ if summary.draft then [ "draft retained" ] else []
 
 let status summary =
-  "Task accepted. Chat is read-only. No merge, push, or workspace deletion."
+  "Task accepted. Chat is read-only. u restores to Ready. No merge, push, or workspace \
+   deletion."
   ^
   match pending summary with
   | [] -> ""

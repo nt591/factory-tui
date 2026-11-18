@@ -964,3 +964,9 @@ Restart restores the selected conversation even if that task is accepted or outs
 the active board filter. The board can show current work while chat shows archived
 history. Missing saved selections fall back to an available task; empty snapshots
 show no conversation. Restoring selection never resumes an agent or changes drafts.
+
+## Archive and undo
+
+Ctrl-A accepts and archives Ready work; plain a does not. In Archive (`d`), select
+a task and press u to restore it to Ready. History, drafts and working files are
+retained, and restore starts no run. Use b to return to the visible session board.

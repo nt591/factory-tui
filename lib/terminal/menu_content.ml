@@ -25,12 +25,13 @@ let help ~mode =
     | Live _ -> "m edits next-run model. Live execution supports Codex only."
     | _ -> "m edits next-run model. H cycles simulated Codex / Claude.");
     (match mode with
-    | Live _ -> "Enter sends a task/reply; s retries pending work; x stops; a accepts."
-    | Replay -> "Replay supplies updates. s cannot start a run; a accepts Ready."
-    | Fake -> "s starts a local process fixture; x stops; a accepts Ready."
-    | Simulation -> "s starts a simulated run; x stops; a accepts Ready tasks.");
+    | Live _ ->
+        "Enter sends a task/reply; s retries pending work; x stops; Ctrl-A archives."
+    | Replay -> "Replay supplies updates. s cannot start a run; Ctrl-A archives Ready."
+    | Fake -> "s starts a local process fixture; x stops; Ctrl-A archives Ready."
+    | Simulation -> "s starts a simulated run; x stops; Ctrl-A archives Ready tasks.");
     "M opens and loads gateway models; Ctrl-R refreshes. Uses the gateway key.";
-    "b returns to all tasks. R cycles repositories. d opens Archive.";
+    "b returns to the board. d toggles Archive; u restores a selected archived task.";
     "v opens real workspace changes; r refreshes; Escape returns.";
     "Review: [/]: files; h/l: long lines; Ctrl-U/D: half; Ctrl-B/F: page.";
     (match mode with

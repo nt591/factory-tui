@@ -553,3 +553,15 @@ package (19) checks passed. E2E perf smoke passed and hashes match the exact UI
 binary; `/tmp/factory-path-send-demo-perf-20261118.json`. No paid calls or private
 provider evidence were used. Acceptance/archive removal semantics are unchanged
 in this increment; navigation now exits expansion and offers a pinned return.
+
+Archive shortcut/restore verification passed 15 pure reducer/keyboard/codec/mouse
+checks, format/build/unit gates, and all 23 fixture UI cases with 66 previews.
+Evidence: `/tmp/factory-ctrl-a-restore-ui-20261118/report.json`. Archive and restored
+board previews were inspected. Plain a and old function-key input cannot archive;
+Ctrl-A archives Ready work and u restores Done to Ready on a visible session board.
+Exact messages, queued replies, draft, task identity and run/workspace history
+survive archive/restore and SQLite restart. No agent starts on restore, and storage
+warnings retain precedence. Separate discovery (31), setup CLI (37), invocation
+(26), fake execution (19) and package (19) checks passed. No real provider/key was
+used. Acceptance still means no merge/push/deletion; the harder shortcut and undo
+are not a claim of multi-repository merge/review automation.
