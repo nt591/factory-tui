@@ -212,13 +212,17 @@ let reset_keys t =
   t.prefix <- No_prefix;
   t.count <- 0
 
+let reset_chat_view t =
+  Chat_viewport.reset t.chat_viewport;
+  Pane_scroll.remember t.pane_scroll Chat 0
+
 let select t id =
   if t.selected <> id then Chat_search.clear t.chat_search;
   t.selected <- id;
   Option.iter
     (fun (task : task) -> Column_scroll.follow t.column_scroll task.state)
     (selected t);
-  Chat_viewport.reset t.chat_viewport;
+  reset_chat_view t;
   Pane_scroll.clear t.pane_scroll;
   t.scroll <- 0;
   t.board_scroll <- 0
@@ -306,7 +310,7 @@ let rec act t action =
       else (
         t.zoom <- not t.zoom;
         focus_pane t Conversation;
-        Chat_viewport.reset t.chat_viewport;
+        reset_chat_view t;
         t.scroll <- 0)
   | Quit -> t.quit <- true
   | Help ->
@@ -782,7 +786,7 @@ let cycle_focus t backwards =
     else focus
   in
   focus_pane t focus;
-  Chat_viewport.reset t.chat_viewport;
+  reset_chat_view t;
   t.scroll <- 0
 
 let window_focus t direction =
@@ -797,7 +801,7 @@ let window_focus t direction =
     | `Down -> if t.focus = Board then Conversation else Activity
   in
   focus_pane t focus;
-  Chat_viewport.reset t.chat_viewport;
+  reset_chat_view t;
   t.scroll <- 0
 
 let repeat count fn =
@@ -855,7 +859,7 @@ let normal_key t (key, mods) =
               Chat_search.clear t.chat_search
             else if t.zoom then (
               close_expansion t;
-              Chat_viewport.reset t.chat_viewport;
+              reset_chat_view t;
               t.scroll <- 0)
             else (
               t.query <- "";

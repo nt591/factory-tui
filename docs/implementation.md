@@ -267,3 +267,10 @@ Rendering clamps that offset to the current geometry and creates images only for
 visible Activity rows. Zero-height panes do not replace remembered positions.
 The logical tool/history content stays complete; unit and streaming PTY checks
 cover focus switching, resize, retained history, and unchanged snapshots.
+
+Board mouse focus preserves the selected chat's paused history. Unfocused chat
+redraws use its remembered history distance, not the board's offset. Explicit
+keyboard/task/zoom resets clear the viewport anchor and remembered distance
+together. Pure frame checks and `scripts/smoke-board-history.py` verify column
+scrolling, subsequent output, return to chat, and explicit End-follow without
+changing saved tasks or starting an agent.

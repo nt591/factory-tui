@@ -219,3 +219,17 @@ that native fixtures eliminate all startup latency or that menu edits affect
 command behavior. Command implementation, one-second success deadlines, and
 parallel scheduling remain unchanged. The failure remains a reliability limit
 requiring case-specific evidence if it recurs.
+
+Paused chat while scrolling the board has a separate replay-only PTY check:
+
+```sh
+uv run --with pyte --with pillow python scripts/smoke-board-history.py \
+  --preview /tmp/factory-board-history.png
+```
+
+The fixture uses a temporary event file and no SQLite, workspace, credentials,
+or agent. It compares only the chat content region, allowing Activity updates
+to change. The arrival wait observes the updated event count before checking the
+anchor. It verifies board focus, subsequent output, mouse return to chat, and
+explicit End-follow. Unit tests additionally verify remembered distances and
+unchanged snapshots; keyboard resets keep their explicit fresh-position behavior.

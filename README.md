@@ -157,7 +157,8 @@ plugins, modify shell startup files, or require global OCaml tool installations.
   Wheel input targets the visible pane under the pointer, not keyboard focus;
   footer/composer surfaces do not scroll another pane. Chat and Activity retain
   separate positions when switching mouse focus; selecting a task resets both.
-  Activity stays at its remembered visible row while chat has focus.
+  Activity stays at its remembered visible row while chat has focus. Scrolling
+  a board column also leaves paused chat history anchored as new output arrives.
   Mouse-wheel positions are independent per Kanban column. Selecting a card or
   moving the selected task to a new state restores following in its column.
   Long card titles use a two-row preview with an ellipsis; opening the card shows

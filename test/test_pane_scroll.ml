@@ -82,6 +82,30 @@ let () =
     && Controller.snapshot controller = saved
     && Notty.I.height smaller.image = 24);
 
+  Controller.act controller (Controller.Focus Controller.Conversation);
+  controller.zoom <- false;
+  ignore (render ());
+  Controller.key controller (`Home, []);
+  let frame = render () in
+  let history = Pane_scroll.position controller.pane_scroll Chat in
+  let queued, _, _, _ =
+    List.find (fun (_, state, _, _) -> state = Model.Queued) frame.columns
+  in
+  Ui.mouse controller frame ~now:3.
+    (`Press (`Scroll `Down), (queued.x + 2, queued.y + 2), []);
+  check "column wheel focuses board without changing selected task"
+    (controller.focus = Controller.Board && controller.selected = task.id);
+  let frame = render () in
+  check "board focus keeps remembered paused chat history"
+    (Pane_scroll.position controller.pane_scroll Chat = history && controller.scroll = 0);
+  let buffer = Buffer.create 8192 in
+  Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (120, 36) frame.image;
+  check "board-focused frame still discloses paused history"
+    (Controller.contains (Buffer.contents buffer) "reading history");
+  Controller.act controller (Controller.Focus Controller.Conversation);
+  check "returning from board restores history distance" (controller.scroll = history);
+  check "board wheel changes no saved task data" (Controller.snapshot controller = saved);
+  controller.zoom <- true;
   Controller.act controller (Controller.Focus Controller.Activity);
   controller.activity_expanded <- true;
   let remembered = Pane_scroll.position controller.pane_scroll Activity in

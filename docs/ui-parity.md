@@ -266,3 +266,10 @@ become Notty images. This does not cache tool parsing or discard logical history
 A zero-height pane does not replace its remembered position. Unit/frame checks and
 a streaming PTY fixture with long tool output verify that chat focus and new output
 preserve the displayed tool window. Snapshots contain neither pane offset.
+
+Scrolling a board column preserves paused chat history even while Board owns
+keyboard focus. Incoming output stays anchored until chat explicitly resumes
+following. The renderer reads remembered chat distance when chat is unfocused;
+it does not apply the board's zero offset as End-follow. Explicit keyboard/task/
+zoom resets clear both remembered distance and the viewport anchor. Unit and
+separate PTY replay checks verify this with subsequent output and mouse return.

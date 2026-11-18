@@ -165,13 +165,13 @@ let render t ~width:cols ~height:rows =
       Chat_viewport.update t.chat_viewport ~task_id:t.selected ~rows:anchors
         ~height:available
         ~distance:
-          (if t.focus = Activity then Pane_scroll.position t.pane_scroll Chat
-           else t.scroll)
+          (if t.focus = Conversation then t.scroll
+           else Pane_scroll.position t.pane_scroll Chat)
         ~seek:(Chat_search.seek t.chat_search)
     in
     if available > 0 then (
       Pane_scroll.remember t.pane_scroll Chat view.distance;
-      if t.focus <> Activity then t.scroll <- view.distance);
+      if t.focus = Conversation then t.scroll <- view.distance);
     let title =
       title ^ if view.following then "" else " / reading history · End follows"
     in
