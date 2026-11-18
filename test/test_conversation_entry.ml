@@ -14,8 +14,9 @@ let () =
   check "board Enter opens expanded conversation in insert mode"
     (t.zoom && t.focus = Conversation && t.input = Compose);
   Controller.key t (`Escape, []);
-  check "first Escape leaves editing without hiding conversation"
-    (t.zoom && t.focus = Conversation && t.input = Normal);
+  check "one Escape leaves editing and returns to board with draft"
+    ((not t.zoom) && t.focus = Board && t.input = Normal
+    && Controller.draft t = "Keep my reply");
   Controller.key t (`ASCII 'e', []);
   Controller.key t (`ASCII 'e', []);
   check "e never collapses an expanded conversation" (t.zoom && t.focus = Conversation);

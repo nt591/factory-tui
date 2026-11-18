@@ -1152,3 +1152,29 @@ execution and temporary package checks pass. The existing fixture E2E performanc
 harness passes with three launches and three interaction rounds over 200 tasks and
 messages. All runtime evidence remains outside the public checkout; no installed
 agent, real provider key or paid request is used for this validation.
+
+
+The board now has three lanes: Working, Needs you and Ready. Board_lanes projects
+saved Queued tasks into Working without changing the stored state or starting a
+run. They display Not started, and Working lane titles show a separate running
+count. Rendering, keyboard movement and scroll follow the shared projection;
+starting a saved task does not move it to a new lane. Queued message flags retain
+their independent pending-delivery meaning. Snapshot compatibility is unchanged.
+
+Escape from reply editing or an expanded task returns directly to its board,
+retaining the draft. Tab/Shift-Tab leave editing and switch task panes without
+leaving the expanded view. Ctrl-X in task views clears only the unsent reply,
+never sent messages or task history. Board/Archive Ctrl-X opens task deletion;
+the command palette disables Delete outside that context. y confirms, n/Escape
+cancels, Enter does not confirm, and bracketed paste cannot supply a confirmation.
+Active/waiting/unreaped process guards and durable deletion checkpoints remain.
+
+Validation includes 18 board/task context checks and the existing lifecycle,
+checkpoint-failure, Unicode/editor and run-ownership tests. The complete 25-case
+fixture UI audit passes with 78 previews; three-lane and y/n deletion views were
+inspected. Runtime evidence is outside the checkout and uses only temporary
+SQLite/replay/workspace fixtures, with no real agent or provider requests.
+CLI discovery/config/invocation/execution and temporary packaging checks also pass.
+The exact-binary fixture E2E performance run passes over three launches and three
+interaction rounds with 200 tasks/messages. No live-model performance comparison
+is claimed.

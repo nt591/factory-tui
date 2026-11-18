@@ -217,7 +217,8 @@ def run(args, report):
             with Probe(command, env, columns=args.columns, rows=args.rows) as tui:
                 tui.startup(args.timeout)
                 tui.observe(
-                    lambda: "P-0000 / Queued / conversation" in tui.text(), args.timeout
+                    lambda: "P-0000 / Not started / conversation" in tui.text(),
+                    args.timeout,
                 )
                 record("sqlite_startup", (time.perf_counter() - started) * 1000)
                 memory = [rss(tui.process.pid)]
@@ -228,7 +229,7 @@ def run(args, report):
                             "board_search",
                             b"/Performance task 0001\r",
                             lambda: (
-                                "P-0001 / Queued / conversation" in tui.text()
+                                "P-0001 / Not started / conversation" in tui.text()
                                 and "BOARD SEARCH" not in tui.screen.display[-1]
                             ),
                         ),
@@ -243,7 +244,7 @@ def run(args, report):
                         (
                             "card_navigation",
                             b"k",
-                            lambda: "P-0000 / Queued / conversation" in tui.text(),
+                            lambda: "P-0000 / Not started / conversation" in tui.text(),
                         ),
                         (
                             "chat_expand",

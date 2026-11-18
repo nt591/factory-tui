@@ -168,7 +168,7 @@ let () =
   List.iter
     (fun label ->
       check ("visible frame content: " ^ label) (Controller.contains rendered label))
-    [ "FACTORY"; "Queued"; "Working"; "Needs you"; "Ready"; "T-101"; "conversation" ];
+    [ "FACTORY"; "Not started"; "Working"; "Needs you"; "Ready"; "T-101"; "conversation" ];
 
   let card =
     List.find (fun (hit : Ui.hit) -> hit.action = Controller.Select "T-101") frame.hits
@@ -178,9 +178,8 @@ let () =
   Ui.mouse ui frame ~now:1.2 (`Press `Left, (card.rect.x, card.rect.y), []);
   check "double click expands with editor" (ui.zoom && ui.input = Controller.Compose);
   Controller.key ui (`Escape, []);
-  check "first Escape keeps expanded conversation"
-    (ui.zoom && ui.input = Controller.Normal);
-  Controller.key ui (`Escape, []);
+  check "one Escape leaves insert and returns board"
+    ((not ui.zoom) && ui.input = Controller.Normal);
   check "Escape returns to board" (not ui.zoom);
   Controller.act ui (Controller.Select "T-102");
   Controller.receive ui { task_id = "T-102"; run_id = "demo-102"; event = Turn_completed };
@@ -210,7 +209,8 @@ let () =
   Controller.act ui Controller.Begin_new;
   Controller.set_input ui "A new simulated task";
   Controller.submit ui;
-  check "new tasks enter Queued" ((Option.get (Controller.selected ui)).state = Queued);
+  check "new tasks enter Not started"
+    ((Option.get (Controller.selected ui)).state = Queued);
   check "terminal controls sanitized" (Controller.clean "\027[31m\000" = " [31m ");
   check "UTF-8 backspace preserves valid text" (Controller.remove_last "a界" = "a");
   check "wide characters wrap by terminal cells" (Ui.wrap 3 "界界" = [ "界"; "界" ]);
@@ -224,18 +224,18 @@ let () =
   let select id = Controller.act vim (Controller.Select id) in
   select "T-101";
   key 'j';
-  check "vim j selects next card" (vim.selected = "T-105");
+  check "vim j selects next card" (vim.selected = "T-102");
   key 'k';
   check "vim k selects previous card" (vim.selected = "T-101");
   key 'l';
-  check "vim l selects next column" (vim.selected = "T-102");
+  check "vim l selects next column" (vim.selected = "T-103");
   key 'h';
   check "vim h selects previous column" (vim.selected = "T-101");
   key '2';
   key 'j';
-  check "counted j moves two cards" (vim.selected = "T-106" && vim.count = 0);
+  check "counted j moves two cards" (vim.selected = "T-105" && vim.count = 0);
   key 'g';
-  check "g awaits second key" (vim.prefix = Controller.Go && vim.selected = "T-106");
+  check "g awaits second key" (vim.prefix = Controller.Go && vim.selected = "T-105");
   key 'g';
   check "gg selects first card in column" (vim.selected = "T-101");
   key 'G';
@@ -247,9 +247,9 @@ let () =
   check "counts are bounded" (vim.count = 999);
   key 'k';
   check "large count clamps selection" (vim.selected = "T-101");
-  key '2';
+  key '1';
   key 'l';
-  check "counted horizontal navigation" (vim.selected = "T-103");
+  check "horizontal navigation" (vim.selected = "T-103");
   ctrl 'w';
   key 'l';
   check "Ctrl-W l focuses conversation" (vim.focus = Controller.Conversation);
@@ -286,14 +286,14 @@ let () =
   select "T-101";
   vim.page_rows <- 2;
   ctrl 'd';
-  check "Ctrl-D moves half-page on board" (vim.selected = "T-105" && not vim.archive);
+  check "Ctrl-D moves half-page on board" (vim.selected = "T-102" && not vim.archive);
   ctrl 'f';
   check "Ctrl-F moves full-page without pausing" (vim.selected = "T-106" && not vim.paused);
   ctrl 'b';
-  check "Ctrl-B moves full-page backwards" (vim.selected = "T-101");
+  check "Ctrl-B moves full-page backwards" (vim.selected = "T-102");
   ctrl 'd';
   ctrl 'u';
-  check "Ctrl-U moves half-page backwards" (vim.selected = "T-101");
+  check "Ctrl-U moves half-page backwards" (vim.selected = "T-102");
   Controller.act vim (Controller.Focus Controller.Activity);
   key 'j';
   check "activity j scrolls one row" (vim.scroll = 1);
@@ -376,7 +376,7 @@ let () =
   Controller.act raw (Controller.Select "T-101");
   raw.page_rows <- 2;
   decode "\004";
-  check "terminal Ctrl-D bytes navigate" (raw.selected = "T-105" && not raw.archive);
+  check "terminal Ctrl-D bytes navigate" (raw.selected = "T-102" && not raw.archive);
   decode "\003";
   check "terminal Ctrl-C bytes quit" raw.quit;
   let empty = Controller.create ~external_events:true () in
@@ -401,7 +401,8 @@ let () =
   check "medium layout keeps visible reply composer"
     (Controller.contains medium "Reply / next turn"
     && Controller.contains medium "Write a reply");
-  check "medium board shows multiple queued cards" (Controller.contains medium "T-105");
+  check "medium Working lane shows started and unstarted cards"
+    (Controller.contains medium "T-101" && Controller.contains medium "T-102");
   let original_selected = layout.selected in
   Controller.act layout (Controller.Repository (Some "factory"));
   check "repository filter narrows board" (List.length (Controller.visible layout) = 2);

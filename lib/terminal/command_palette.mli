@@ -8,6 +8,7 @@ type command =
   | Stop
   | Accept
   | Restore
+  | Clear_reply
   | Delete
   | Review
   | Help
@@ -23,6 +24,7 @@ type t
 type result = Edit | Cancel | Execute of command
 
 val catalogue :
+  board:bool ->
   task:Model.task option ->
   live:bool ->
   replay:bool ->

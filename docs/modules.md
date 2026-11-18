@@ -435,8 +435,7 @@ retention copy. Controller preserves messages/drafts and storage-error priority.
 - `Hotkey_bar`: grouped terminal key/action rendering with distinct key styling.
 
 
-`lib/terminal/task_deletion.ml/.mli` owns the bounded confirmation text and exact-word
-check. Controller captures task identity, checks process ownership and publishes
+`lib/terminal/task_deletion.ml/.mli` owns the y/n confirmation and captured task identity. Controller captures task identity, checks process ownership and publishes
 persistent deletion only after a successful checkpoint. Storage removes the matching
 run/event rows in the same transaction as the snapshot. Demo and live runner
 `owned_tasks` accessors keep canceled-but-unreaped handles in the deletion guard.
@@ -448,3 +447,10 @@ the bounded search editor, entry availability and selection. It exports command
 identifiers, not Controller actions, to avoid a module dependency cycle. Controller
 maps selected commands to existing actions and rechecks the current catalogue.
 The palette leaves the original editor untouched until an action is selected.
+
+
+`lib/terminal/board_lanes.ml/.mli` projects lifecycle states onto the three visible
+lanes. Queued remains a stored lifecycle state for compatibility and execution
+safety; it displays as Not started inside Working. Board navigation, rendering
+and column scroll use the same projection. No lifecycle migration or implicit run
+is performed by lane membership.

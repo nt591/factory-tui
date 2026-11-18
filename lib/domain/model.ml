@@ -3,7 +3,7 @@ type state = Queued | Working | Needs_you | Ready | Done
 let columns = [ Queued; Working; Needs_you; Ready ]
 
 let label = function
-  | Queued -> "Queued"
+  | Queued -> "Not started"
   | Working -> "Working"
   | Needs_you -> "Needs you"
   | Ready -> "Ready"

@@ -19,7 +19,7 @@ let () =
   check "expanded board focus uses conversation guidance"
     (hint ~expanded:true 120 = hint ~focus:Conversation ~expanded:true 120);
   check "expanded reading guidance describes return action"
-    (Controller.contains (hint ~focus:Activity ~expanded:true 120) "Esc: back"
+    (Controller.contains (hint ~focus:Activity ~expanded:true 120) "Esc: board"
     && not (Controller.contains (hint ~focus:Activity ~expanded:true 120) "e: expand"));
   check "chat search hints disclose match navigation and clear action"
     (Controller.contains (hint ~focus:Conversation ~searching:true 120) "n/N: matches"
@@ -46,7 +46,7 @@ let () =
             (text = hint ~input width))
         [ -1; 0; 1; 20; 40; 60; 120 ])
     [
-      (Compose, "INSERT", "Enter sends", "Esc: navigation");
+      (Compose, "INSERT", "Enter sends", "Esc: board");
       (Edit_model, "MODEL", "Enter applies", "Esc cancels");
       (New_task, "NEW TASK", "Enter creates", "Esc cancels");
       (Search, "BOARD SEARCH", "Enter finishes", "Esc closes");
@@ -83,8 +83,9 @@ let () =
   check "rendered chat search footer shows result navigation"
     (Controller.contains (render ()) "n/N: matches");
   Controller.key controller (`Escape, []);
-  check "cleared chat search restores reading hints"
-    (Controller.contains (render ()) "End: latest"
+  check "Escape clears chat search and returns board hints"
+    (controller.focus = Board
+    && Controller.contains (render ()) "cards"
     && not (Controller.contains (render ()) "n/N: matches"));
   check "hints and focus changes start no process"
     (controller.creation_request = None && controller.creation_job = None);

@@ -14,6 +14,7 @@ type action =
   | Zoom
   | Open_conversation
   | Back
+  | Clear_reply
   | Begin_delete
   | Cancel_delete
   | Confirm_delete

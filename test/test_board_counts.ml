@@ -25,16 +25,14 @@ let () =
   let has text pattern = Controller.contains text pattern in
   let rows = render () in
   check "active counters exclude archive tasks"
-    (has (List.nth rows 1) "02  Queued"
-    && has (List.nth rows 1) "01  Working"
+    (has (List.nth rows 1) "03  Working"
     && has (List.nth rows 1) "01  Ready"
     && has (List.nth rows 2) "4 tasks");
   Controller.act controller (Controller.Repository (Some "alpha"));
   let selected = controller.selected in
   let rows = render () in
   check "repository counters describe displayed cards"
-    (has (List.nth rows 1) "01  Queued"
-    && has (List.nth rows 1) "00  Working"
+    (has (List.nth rows 1) "01  Working"
     && has (List.nth rows 1) "01  Ready"
     && has (List.nth rows 2) "2 tasks");
   check "repository counts do not close filtered-out selected chat"
@@ -43,13 +41,13 @@ let () =
   controller.query <- "ready";
   let rows = render () in
   check "query counters match single displayed task"
-    (has (List.nth rows 1) "00  Queued"
+    (has (List.nth rows 1) "00  Working"
     && has (List.nth rows 1) "01  Ready"
     && has (List.nth rows 2) "1 tasks");
   controller.query <- "missing";
   let rows = render () in
   check "empty filter produces zero counts"
-    (has (List.nth rows 1) "00  Queued"
+    (has (List.nth rows 1) "00  Working"
     && has (List.nth rows 1) "00  Ready"
     && has (List.nth rows 2) "0 tasks");
   controller.query <- "";
@@ -70,7 +68,7 @@ let () =
       controller.tasks;
   let rows = render () in
   check "filtered counters reflect task entering Working"
-    (has (List.nth rows 1) "00  Queued" && has (List.nth rows 1) "01  Working");
+    (has (List.nth rows 1) "01  Working");
   List.iter
     (fun event ->
       Controller.receive controller

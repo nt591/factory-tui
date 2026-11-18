@@ -114,7 +114,7 @@ let render t ~width:cols ~height:rows =
   let repository_labels = Repository_labels.create (repositories t) in
   let repository_label = Repository_labels.label repository_labels in
   let board_tasks = visible t in
-  let states = if t.archive then [ Done ] else columns in
+  let states = if t.archive then [ Done ] else Board_lanes.states in
   let tabs =
     Board_tabs.make ~width:cols ~archive:t.archive
       ~count:(List.length (List.filter (fun (task : task) -> task.state = Done) t.tasks))
@@ -132,7 +132,10 @@ let render t ~width:cols ~height:rows =
     List.iteri
       (fun i state ->
         let count =
-          List.length (List.filter (fun (task : task) -> task.state = state) board_tasks)
+          List.length
+            (List.filter
+               (fun (task : task) -> Board_lanes.contains state task)
+               board_tasks)
         in
         paint
           (meter_x + (i * meter_width))
@@ -436,12 +439,15 @@ let render t ~width:cols ~height:rows =
            ~color:accent ~focused:(t.focus = Board) I.empty);
       hit r.x r.y r.w 1 (Focus Board);
       let r = { x = r.x + 1; y = r.y + 1; w = r.w - 2; h = r.h - 2 } in
-      let col_w = r.w / 4 in
+      let lane_count = List.length Board_lanes.states in
+      let col_w = r.w / lane_count in
       List.iteri
         (fun column state ->
           let x = r.x + (column * col_w) in
-          let w = if column = 3 then r.w - (column * col_w) else col_w in
-          let items = List.filter (fun (task : task) -> task.state = state) tasks in
+          let w = if column = lane_count - 1 then r.w - (column * col_w) else col_w in
+          let items =
+            List.filter (fun (task : task) -> Board_lanes.contains state task) tasks
+          in
           let capacity = max 0 (r.h / 7) in
           if t.focus = Board then t.page_rows <- max 1 capacity;
           let selected_index =
@@ -512,19 +518,26 @@ let render t ~width:cols ~height:rows =
             else I.vcat cards
           in
           let title =
-            Printf.sprintf "%s %d%s" (label state) (List.length items)
+            let running =
+              List.length (List.filter (fun (task : task) -> task.state = Working) items)
+            in
+            Printf.sprintf "%s %d%s%s" (label state) (List.length items)
               (if Board_window.cue window = "" then ""
                else " / " ^ Board_window.cue window)
+              (if state = Working then Printf.sprintf " / %d running" running else "")
           in
           paint x r.y
             (* The board supplies the bottom edge, so this row can show the last card. *)
             (border w (r.h + 1) ~title ~color:(state_color state)
                ~focused:
                  (t.focus = Board
-                 && match task with Some task -> task.state = state | None -> false)
+                 &&
+                 match task with
+                 | Some task -> Board_lanes.contains state task
+                 | None -> false)
                content
             |> fit w r.h))
-        columns)
+        Board_lanes.states)
   in
   if sidebar_width > 0 then (
     let pinned =
@@ -666,9 +679,10 @@ let render t ~width:cols ~height:rows =
   in
   if rows >= 4 then
     if t.input = Normal then
-      Action_bar.items ~archive:t.archive ~task ~live:(t.live_config <> None)
-        ~replay:t.external_events ~fake:t.fake_harness ~storage:(t.database_path <> None)
-        ~expanded:t.zoom
+      Action_bar.items
+        ~board:(t.focus = Board && not t.zoom)
+        ~archive:t.archive ~task ~live:(t.live_config <> None) ~replay:t.external_events
+        ~fake:t.fake_harness ~storage:(t.database_path <> None) ~expanded:t.zoom
       |> List.iter (fun (title, action) ->
           button title (fun r -> hit r.x r.y r.w r.h action))
     else
@@ -948,7 +962,7 @@ let render t ~width:cols ~height:rows =
         paint 0 (rows - 1)
           (line cols
              (attr (state_color Needs_you))
-             " Type delete in the dialog, then Enter. Workspace files stay intact."));
+             " y: delete task · n/Esc: cancel · workspace files stay intact"));
       hits := [];
       input_controls := [];
       sidebar := None;

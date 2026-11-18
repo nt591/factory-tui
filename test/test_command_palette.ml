@@ -107,11 +107,17 @@ let () =
   ctrl_p t;
   type_text t "delete";
   Controller.key t (`Enter, []);
-  check "Delete command opens confirmation instead of deleting"
-    (t.commands = None && t.deletion <> None && t.tasks <> []);
+  check "Delete is unavailable inside a task view"
+    (t.commands <> None && t.deletion = None);
   Controller.key t (`Escape, []);
-  check "canceling deletion preserves original insert mode"
+  check "palette cancel preserves original insert mode"
     (t.input = Compose && Controller.draft t = "Saved reply");
+  Controller.key t (`Escape, []);
+  ctrl_p t;
+  type_text t "delete";
+  Controller.key t (`Enter, []);
+  check "board Delete command opens confirmation" (t.commands = None && t.deletion <> None);
+  Controller.key t (`ASCII 'n', []);
   ctrl_p t;
   type_text t "reply";
   Controller.key t (`Enter, []);
@@ -127,8 +133,8 @@ let () =
     ((Option.get (Controller.selected t)).active = None
     && t.creation_request = None && t.creation_job = None);
   let empty =
-    Command_palette.catalogue ~task:None ~live:false ~replay:true ~storage:false
-      ~busy:false
+    Command_palette.catalogue ~board:true ~task:None ~live:false ~replay:true
+      ~storage:false ~busy:false
   in
   check "task commands are disabled without a task"
     (List.for_all

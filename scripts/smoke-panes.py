@@ -159,7 +159,7 @@ def main():
             )
             tui.send(b"i")
             tui.send(b"\x1b[200~+ draft resize fixture\x1b[201~")
-            tui.send(b"\x1b")
+            tui.send(b"\t\x1b[Z")
             tui.wait("draft retained", lambda: "+ draft resize fixture" in tui.text())
             tui.send(b"\x17-")
             tui.wait("chat shrinks", lambda: conversation_row(tui) == original_top)
@@ -226,6 +226,7 @@ def main():
             tui.wait("wide reset", lambda: conversation_column(tui) == original_column)
             resize(tui, 120, 36)
             tui.wait("stacked reset", lambda: conversation_row(tui) == original_top)
+            tui.send(b"\x17l")
             tui.send(b"\x1b[F")
             tui.wait(
                 "follow resumes",

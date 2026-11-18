@@ -71,8 +71,8 @@ def main():
             )
             tui.check(
                 "repository counters match the filtered board",
-                "01  Queued" in tui.screen.display[1]
-                and "40  Queued" not in tui.screen.display[1],
+                "01  Working" in tui.screen.display[1]
+                and "40  Working" not in tui.screen.display[1],
             )
             if args.preview:
                 tui.preview(args.preview)
@@ -109,7 +109,7 @@ def main():
             )
             tui.check(
                 "short labels retain exact-path filtering and selected chat",
-                "Queued 1" in tui.text()
+                "Working 1" in tui.text()
                 and "T-01" in tui.text()
                 and "Repository task 00" in tui.text(),
             )

@@ -104,7 +104,8 @@ let () =
     [ (1, 1); (20, 8); (60, 20); (80, 24); (120, 36); (180, 50) ];
   Controller.key t (`Escape, []);
   check "Activity Escape restores split layout and focus"
-    ((not t.zoom) && (not t.activity_expanded) && t.focus = Controller.Activity);
+    ((not t.zoom) && (not t.activity_expanded) && t.focus = Controller.Board);
+  Controller.act t (Controller.Focus Controller.Activity);
   Controller.key t (`ASCII 'e', []);
   Controller.key t (`ASCII 'e', []);
   check "Activity e stays expanded" (t.zoom && t.focus = Controller.Activity);
@@ -114,14 +115,14 @@ let () =
   check "board Enter still expands chat"
     (t.zoom && (not t.activity_expanded) && t.focus = Controller.Conversation);
   check "opening writable task defaults to insert" (t.input = Controller.Compose);
-  Controller.key t (`Escape, []);
-  Controller.act t (Controller.Focus Controller.Activity);
+  Controller.key t (`Tab, []);
   Controller.key t (`ASCII 'e', []);
   check "Activity can expand from expanded task layout"
     (t.activity_expanded && t.activity_origin_zoom);
   Controller.key t (`Escape, []);
-  check "nested Activity Escape restores expanded task layout"
-    (t.zoom && (not t.activity_expanded) && t.focus = Controller.Activity);
+  check "Activity Escape returns directly to board"
+    ((not t.zoom) && (not t.activity_expanded) && t.focus = Controller.Board);
+  Controller.act t (Controller.Focus Controller.Activity);
   Controller.key t (`ASCII 'e', []);
   Controller.key t (`Tab, []);
   check "Tab exits Activity-only layout into visible chat"

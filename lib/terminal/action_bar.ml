@@ -1,7 +1,7 @@
 open Model
 open Controller
 
-let items ~archive ~task ~live ~replay ~fake ~storage ~expanded =
+let items ~board ~archive ~task ~live ~replay ~fake ~storage ~expanded =
   [ ("Ctrl-P commands", Open_commands) ]
   @ (if archive then [ ("b session board", Session_board) ] else [])
   @ (match task with
@@ -34,5 +34,9 @@ let items ~archive ~task ~live ~replay ~fake ~storage ~expanded =
   @ (if live then if storage then [ ("n task", Begin_new) ] else []
      else [ ("n demo", Begin_new) ])
   @ (if live || replay || fake then [] else [ ("f pause", Toggle_pause) ])
-  @ (if task <> None then [ ("Ctrl-X delete", Begin_delete) ] else [])
+  @ (if task = None then []
+     else if board then [ ("Ctrl-X delete", Begin_delete) ]
+     else if Option.fold ~none:false ~some:(fun (task : task) -> task.state <> Done) task
+     then [ ("Ctrl-X clear reply", Clear_reply) ]
+     else [])
   @ [ ("q quit", Quit) ]

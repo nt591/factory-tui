@@ -99,7 +99,8 @@ let () =
   controller.selected <- "chat";
   Controller.act controller Controller.Begin_compose;
   Controller.set_input controller "Preserve draft";
-  Controller.key controller (`Escape, []);
+  Controller.key controller (`Tab, []);
+  Controller.key controller (`Tab, [ `Shift ]);
   let before = Controller.snapshot controller in
   Controller.key controller (`ASCII '/', []);
   check "focused chat slash opens transcript search"

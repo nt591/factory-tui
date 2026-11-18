@@ -45,7 +45,7 @@ def main():
             )
             tui.check(
                 "reply hint names draft-preserving Escape and newline",
-                "Esc: navigation" in tui.screen.display[-1]
+                "Esc: board" in tui.screen.display[-1]
                 and "Ctrl-L newline" in tui.screen.display[-1],
             )
             if args.preview:
@@ -118,7 +118,8 @@ def main():
                 ),
             )
             tui.check(
-                "recovered task is queued without automatic run", "Queued" in tui.text()
+                "recovered task is queued without automatic run",
+                "Not started" in tui.text(),
             )
             tui.send(b"\t")
             tui.wait(

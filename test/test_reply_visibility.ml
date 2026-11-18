@@ -84,6 +84,8 @@ let () =
   Controller.key controller (`Escape, []);
   ignore (render ());
   check "leaving an unsent draft does not resume following"
-    (controller.scroll = paused && Controller.snapshot controller = before);
+    (controller.focus = Board && controller.input = Normal
+    && Controller.snapshot controller = before
+    && Pane_scroll.position controller.pane_scroll Chat > 0);
   Printf.printf "Passed %d queued-reply visibility checks. Pure input/rendering only.\n"
     !checks

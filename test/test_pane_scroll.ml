@@ -89,7 +89,7 @@ let () =
   let frame = render () in
   let history = Pane_scroll.position controller.pane_scroll Chat in
   let queued, _, _, _ =
-    List.find (fun (_, state, _, _) -> state = Model.Queued) frame.columns
+    List.find (fun (_, state, _, _) -> state = Model.Working) frame.columns
   in
   Ui.mouse controller frame ~now:3.
     (`Press (`Scroll `Down), (queued.x + 2, queued.y + 2), []);

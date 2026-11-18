@@ -205,7 +205,9 @@ plugins, modify shell startup files, or require global OCaml tool installations.
   Tab or Ctrl-W, then `e` gives tool output the full terminal width; Escape
   returns to the preceding task layout. Task selection, drafts, and run state
   remain unchanged. Tab or `i` returns from Activity-only display to visible chat.
-- Four columns contain bordered cards: Queued, Working, Needs you, Ready.
+- Three lanes contain bordered cards: Working, Needs you, Ready.
+  Saved-but-not-started tasks share Working and say **Not started**. Only running
+  tasks count as running; placing a card in Working does not start an agent.
   Click the persistent Archive tab to view accepted tasks. Acceptance leaves the
   selected chat open and read-only.
 - Wide layouts show a repository sidebar. `R` cycles repositories at any size;
@@ -232,12 +234,12 @@ plugins, modify shell startup files, or require global OCaml tool installations.
     scale on terminal resize and last only for this launch; zoom keeps them intact.
     Minimum sizes prevent one region from hiding the other.
   - Enter in Conversation or `i` enters the reply composer. Escape keeps the draft
-    and returns to reading; another Escape returns to the board with board focus.
+    and returns directly to the board with board focus.
     Tab leaves the composer and moves to the next section without losing its draft.
     Navigation keys are literal text while composing or searching.
   - Pending counts and `g` / Ctrl-W prefixes appear in the status line.
 - Arrow keys or `hjkl` navigate. Compact task lists follow displayed row order
-  across states; four-column boards keep vertical motion within a column and
+  across states; three-lane boards keep vertical motion within a column and
   horizontal motion between columns. Mouse wheel and Page Up/Down scroll.
   Status counters describe the repository/search-filtered board, not hidden tasks.
   Overflowing columns/lists show the visible range and above/below arrows.
@@ -690,7 +692,7 @@ run updates do not erase form errors. Invalid submission moves focus to the firs
 field that needs correction, without changing entered values or starting a job.
 Editing that field clears its stale error and requests another Ctrl-S check;
 creation/storage failures remain visible while editing. Creation runs in the background and selects
-the new Queued chat; it starts no agent. Source, parent, exact base, and model are
+the new Not started chat; it starts no agent. Source, parent, exact base, and model are
 remembered from previous workspace-backed tasks unless overridden by optional
 TOML workspace defaults. jj's path is explicit but can be configured once.
 
@@ -977,8 +979,10 @@ retained, and restore starts no run. Use b to return to the visible session boar
 
 Tab cycles Board → Conversation → Activity, with a heavy boundary around the active
 section. h/l or arrows navigate board lanes. Tab does not resize the layout; e expands
-explicitly. Plain d has no archive action. Ctrl-X opens task-deletion confirmation; type `delete` and press Enter.
+explicitly. Plain d has no archive action. Ctrl-X on the board opens y/n task deletion; in a task view it clears the reply.
 
+Ctrl-X deletes tasks only from the Board/Archive list after y/n confirmation.
+In a task view it clears only the unsent reply buffer.
 Task deletion is permanent in the TUI, unlike reversible archiving. Running tasks
 must be stopped with x and finish process cleanup first. Deletion removes the task,
 its draft and SQLite run/event rows in one transaction. The UI waits for a durable
@@ -995,9 +999,10 @@ archived task returns to that list; another Escape returns to Board. Archiving a
 task is separate: **Ctrl-A accept & archive** acts on Ready work. There is no Archive
 navigation button mixed into the task footer.
 
-**INSERT** means text goes to the reply. Escape keeps the draft and switches to
-**NAVIGATION** in the same conversation. Enter or i resumes INSERT; another Escape
-in NAVIGATION goes back a layer. Tab changes sections and preserves the draft.
+**INSERT** means text goes to the reply. Escape keeps the draft and returns directly
+to the board. Tab/Shift-Tab leave editing and switch Conversation/Activity inside an
+expanded task. Enter or i in Conversation resumes INSERT. Ctrl-X clears the unsent
+reply in a task view; on the board it opens task deletion with y/n confirmation.
 
 **Ctrl-P Commands** opens a searchable action palette from navigation or a reply
 editor. Type `archive` to see **Open Archive**, **Accept & archive task**, and
@@ -1005,6 +1010,6 @@ editor. Type `archive` to see **Open Archive**, **Accept & archive task**, and
 executes the selected available action. Disabled actions show their reason.
 Escape or Ctrl-P cancels and restores the prior input mode, cursor and draft.
 Opening Commands does not send a prompt or start a process. Delete still requires
-its separate typed confirmation. Slash-prefixed reply text remains ordinary text.
+its separate y/n confirmation. Slash-prefixed reply text remains ordinary text.
 Other modal editors retain their own controls; Ctrl-P in the workspace creation
 form still opens Projects.

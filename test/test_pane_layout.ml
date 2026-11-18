@@ -200,5 +200,5 @@ let () =
     [ (1, 1); (20, 8); (60, 23); (120, 36); (180, 50); (240, 60) ];
   check "initial frame contains board and chat"
     (Controller.contains original_text "conversation"
-    && Controller.contains original_text "Queued");
+    && Controller.contains original_text "Not started");
   Printf.printf "Passed %d adjustable pane checks. Pure layouts and input only.\n" !checks

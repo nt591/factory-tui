@@ -95,9 +95,9 @@ let () =
     ]
   in
   check "right preserves source ordinal"
-    (Board_navigation.horizontal ~right:true ~selected:"q2" dense = Some "w2");
+    (Board_navigation.horizontal ~right:true ~selected:"q2" dense = Some "r1");
   check "left preserves source ordinal"
-    (Board_navigation.horizontal ~right:false ~selected:"w1" dense = Some "q1");
+    (Board_navigation.horizontal ~right:false ~selected:"w1" dense = None);
   check "shorter column clamps row and skips empty state"
     (Board_navigation.horizontal ~right:true ~selected:"w2" dense = Some "r1");
   check "outer column does not wrap"
@@ -113,7 +113,7 @@ let () =
     (List.map
        (fun (task : Model.task) -> task.id)
        (Board_navigation.vertical ~columns:true ~selected:"q1" dense)
-    = [ "q0"; "q1"; "q2" ]);
+    = [ "q0"; "q1"; "q2"; "w0"; "w1"; "w2" ]);
   check "compact vertical navigation preserves all displayed tasks"
     (Board_navigation.vertical ~columns:false ~selected:"q1" dense = dense);
   check "missing selection vertical fallback uses column order"
@@ -136,7 +136,7 @@ let () =
   render 120 36;
   let saved = Controller.snapshot controller in
   Controller.key controller (`ASCII 'l', []);
-  check "controller horizontal move selects aligned card" (controller.selected = "w2");
+  check "controller horizontal move selects aligned card" (controller.selected = "r1");
   render 120 36;
   Controller.key controller (`ASCII 'l', []);
   check "controller skips empty column and clamps destination" (controller.selected = "r1");
@@ -150,7 +150,7 @@ let () =
   render 120 36;
   Controller.act controller (Controller.Select "q0");
   Controller.key controller (`ASCII 'l', []);
-  check "horizontal selection uses visible filtered row" (controller.selected = "w0");
+  check "horizontal selection uses visible filtered row" (controller.selected = "r0");
   controller.query <- "";
   Controller.act controller (Controller.Select "q2");
   controller.tasks <-
@@ -160,6 +160,6 @@ let () =
       controller.tasks;
   render 120 36;
   Controller.key controller (`ASCII 'l', []);
-  check "state movement uses current destination ordinal" (controller.selected = "r0");
+  check "state movement keeps its shared lane ordinal" (controller.selected = "r1");
   Printf.printf "Passed %d board navigation checks. Pure task/input/layout state only.\n"
     !checks

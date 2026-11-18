@@ -69,8 +69,9 @@ def main():
                 )
                 tui.send(b"\x1b")
                 tui.check(
-                    "Escape enters navigation without leaving task",
+                    "Escape returns directly to board with draft",
                     "NAVIGATION /" in tui.screen.display[-1]
+                    and "hjkl/arrows: cards" in tui.screen.display[-1]
                     and "Keep this reply" in tui.text(),
                 )
                 tui.send(b"\r")

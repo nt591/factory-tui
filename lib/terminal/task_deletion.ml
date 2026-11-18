@@ -1,24 +1,19 @@
-type t = { id : string; title : string; mutable text : string }
+type t = { id : string; title : string; mutable confirmed : bool }
 type result = Edit | Cancel | Confirm
 
-let create (task : Model.task) = { id = task.id; title = task.title; text = "" }
+let create (task : Model.task) = { id = task.id; title = task.title; confirmed = false }
 let id t = t.id
-let ready t = t.text = "delete"
+let ready t = t.confirmed
 
-let insert t value =
-  let value = Terminal_text.line value in
-  if String.length t.text + String.length value <= 32 then t.text <- t.text ^ value
+(* Pasted input cannot confirm task deletion. *)
+let insert _ _ = ()
 
 let key t (key, mods) =
-  match key with
-  | `Escape -> Cancel
-  | `Enter when mods = [] && ready t -> Confirm
-  | `Backspace ->
-      t.text <- Text_edit.text (Text_edit.backspace (Text_edit.create t.text));
-      Edit
-  | `ASCII char when mods = [] || mods = [ `Shift ] ->
-      insert t (String.make 1 char);
-      Edit
+  match (key, mods) with
+  | (`Escape | `ASCII 'n' | `ASCII 'N'), ([] | [ `Shift ]) -> Cancel
+  | (`ASCII 'y' | `ASCII 'Y'), ([] | [ `Shift ]) ->
+      t.confirmed <- true;
+      Confirm
   | _ -> Edit
 
 let rows t =
@@ -28,6 +23,5 @@ let rows t =
     "Delete this task, its chat, drafts and stored run/event history.";
     "This cannot be undone. Workspace files and agent-owned history stay intact.";
     "";
-    "Type delete and press Enter to confirm. Esc cancels.";
-    "Confirm: " ^ t.text ^ "▏";
+    "Delete this task? y: Yes / n: No / Esc: Cancel";
   ]

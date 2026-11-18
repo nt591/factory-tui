@@ -120,23 +120,31 @@ board without restoring a task. Restoration persists across SQLite restart.
 Tab cycles Board → Conversation → Activity; Shift-Tab goes back. The active section
 has a heavy cyan boundary. All kanban lanes sit inside one board boundary; a card's
 selection marker stays visible when you read its conversation. Use h/l or arrows
-on the board to move between lanes. Tab does not expand or resize sections; e still
+on the board to move between lanes. The active board has Working, Needs you and
+Ready lanes. Saved tasks that have not run share Working but say Not started; this
+does not launch them. Tab does not expand or resize sections; e still
 expands explicitly. Narrow terminals show the focused detail when both sections
 cannot fit.
 
 Enter on a board card or double-click opens its expanded conversation. Writable
 tasks start in insert mode; archived tasks stay read-only. Enter in a conversation
-opens its reply editor without changing the view. e only expands. Escape keeps an
-edited draft and returns to reading; the next Escape returns from the expanded
-conversation to the board with Board focus. Tab leaves editing and moves sections.
-Tab into Conversation remains in reading mode. Startup uses board navigation mode.
+opens its reply editor without changing the view. e only expands. Escape from
+INSERT, Conversation or expanded Activity returns directly to the board and retains
+the draft. Tab/Shift-Tab leave editing and switch between Conversation and Activity
+inside an expanded task. Enter/i resumes INSERT. Startup stays in board navigation.
 
 ## Delete a task
 
-Press Ctrl-X in normal mode or the reply editor. Type `delete`, then press Enter;
-Escape or the Cancel button cancels. Empty Enter, y and bracketed paste cannot
-confirm. Running tasks must be stopped with x and finish process cleanup first.
-The dialog captures a task ID and rechecks it before deletion.
+Press Ctrl-X while the Board or Archive list has focus to open task deletion.
+Press y to confirm; n or Escape cancels. Enter is not confirmation. Bracketed paste
+cannot confirm. Running tasks must be stopped with x and finish process cleanup
+first. The dialog captures a task ID and rechecks it before deletion.
+
+In a task view, Ctrl-X instead clears the unsent reply buffer. It keeps sent chat,
+run history and workspace files. The editor remains in INSERT if it was editing.
+Archived task drafts are read-only and cannot be cleared. Delete is disabled in the
+command palette until you return to the board; Clear reply buffer is a separate
+action. Neither action sends a message or starts an agent.
 
 Deletion is permanent in the TUI: the task, chat, draft and stored run/event rows
 are removed. SQLite commits those changes together; the UI keeps the task until
@@ -159,7 +167,8 @@ the saved draft. Delete task opens the separate confirmation dialog; it does not
 delete directly. Other modal forms keep their context-specific controls.
 
 The footer names INSERT and NAVIGATION explicitly. Escape from INSERT keeps your
-draft and returns to NAVIGATION without changing views. Enter/i resumes INSERT.
+draft and returns directly to the board. Tab/Shift-Tab switch task panes without
+leaving the task; Enter/i resumes INSERT in Conversation.
 The Board/Archive tabs remain clickable from INSERT. Opening Archive clears filters
 that could hide its tasks; Escape backs out of an archived task to the list, then
 from the list to Board. The archive count on its tab is independent of board filters.

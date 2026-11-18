@@ -16,8 +16,8 @@ let help ~mode =
     "Ctrl-U/D: half-page. Ctrl-B/F: full-page. Tab/Shift-Tab: cycle.";
     "Mouse wheel and Page Up/Down scroll. Home/End: first/last.";
     "Paused chat: click Latest on its border, or End, to follow output.";
-    "e expands once; Escape returns a layer. Enter/i in chat composes a reply.";
-    "Arrows edit; Home/End move within a line; Escape keeps the draft.";
+    "e expands once. Escape from a task returns to its board with the draft saved.";
+    "Tab/Shift-Tab switches Conversation/Activity. Enter/i opens the reply editor.";
     (match mode with
     | Live _ -> "n/W creates a workspace task. Setup starts no agent."
     | _ -> "n creates a demo task. W creates a workspace task with SQLite.");
@@ -46,7 +46,7 @@ let help ~mode =
     "Cards move from events; selected chat stays attached to its task.";
     "Process exit alone never marks a task Ready.";
     "Acceptance does not merge, push, or delete a workspace.";
-    "Ctrl-X deletes an idle task after typing delete. Workspace files stay intact.";
+    "Ctrl-X clears a task reply. On the board it asks y/n before task deletion.";
     "Startup starts no agent. Live mode and writes require explicit opt-in.";
     "Configured SQLite storage retains chats and drafts.";
     "";

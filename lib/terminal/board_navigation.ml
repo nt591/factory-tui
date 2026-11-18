@@ -11,11 +11,15 @@ let vertical ~columns ~selected tasks =
   else
     match List.find_opt (fun (task : Model.task) -> task.id = selected) tasks with
     | Some task ->
-        List.filter (fun (candidate : Model.task) -> candidate.state = task.state) tasks
+        List.filter
+          (fun (candidate : Model.task) ->
+            Board_lanes.of_state candidate.state = Board_lanes.of_state task.state)
+          tasks
     | None ->
         List.concat_map
-          (fun state -> List.filter (fun (task : Model.task) -> task.state = state) tasks)
-          Model.columns
+          (fun state ->
+            List.filter (fun (task : Model.task) -> Board_lanes.contains state task) tasks)
+          Board_lanes.states
 
 let move ~selected ~delta tasks =
   let length = List.length tasks in
@@ -34,19 +38,24 @@ let horizontal ~right ~selected tasks =
   | None -> None
   | Some task ->
       let source =
-        List.filter (fun (candidate : Model.task) -> candidate.state = task.state) tasks
+        List.filter
+          (fun (candidate : Model.task) ->
+            Board_lanes.of_state candidate.state = Board_lanes.of_state task.state)
+          tasks
       in
       let row = Option.value ~default:0 (index_of selected source) in
-      let states = if right then Model.columns else List.rev Model.columns in
+      let states = if right then Board_lanes.states else List.rev Board_lanes.states in
       let rec find = function
         | [] -> None
-        | state :: rest when state = task.state -> next rest
+        | state :: rest when state = Board_lanes.of_state task.state -> next rest
         | _ :: rest -> find rest
       and next = function
         | [] -> None
         | state :: rest -> (
             let candidates =
-              List.filter (fun (candidate : Model.task) -> candidate.state = state) tasks
+              List.filter
+                (fun (candidate : Model.task) -> Board_lanes.contains state candidate)
+                tasks
             in
             match
               List.nth_opt candidates (max 0 (min row (List.length candidates - 1)))

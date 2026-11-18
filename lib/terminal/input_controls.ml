@@ -6,7 +6,7 @@ let items = function
   | Compose ->
       [
         { label = "[Send reply / Enter]"; action = Submit };
-        { label = "[Navigation / Esc]"; action = Close };
+        { label = "[Board / Esc]"; action = Close };
         { label = "[Newline / Ctrl-L]"; action = Newline };
       ]
   | Edit_model ->

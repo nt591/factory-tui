@@ -74,7 +74,9 @@ def main():
             tui.send(b"3j")
             tui.wait(
                 "queued fourth card",
-                lambda: "Queued 5 / 3-4/5" in tui.text() and "queued-3 ◂" in tui.text(),
+                lambda: (
+                    "Working 5 / 3-4/5" in tui.text() and "queued-3 ◂" in tui.text()
+                ),
             )
             tui.send(b"l")
             tui.wait(

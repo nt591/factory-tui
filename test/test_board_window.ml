@@ -52,12 +52,13 @@ let () =
     (frame, Buffer.contents buffer)
   in
   let _, text = render 120 36 in
-  check "column header exposes card range" (Controller.contains text "Queued 20 / 1-2/20");
+  check "column header exposes card range"
+    (Controller.contains text "Working 20 / 1-2/20");
   Controller.key controller (`Page `Down, []);
   let frame, text = render 120 36 in
   check "paging keeps selected card visible and updates range"
     (controller.selected = "T-02"
-    && Controller.contains text "Queued 20 / 2-3/20"
+    && Controller.contains text "Working 20 / 2-3/20"
     && List.exists
          (fun (hit : Ui.hit) -> hit.action = Controller.Select "T-02")
          frame.hits);
@@ -74,6 +75,6 @@ let () =
   let _, text = render 120 10 in
   check "too-short column does not claim no tasks"
     (Controller.contains text "Resize to show cards"
-    && Controller.contains text "Queued 20");
+    && Controller.contains text "Working 20");
   Printf.printf "Passed %d board window checks. Pure task/layout/input data only.\n"
     !checks

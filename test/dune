@@ -482,3 +482,8 @@
  (name test_board_tabs)
  (modules test_board_tabs)
  (libraries factory_tui notty))
+
+(test
+ (name test_board_interaction)
+ (modules test_board_interaction)
+ (libraries factory_tui notty))

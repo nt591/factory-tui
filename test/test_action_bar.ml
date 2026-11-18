@@ -12,7 +12,7 @@ let has items action = List.exists (fun (_, actual) -> actual = action) items
 
 let items ?(live = false) ?(replay = false) ?(fake = false) ?(storage = false)
     ?(expanded = false) task =
-  Action_bar.items ~archive:false ~task ~live ~replay ~fake ~storage ~expanded
+  Action_bar.items ~board:true ~archive:false ~task ~live ~replay ~fake ~storage ~expanded
 
 let task = Model.make ~id:"task" ~title:"Instruction" ~repository:"fixture"
 

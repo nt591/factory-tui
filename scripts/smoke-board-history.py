@@ -65,7 +65,7 @@ def main():
             tui.send(b"\x1b[<65;5;5M")
             tui.check(
                 "wheel on column title leaves its card range unchanged",
-                "Queued 3 / 1-2/3" in tui.text(),
+                "Working 4 / 1-2/4" in tui.text(),
             )
             tui.send(b"\x1b[<65;10;20M")
             tui.check("wheel on chat title preserves history", chat_rows() == old_chat)
@@ -75,7 +75,7 @@ def main():
                 "rows 1-12/14" in tui.text(),
             )
             tui.send(b"\x1b[<65;5;8M")
-            tui.wait("board scroll frame", lambda: "Queued 3 / 2-3/3" in tui.text())
+            tui.wait("board scroll frame", lambda: "Working 4 / 2-3/4" in tui.text())
             tui.check(
                 "board wheel leaves visible chat history unchanged",
                 chat_rows() == old_chat and "reading history" in tui.text(),
@@ -136,7 +136,7 @@ def main():
             tui.send(b"\x1b[<0;5;8M")
             tui.wait(
                 "other task selected",
-                lambda: "T-101 / Queued / conversation" in tui.text(),
+                lambda: "T-101 / Not started / conversation" in tui.text(),
             )
             with replay.open("a") as output:
                 output.write(event("background", "Background chunk"))
@@ -176,9 +176,9 @@ def main():
             )
             tui.check(
                 "background completion keeps selected conversation unchanged",
-                "T-101 / Queued / conversation" in tui.text(),
+                "T-101 / Not started / conversation" in tui.text(),
             )
-            tui.send(b"\x1b[<0;95;8M")
+            tui.send(b"\x1b[<0;85;8M")
             tui.wait(
                 "updated task inspected",
                 lambda: (

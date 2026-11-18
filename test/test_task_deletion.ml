@@ -10,11 +10,8 @@ let check name value =
 
 let ok = function Ok value -> value | Error error -> failwith error
 let ctrl_x t = Controller.key t (`ASCII 'X', [ `Ctrl ])
-let type_delete t = String.iter (fun char -> Controller.key t (`ASCII char, [])) "delete"
-
-let confirm t =
-  type_delete t;
-  Controller.key t (`Enter, [])
+let type_delete t = Controller.key t (`ASCII 'y', [])
+let confirm t = type_delete t
 
 let task =
   let queued = Model.make ~id:"remove" ~title:"Delete fixture" ~repository:"fixture" in
@@ -54,9 +51,9 @@ let () =
     (t.deletion <> None && Controller.snapshot t = saved);
   Controller.key t (`Enter, []);
   check "empty Enter cannot delete" (Controller.snapshot t = saved);
-  Controller.key t (`ASCII 'y', []);
+  Controller.key t (`ASCII 'd', []);
   Controller.key t (`Enter, []);
-  check "single-letter confirmation cannot delete" (Controller.snapshot t = saved);
+  check "arbitrary text and Enter cannot delete" (Controller.snapshot t = saved);
   Controller.key t (`Escape, []);
   check "Escape cancels" (t.deletion = None && Controller.snapshot t = saved);
   ctrl_x t;
@@ -84,9 +81,11 @@ let () =
     (t.deletion = None && Controller.snapshot t = saved);
   Controller.act t Begin_compose;
   ctrl_x t;
-  Controller.key t (`Escape, []);
-  check "cancel from insert mode retains editor and draft"
-    (t.input = Compose && Controller.draft t = "Retained draft");
+  check "Ctrl-X in insert clears only the reply buffer"
+    (t.deletion = None && t.input = Compose
+    && Controller.draft t = ""
+    && t.tasks = saved.tasks);
+  Controller.set_input t "Retained draft";
   Controller.key t (`Escape, []);
   ctrl_x t;
   String.iter (fun char -> Controller.paste_key t (`ASCII char, [])) "delete";
@@ -95,7 +94,7 @@ let () =
   t.storage_events <- [ event task.id; event other.id ];
   t.schedules <- [ (1., event task.id); (1., event other.id) ];
   Controller.act t (Select other.id);
-  Controller.key t (`Enter, []);
+  Controller.key t (`ASCII 'y', []);
   check "dialog deletes its captured target, not the later selection"
     (t.tasks = [ other ] && t.selected = other.id);
   check "deletion removes only target drafts/events/schedules"

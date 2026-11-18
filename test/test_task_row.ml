@@ -9,12 +9,12 @@ let check name condition =
 let () =
   let task = Model.make ~id:"T-101" ~title:"Short title" ~repository:"fixture" in
   check "short row retains familiar spacing"
-    (Task_row.text ~width:60 ~selected:true task = " › T-101   Queued     Short title");
+    (Task_row.text ~width:60 ~selected:true task = " › T-101   Not started Short title");
   let long = { task with title = String.make 150 'x' ^ "TITLE_END" } in
   let row = Task_row.text ~width:60 ~selected:false long in
   check "long title has visible omission marker" (String.ends_with ~suffix:"…" row);
   check "ordinary ID and state remain visible"
-    (Controller.contains row "T-101" && Controller.contains row "Queued");
+    (Controller.contains row "T-101" && Controller.contains row "Not started");
   let long_id = { long with id = String.make 180 'i'; state = Model.Needs_you } in
   let row = Task_row.text ~width:60 ~selected:true long_id in
   check "long ID cannot hide task state" (Controller.contains row "Needs you");

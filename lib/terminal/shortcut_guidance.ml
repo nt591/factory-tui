@@ -1,12 +1,12 @@
 open Controller
 
 let text ~width ~input ~focus ~expanded ~searching ~prefix =
-  let expansion = if expanded then "Esc: back" else "e: expand" in
+  let expansion = if expanded then "Esc: board" else "e: expand" in
   let hint =
     match input with
     | Compose ->
-        "INSERT / Enter sends · Esc: navigation · Ctrl-P: commands · Tab: panes · Ctrl-L \
-         newline · Ctrl-X delete"
+        "INSERT / Enter sends · Esc: board · Ctrl-P: commands · Tab: panes · Ctrl-L \
+         newline · Ctrl-X clear reply"
     | Edit_model -> "MODEL / Enter applies · Esc cancels · arrows edit · Home/End"
     | New_task -> "NEW TASK / Enter creates · Esc cancels · arrows edit · Home/End"
     | Search -> "BOARD SEARCH / Enter finishes · Esc closes · arrows edit"

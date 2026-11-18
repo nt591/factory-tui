@@ -10,6 +10,7 @@ type command =
   | Stop
   | Accept
   | Restore
+  | Clear_reply
   | Delete
   | Review
   | Help
@@ -29,7 +30,7 @@ type t = {
 
 type result = Edit | Cancel | Execute of command
 
-let catalogue ~task ~live ~replay ~storage ~busy =
+let catalogue ~board ~task ~live ~replay ~storage ~busy =
   let no_task = if task = None then Some "Select a task first." else None in
   let archived =
     Option.fold ~none:false ~some:(fun (task : task) -> task.state = Done) task
@@ -56,8 +57,11 @@ let catalogue ~task ~live ~replay ~storage ~busy =
       (if replay then Some "Replay does not control a process." else state Working);
     entry Accept "Accept & archive task" "Ctrl-A" (state Ready);
     entry Restore "Restore archived task" "u" (state Done);
-    entry Delete "Delete task…" "Ctrl-X"
-      (if busy then Some "Stop task and wait for process cleanup." else no_task);
+    entry Clear_reply "Clear reply buffer" "Ctrl-X in task view" writable;
+    entry Delete "Delete task…" "Ctrl-X on board"
+      (if not board then Some "Return to the board to delete a task."
+       else if busy then Some "Stop task and wait for process cleanup."
+       else no_task);
     entry Review "Review workspace changes" "v"
       (match task with
       | Some task when task.workspace <> None -> None

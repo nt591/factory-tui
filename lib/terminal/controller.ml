@@ -14,6 +14,7 @@ type action =
   | Zoom
   | Open_conversation
   | Back
+  | Clear_reply
   | Begin_delete
   | Cancel_delete
   | Confirm_delete
@@ -356,12 +357,6 @@ let focus_pane t focus =
     t.activity_expanded <- false);
   t.focus <- focus
 
-let close_expansion t =
-  let focus = if t.activity_expanded then Activity else Board in
-  t.zoom <- (if t.activity_expanded then t.activity_origin_zoom else false);
-  t.activity_expanded <- false;
-  focus_pane t focus
-
 let deletion_busy t id =
   List.mem id t.owned_tasks
   || List.mem id t.live_waiting_tasks
@@ -371,8 +366,10 @@ let deletion_busy t id =
        t.tasks
 
 let command_entries t =
-  Command_palette.catalogue ~task:(selected t) ~live:(t.live_config <> None)
-    ~replay:t.external_events ~storage:(t.database_path <> None)
+  Command_palette.catalogue
+    ~board:(t.focus = Board && (not t.zoom) && t.input = Normal)
+    ~task:(selected t) ~live:(t.live_config <> None) ~replay:t.external_events
+    ~storage:(t.database_path <> None)
     ~busy:
       (Option.fold ~none:false
          ~some:(fun (task : task) -> deletion_busy t task.id)
@@ -476,7 +473,10 @@ let rec act t action =
           | Edit | Cancel -> ()
           | Execute command ->
               t.commands <- None;
-              if command <> Command_palette.Delete then t.input <- Normal;
+              if
+                command <> Command_palette.Delete
+                && command <> Command_palette.Clear_reply
+              then t.input <- Normal;
               act t
                 (match command with
                 | Board -> Session_board
@@ -488,6 +488,7 @@ let rec act t action =
                 | Stop -> Stop
                 | Accept -> Accept
                 | Restore -> Restore_task
+                | Clear_reply -> Clear_reply
                 | Delete -> Begin_delete
                 | Review -> Open_review
                 | Help -> Help)))
@@ -501,26 +502,37 @@ let rec act t action =
       focus_pane t Conversation;
       act t Begin_compose
   | Back ->
-      if t.input <> Normal then t.input <- Normal
-      else if Chat_search.query t.chat_search <> "" && t.focus = Conversation then
-        Chat_search.clear t.chat_search
-      else if t.zoom then (
-        let activity = t.activity_expanded in
-        close_expansion t;
-        if t.archive && not activity then repair_selection t)
+      if t.input = Compose then t.input <- Normal;
+      if t.focus = Conversation then Chat_search.clear t.chat_search;
+      if t.zoom then (
+        t.zoom <- false;
+        t.activity_expanded <- false;
+        focus_pane t Board;
+        if t.archive then repair_selection t)
       else if t.focus <> Board then focus_pane t Board
       else (
         t.query <- "";
         if t.archive then act t Session_board else ensure_selection t)
-  | Begin_delete -> (
+  | Clear_reply -> (
       match selected t with
-      | None -> ()
-      | Some task ->
-          if String.starts_with ~prefix:"Storage error:" t.status then ()
-          else if deletion_busy t task.id then
-            t.status <-
-              "Stop the task with x and wait for process cleanup before deleting it."
-          else t.deletion <- Some (Task_deletion.create task))
+      | Some task when task.state <> Done ->
+          set_draft t "";
+          if t.input = Compose then t.editor <- Text_edit.create "";
+          if not (String.starts_with ~prefix:"Storage error:" t.status) then
+            t.status <- "Reply buffer cleared. Sent messages are unchanged."
+      | _ -> ())
+  | Begin_delete -> (
+      if t.focus <> Board || t.zoom || t.input <> Normal then
+        t.status <- "Return to the board to delete a task."
+      else
+        match selected t with
+        | None -> ()
+        | Some task ->
+            if String.starts_with ~prefix:"Storage error:" t.status then ()
+            else if deletion_busy t task.id then
+              t.status <-
+                "Stop the task with x and wait for process cleanup before deleting it."
+            else t.deletion <- Some (Task_deletion.create task))
   | Cancel_delete ->
       t.deletion <- None;
       t.deletion_request <- None
@@ -1217,7 +1229,8 @@ let normal_key t (key, mods) =
     command (fun () ->
         match key with
         | `ASCII 'a' when prefix <> Window -> act t Accept
-        | `ASCII 'x' when prefix <> Window -> act t Begin_delete
+        | `ASCII 'x' when prefix <> Window ->
+            act t (if t.focus = Board && not t.zoom then Begin_delete else Clear_reply)
         | `ASCII 'w' ->
             if prefix = Window then cycle_focus t false
             else (
@@ -1401,13 +1414,14 @@ let key t (key, mods) =
     | `ASCII 'H' when t.menu_tab = Settings_tab -> act t Next_harness
     | _ -> ())
   else if key = `ASCII 'x' && List.mem `Ctrl mods && t.input = Compose then
-    act t Begin_delete
+    act t Clear_reply
   else if key = `Tab && t.input = Compose then (
     t.input <- Normal;
     cycle_focus t (List.mem `Shift mods))
   else if t.input <> Normal then (
     reset_keys t;
     match key with
+    | `Escape when t.input = Compose -> act t Back
     | `Escape when t.input = Chat_search ->
         Chat_search.clear t.chat_search;
         t.input <- Normal
@@ -1477,8 +1491,8 @@ let poll_creation t ~storage =
               t.workspace_form <- None;
               focus_pane t Conversation;
               t.status <-
-                "Workspace task created / Queued (not started). Press s to review and \
-                 start the run.";
+                "Workspace task created / Not started. Press s to review and start the \
+                 run.";
               let send = t.creation_send in
               t.creation_send <- false;
               if send && (not t.quit) && t.live_config <> None then act t Start))

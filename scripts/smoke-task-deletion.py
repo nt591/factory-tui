@@ -86,27 +86,35 @@ def main():
             )
             tui.check(
                 "board Enter defaults to conversation insert",
-                "Retained reply" in tui.text() and "Queued 1" not in tui.text(),
+                "Retained reply" in tui.text() and "Working 1" not in tui.text(),
             )
-            tui.send(b"\x1b")
+            tui.send(b"\x18")
+            tui.check(
+                "task Ctrl-X clears only unsent reply",
+                "Retained reply" not in tui.text()
+                and "INSERT /" in tui.screen.display[-1]
+                and "Delete task / permanent" not in tui.text(),
+            )
+            tui.send(b"\x1b[200~Retained reply\x1b[201~")
+            tui.send(b"\t\x1b[Z")
             tui.send(b"ee")
             tui.check(
                 "e cannot collapse the conversation",
-                "Queued 1" not in tui.text() and "INSERT" not in tui.screen.display[-1],
+                "Working 1" not in tui.text()
+                and "INSERT" not in tui.screen.display[-1],
             )
             tui.send(b"\r")
             tui.check(
                 "conversation Enter edits instead of toggling view",
                 "INSERT / Enter sends" in tui.screen.display[-1]
-                and "Queued 1" not in tui.text(),
+                and "Working 1" not in tui.text(),
             )
             if args.preview:
                 tui.preview(args.preview.with_stem(args.preview.stem + "-insert"))
             tui.send(b"\x1b")
-            tui.send(b"\x1b")
             tui.check(
-                "second Escape returns board with board navigation",
-                "Queued 1" in tui.text()
+                "one Escape returns board with board navigation",
+                "Working 1" in tui.text()
                 and "hjkl/arrows: cards" in tui.screen.display[-1],
             )
             tui.send(b"\x18")
@@ -115,21 +123,21 @@ def main():
             tui.check(
                 "empty Enter cannot confirm", "Delete task / permanent" in tui.text()
             )
-            tui.send(b"\x1b[200~delete\r\x1b[201~")
+            tui.send(b"\x1b[200~y\r\x1b[201~")
             tui.check(
                 "paste cannot confirm",
                 "Delete task / permanent" in tui.text()
                 and read(database)["tasks"] == saved["tasks"],
             )
-            tui.send(b"\x1b")
+            tui.send(b"n")
             tui.check(
-                "Escape cancels deletion without data loss",
+                "n cancels deletion without data loss",
                 read(database)["tasks"] == saved["tasks"],
             )
             tui.send(b"\x18")
             if args.preview:
                 tui.preview(args.preview)
-            tui.send(b"delete\r")
+            tui.send(b"y")
             tui.wait(
                 "deleted task gone",
                 lambda: (
@@ -139,7 +147,7 @@ def main():
             )
             tui.check(
                 "surviving task remains selectable",
-                f"{other['id']} / Queued / conversation" in tui.text(),
+                f"{other['id']} / Not started / conversation" in tui.text(),
             )
             tui.send(b"q")
             tui.wait_exit()
@@ -163,7 +171,7 @@ def main():
             tui.check(
                 "restart does not restore deleted task", task["title"] not in tui.text()
             )
-            tui.send(b"\x18delete\r")
+            tui.send(b"\x18y")
             tui.wait(
                 "empty board",
                 lambda: (

@@ -20,7 +20,9 @@ let () =
   let render width height = Ui.render controller ~width ~height in
   let wheel state direction =
     let frame = render 120 36 in
-    let r, _, _, _ = List.find (fun (_, s, _, _) -> s = state) frame.columns in
+    let r, _, _, _ =
+      List.find (fun (_, s, _, _) -> s = Board_lanes.of_state state) frame.columns
+    in
     Ui.mouse controller frame ~now:1. (`Press (`Scroll direction), (r.x + 2, r.y + 2), [])
   in
   wheel Queued `Down;

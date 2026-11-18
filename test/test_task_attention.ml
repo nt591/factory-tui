@@ -51,7 +51,7 @@ let () =
   let ready = finish [ Turn_completed; Exited 0 ] in
   check "Ready never advertises old attention reason" (Task_attention.reason ready = None);
   check "ordinary metadata and badges remain unchanged"
-    (Task_attention.card_text ~updates:0 task = "1 msg / 1 queued"
+    (Task_attention.card_text ~updates:0 task = "Not started"
     && Task_attention.card_text ~updates:1 ready = "1 new update");
   let controller = Controller.create ~external_events:true () in
   controller.tasks <- [ failed ];

@@ -1,4 +1,5 @@
 val items :
+  board:bool ->
   archive:bool ->
   task:Model.task option ->
   live:bool ->

@@ -198,7 +198,7 @@ uv run --with pyte --with pillow python scripts/smoke-columns.py \
   --preview /tmp/factory-columns.png
 ```
 
-It creates a SQLite fixture with ten Queued and ten Ready tasks, then verifies
+It creates a SQLite fixture with ten Not started and ten Ready tasks, then verifies
 column-specific scrolling, retained chat selection, keyboard-following, manual
 top positioning, and unchanged saved task content. It starts no agent and touches
 no real workspace. Unit tests additionally verify selected state movement,
@@ -427,7 +427,7 @@ uv run --with pyte --with pillow python scripts/smoke-board-navigation.py \
   --preview /tmp/factory-board-navigation.png
 ```
 
-The real terminal loads a temporary SQLite board with five Queued, five Needs you
+The real terminal loads a temporary SQLite board with five Not started, five Needs you
 and two Ready tasks; Working is empty. An empty replay file prevents timed events.
 Checks cover row-aligned horizontal movement, skipping the empty column, counts,
 short-column clamping, destination visibility and its expanded chat. Final saved
@@ -881,7 +881,7 @@ refusal, read-only transition and storage-warning priority. Catalogue: 23 UI cas
 ### Task deletion and conversation entry
 
 `scripts/smoke-task-deletion.py` uses temporary SQLite and a workspace sentinel.
-It verifies Enter-to-compose, e-only expansion, layered Escape, typed deletion,
+It verifies Enter-to-compose, e-only expansion, direct-to-board Escape, y/n deletion,
 paste/cancel isolation, task-only history removal, restart and last-task deletion.
 It starts no agent and makes no network request. It is included in check-ui.py.
 Pure `test_task_deletion` checks captured identity, active/waiting/owned process
@@ -897,3 +897,11 @@ an empty temporary replay source and no database, network or agent. The pure
 `test_command_palette` covers cursor/error preservation, bounded input, unavailable
 commands, stale state rechecks, paste and modal isolation. `test_board_tabs` checks
 compact widths, unfiltered destination entry and layered archive return.
+
+
+`test_board_interaction` checks the shared Working lane without changing stored
+lifecycle state, draft-only Ctrl-X in editing and reading views, direct Escape,
+Tab/Shift-Tab task pane navigation, board-only deletion and paste-safe y/n responses.
+The task-deletion PTY verifies buffer clearing, retyping, n cancellation, y deletion,
+SQLite restart and untouched workspace files. Existing lifecycle/process tests keep
+Queued work distinct from running work; no startup or rendering may launch it.

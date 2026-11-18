@@ -60,11 +60,11 @@ def main():
             tui.ready()
             tui.check(
                 "both columns start with their first two cards",
-                "Queued 10 / 1-2/10" in tui.text()
+                "Working 10 / 1-2/10" in tui.text()
                 and "Ready 10 / 1-2/10" in tui.text(),
             )
             tui.send(b"\x1b[<65;5;8M")
-            tui.wait("queued scroll", lambda: "Queued 10 / 2-3/10" in tui.text())
+            tui.wait("queued scroll", lambda: "Working 10 / 2-3/10" in tui.text())
             tui.check(
                 "scrolling Queued leaves Ready unchanged",
                 "Ready 10 / 1-2/10" in tui.text(),
@@ -73,26 +73,26 @@ def main():
             tui.wait("ready scroll", lambda: "Ready 10 / 3-4/10" in tui.text())
             tui.check(
                 "Ready scroll preserves Queued position and chat",
-                "Queued 10 / 2-3/10" in tui.text()
-                and "queued-00 / Queued / conversation" in tui.text(),
+                "Working 10 / 2-3/10" in tui.text()
+                and "queued-00 / Not started / conversation" in tui.text(),
             )
             if args.preview:
                 tui.preview(args.preview)
             tui.send(b"G")
             tui.wait(
                 "keyboard follows selected column",
-                lambda: "Queued 10 / 9-10/10" in tui.text(),
+                lambda: "Working 10 / 9-10/10" in tui.text(),
             )
             tui.check(
                 "keyboard selection resets only its target column",
                 "Ready 10 / 3-4/10" in tui.text()
-                and "queued-09 / Queued / conversation" in tui.text(),
+                and "queued-09 / Not started / conversation" in tui.text(),
             )
             tui.send(b"\x1b[<64;5;8M" * 12)
-            tui.wait("manual top", lambda: "Queued 10 / 1-2/10" in tui.text())
+            tui.wait("manual top", lambda: "Working 10 / 1-2/10" in tui.text())
             tui.check(
                 "manual top does not snap back to selected last card",
-                "queued-09 / Queued / conversation" in tui.text(),
+                "queued-09 / Not started / conversation" in tui.text(),
             )
             tui.send(b"b")
             tui.wait("board scroll reset", lambda: "Ready 10 / 1-2/10" in tui.text())

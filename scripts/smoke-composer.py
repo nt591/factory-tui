@@ -86,7 +86,7 @@ def main():
             tui.check(
                 "middle draft shows both hidden directions", "↑" in cue and "↓" in cue
             )
-            tui.send(b"\x1b")
+            tui.send(b"\t\x1b[Z")
             tui.wait(
                 "saved draft preview",
                 lambda: (

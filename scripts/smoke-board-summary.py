@@ -95,7 +95,8 @@ def main():
             tui.wait("compact title omission", lambda: "…" in tui.screen.display[4])
             tui.check(
                 "compact task row marks hidden title without losing identity or state",
-                "T-101" in tui.screen.display[4] and "Queued" in tui.screen.display[4],
+                "T-101" in tui.screen.display[4]
+                and "Not started" in tui.screen.display[4],
             )
             if args.preview:
                 tui.preview(args.preview.with_stem(args.preview.stem + "-filtered"))

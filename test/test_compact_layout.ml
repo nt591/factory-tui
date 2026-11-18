@@ -48,7 +48,6 @@ let () =
         (Controller.contains text "Reply / next turn"
         && Controller.contains text "Visible compact reply"))
     [ 16; 17; 20; 21; 22; 23; 24; 25; 26; 27; 30 ];
-  Controller.key controller (`Escape, []);
   Controller.key controller (`Tab, []);
   let _, text = render 60 20 in
   check "compact Activity focus renders activity"

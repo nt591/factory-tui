@@ -67,7 +67,7 @@ def main():
                 )
                 tui.check(
                     "active board and accepted chat remain independent",
-                    "Queued 1" in tui.text() and "1 tasks" in tui.screen.display[2],
+                    "Working 1" in tui.text() and "1 tasks" in tui.screen.display[2],
                 )
                 tui.check(
                     "retained draft is read-only after restart",
@@ -98,7 +98,7 @@ def main():
                 tui.send(b"j")
                 tui.wait(
                     "explicit navigation selects active task",
-                    lambda: f"{active['id']} / Queued / conversation" in tui.text(),
+                    lambda: f"{active['id']} / Not started / conversation" in tui.text(),
                 )
                 if attempt == 0:
                     tui.toggle_board_view()
@@ -106,7 +106,7 @@ def main():
                     tui.click_text("Archive", row=1)
                 tui.check(
                     "archive switch keeps active conversation open",
-                    f"{active['id']} / Queued / conversation" in tui.text()
+                    f"{active['id']} / Not started / conversation" in tui.text()
                     and "1 tasks accepted" in tui.screen.display[2],
                 )
                 if args.preview and attempt == 1:
@@ -120,13 +120,13 @@ def main():
                 tui.wait(
                     "Show card reveals active task",
                     lambda: (
-                        "Queued 1" in tui.text()
+                        "Working 1" in tui.text()
                         and "Show card" not in tui.screen.display[2]
                     ),
                 )
                 tui.check(
                     "revealing active card keeps selected conversation",
-                    f"{active['id']} / Queued / conversation" in tui.text(),
+                    f"{active['id']} / Not started / conversation" in tui.text(),
                 )
                 tui.toggle_board_view()
                 tui.toggle_board_view()
@@ -134,7 +134,7 @@ def main():
                 tui.toggle_board_view()
                 tui.check(
                     "explicit view switches keep active conversation open",
-                    f"{active['id']} / Queued / conversation" in tui.text(),
+                    f"{active['id']} / Not started / conversation" in tui.text(),
                 )
                 tui.send(b"j")
                 tui.wait(
@@ -145,7 +145,7 @@ def main():
                 tui.check(
                     "session board retains accepted conversation",
                     f"{accepted['id']} / Done / conversation" in tui.text()
-                    and "Queued 1" in tui.text(),
+                    and "Working 1" in tui.text(),
                 )
                 tui.send(b"e")
                 tui.wait(

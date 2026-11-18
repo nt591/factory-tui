@@ -14,6 +14,8 @@ let card_text ~updates (task : Model.task) =
   match reason task with
   | Some reason ->
       if updates > 0 then Printf.sprintf "%s / %d new" reason updates else reason
+  | None when task.state = Model.Queued ->
+      if updates > 0 then Printf.sprintf "Not started / %d new" updates else "Not started"
   | None ->
       if updates > 0 then
         Printf.sprintf "%d new update%s" updates (if updates = 1 then "" else "s")
