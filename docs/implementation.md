@@ -451,7 +451,7 @@ query retention, and no task/run creation from match navigation.
 
 
 The primary board/detail split supports `Ctrl-W +/-` to grow/shrink the focused
-region, with numeric counts before Ctrl-W; `Ctrl-W =` restores automatic sizes.
+region, with numeric counts before Ctrl-W; `Ctrl-W =` restores startup sizes.
 Conversation and Activity resize the shared detail region. `Pane_layout` owns
 abstract launch-local width/height preferences, scaled as proportions and clamped
 against the current terminal. Compact/zoom layouts have no active adjustable
@@ -462,3 +462,17 @@ resize the underlying board. Storage errors remain visible. Pure tests verify
 limits, orientation independence, restoration, counts and frame/hit bounds. The
 dedicated replay PTY check verifies actual borders, history during new updates,
 draft retention, resized composer clicks, compact/zoom restoration and reset.
+
+
+Optional `[layout]` startup settings define `board_width_percent` and
+`board_height_percent`, each an integer from 10 to 90. `Config` validates types,
+range and unknown fields before opening storage. Typed abstract `Pane_layout`
+defaults reach both simulation/replay/fake and explicit live UI startup. The
+current layout still enforces its region minimums. Width refers to main content,
+not the sidebar; height refers to the body. Settings discloses loaded defaults.
+Ctrl-W `=` clears runtime overrides and returns to these launch defaults; changing
+the TOML file requires a new launch. Neither runtime adjustment nor reset writes
+a file. `--no-config` selects automatic sizes. Pure parser/layout/settings tests
+and `scripts/smoke-layout-config.py` verify discovery, explicit/no-config paths,
+CLI database override, reset, next-launch changes, startup inactivity, config byte
+preservation, and rejected values without source disclosure or storage creation.

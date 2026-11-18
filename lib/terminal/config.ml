@@ -1,8 +1,17 @@
 open Scope
 
-type t = { database : string option; workspace : Workspace_defaults.t }
+type t = {
+  database : string option;
+  workspace : Workspace_defaults.t;
+  layout : Pane_layout.defaults;
+}
 
-let empty = { database = None; workspace = Workspace_defaults.empty }
+let empty =
+  {
+    database = None;
+    workspace = Workspace_defaults.empty;
+    layout = Pane_layout.automatic;
+  }
 
 exception Invalid of string
 
@@ -32,11 +41,12 @@ let parse ~base ~home source =
         Table.iter
           (fun key _ ->
             if not (List.mem (Table.Key.to_string key) allowed) then
-              raise (Invalid "Unknown config field in storage or workspace defaults."))
+              raise
+                (Invalid "Unknown config field in storage, workspace, or layout settings."))
           table
       in
       let get name table = Table.find_opt (Table.Key.of_string name) table in
-      check_keys [ "storage"; "workspace" ] table;
+      check_keys [ "storage"; "workspace"; "layout" ] table;
       let database =
         match get "storage" table with
         | None -> None
@@ -97,7 +107,27 @@ let parse ~base ~home source =
             }
         | Some _ -> raise (Invalid "workspace must be a TOML table.")
       in
-      Ok { database; workspace }
+      let layout =
+        match get "layout" table with
+        | None -> Pane_layout.automatic
+        | Some (TTable layout) -> (
+            check_keys [ "board_width_percent"; "board_height_percent" ] layout;
+            let percentage name =
+              match get name layout with
+              | None -> None
+              | Some (TInt value) -> Some value
+              | _ -> raise (Invalid "Layout percentages must be integers from 10 to 90.")
+            in
+            match
+              Pane_layout.make_defaults
+                ~board_width:(percentage "board_width_percent")
+                ~board_height:(percentage "board_height_percent")
+            with
+            | Ok defaults -> defaults
+            | Error error -> raise (Invalid error))
+        | Some _ -> raise (Invalid "layout must be a TOML table.")
+      in
+      Ok { database; workspace; layout }
     with
     | Invalid message -> Error message
     | Toml.Parser.Error _ -> Error "Invalid TOML config. Source content was not printed."

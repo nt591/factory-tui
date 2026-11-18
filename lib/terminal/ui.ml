@@ -623,7 +623,10 @@ let render t ~width:cols ~height:rows =
     let w = min 86 cols and h = min 31 rows in
     let x = (cols - w) / 2 and y = (rows - h) / 2 in
     let help_rows = Menu_content.help ~mode in
-    let settings_rows = Menu_content.settings ~mode ~database:t.database_path ~task in
+    let settings_rows =
+      Menu_content.settings ~mode ~database:t.database_path ~task
+        ~layout:(Pane_layout.defaults t.pane_layout)
+    in
     let menu_rows = if t.menu_tab = Help_tab then help_rows else settings_rows in
     let menu_rows =
       List.concat_map

@@ -11,6 +11,41 @@ let ok = function Ok value -> value | Error error -> failwith error
 let () =
   let parse = Config.parse ~base:"/config" ~home:"/home/test" in
   check "empty config preserves memory mode" ((ok (parse "")).database = None);
+  check "empty config keeps automatic pane sizes"
+    ((ok (parse "")).layout = Pane_layout.automatic);
+  let defaults =
+    (ok (parse "[layout]\nboard_width_percent=55\nboard_height_percent=40")).layout
+  in
+  check "layout percentages stay typed"
+    (Pane_layout.board_width defaults = Some 55
+    && Pane_layout.board_height defaults = Some 40);
+  check "partial layout supports automatic other orientation"
+    (Pane_layout.board_width (ok (parse "[layout]\nboard_height_percent=40")).layout
+    = None);
+  check "empty layout table remains automatic"
+    ((ok (parse "[layout]")).layout = Pane_layout.automatic);
+  List.iter
+    (fun source ->
+      check "invalid layout rejected without coercion" (Result.is_error (parse source)))
+    [
+      "layout=true";
+      "[layout]\nboard_width_percent=9";
+      "[layout]\nboard_height_percent=91";
+      "[layout]\nboard_width_percent=-1";
+      "[layout]\nboard_height_percent=40.0";
+      "[layout]\nboard_width_percent='50'";
+      "[layout]\nboard_height_percent=true";
+      "[layout]\nboard_width=50";
+      "[layout]\napi_key='hidden-layout-secret'";
+    ];
+  List.iter
+    (fun percent ->
+      check "inclusive layout limits accepted"
+        (Result.is_ok
+           (parse
+              (Printf.sprintf "[layout]\nboard_width_percent=%d\nboard_height_percent=%d"
+                 percent percent))))
+    [ 10; 90 ];
   check "absolute database path"
     ((ok (parse "[storage]\ndatabase = '/data/board.sqlite'\n")).database
    = Some "/data/board.sqlite");
@@ -130,7 +165,10 @@ model = "coding-small"
          [workspace]\n\
          source='repo'\n\
          parent='tasks'\n\
-         jj='/tools/jj'";
+         jj='/tools/jj'\n\
+         [layout]\n\
+         board_width_percent=55\n\
+         board_height_percent=40";
       let settings =
         ok
           (Config.resolve_settings ~home:dir ~xdg:(Some dir) ~config:None ~no_config:false
@@ -139,11 +177,15 @@ model = "coding-small"
       check "CLI database override preserves workspace defaults"
         (settings.database = Some "/override.sqlite"
         && settings.workspace.source = Some (Filename.concat config_dir "repo"));
+      check "CLI database override preserves layout defaults"
+        (Pane_layout.board_width settings.layout = Some 55
+        && Pane_layout.board_height settings.layout = Some 40);
       let ignored =
         ok
           (Config.resolve_settings ~home:dir ~xdg:(Some dir) ~config:None ~no_config:true
              ~database:None)
       in
+      check "no-config bypasses layout defaults" (ignored.layout = Pane_layout.automatic);
       check "no-config bypasses workspace defaults"
         (ignored.workspace = Workspace_defaults.empty);
       check "defaults do not create source or parent"

@@ -1,4 +1,8 @@
-type t = { database : string option; workspace : Workspace_defaults.t }
+type t = {
+  database : string option;
+  workspace : Workspace_defaults.t;
+  layout : Pane_layout.defaults;
+}
 
 val parse : base:string -> home:string -> string -> (t, string) result
 val load : home:string -> string -> (t, string) result

@@ -1,23 +1,50 @@
 type layout = Board | Detail | Stacked of int | Side_by_side of int
 type result = Changed | At_limit | No_split
+type defaults = { board_width : int option; board_height : int option }
+
+let automatic = { board_width = None; board_height = None }
+
+let make_defaults ~board_width ~board_height =
+  let valid = Option.fold ~none:true ~some:(fun value -> value >= 10 && value <= 90) in
+  if valid board_width && valid board_height then Ok { board_width; board_height }
+  else Error "Layout percentages must be integers from 10 to 90."
+
+let board_width defaults = defaults.board_width
+let board_height defaults = defaults.board_height
+
 type split = { total : int; first : int; minimum : int; maximum : int; vertical : bool }
 
 type t = {
+  mutable defaults : defaults;
   mutable height_share : int option;
   mutable width_share : int option;
   mutable current : split option;
 }
 
-let create () = { height_share = None; width_share = None; current = None }
+let create () =
+  { defaults = automatic; height_share = None; width_share = None; current = None }
+
 let hide t = t.current <- None
 
 let reset t =
   t.height_share <- None;
   t.width_share <- None
 
+let set_defaults t defaults =
+  t.defaults <- defaults;
+  reset t;
+  hide t
+
+let defaults t = t.defaults
+
 let split preferences ~total ~default ~minimum ~maximum ~vertical =
   let share =
-    Option.bind preferences (fun t -> if vertical then t.width_share else t.height_share)
+    Option.bind preferences (fun t ->
+        match if vertical then t.width_share else t.height_share with
+        | Some _ as share -> share
+        | None ->
+            Option.map (( * ) 100)
+              (if vertical then t.defaults.board_width else t.defaults.board_height))
   in
   let desired =
     match share with None -> default | Some share -> ((total * share) + 5000) / 10000

@@ -9,3 +9,8 @@ database = "board.sqlite"
 # parent = "~/dev/factory-workspaces"
 # revision = "main@origin"
 # model = "coding-large"
+
+# Optional board shares. Terminal limits keep both regions visible.
+# [layout]
+# board_width_percent = 55
+# board_height_percent = 40

@@ -173,7 +173,8 @@ plugins, modify shell startup files, or require global OCaml tool installations.
   - Ctrl-W `+` / `-` grows / shrinks the focused board or detail region by one
     row (stacked) or column (side by side). Conversation and Activity share the
     detail region. A count before Ctrl-W repeats the adjustment, such as `5Ctrl-W+`.
-    Ctrl-W `=` restores automatic sizes. The independent width/height preferences
+    Ctrl-W `=` restores configured startup defaults, or automatic sizes if unset.
+    The independent width/height preferences
     scale on terminal resize and last only for this launch; zoom keeps them intact.
     Minimum sizes prevent one region from hiding the other.
   - `i` enters the reply composer; Escape returns to normal mode and keeps the draft.
@@ -348,6 +349,25 @@ working directory. `--no-config` ignores the default config; combine it with
 optional; a missing explicit config or a malformed existing config is an error.
 Unknown fields are rejected. `[storage].database` controls persistence; optional
 `[workspace]` fields prefill the creation form, as described below.
+
+Optional pane defaults use integer percentages:
+
+```toml
+[layout]
+board_width_percent = 55
+board_height_percent = 40
+```
+
+Each value is optional and must be from 10 to 90. Width controls the board share
+of the main area in side-by-side mode; height controls it in stacked mode. The
+sidebar is excluded. Omitted values use the automatic layout. Terminal limits
+can clamp the displayed sizes to keep both regions usable without discarding
+the preference. Ctrl-W `+`/`-` adjusts the current launch; Ctrl-W `=` restores these
+startup defaults. Runtime adjustment does not write the config. File edits take
+effect on the next launch, and `--no-config` uses automatic defaults. The Settings
+tab displays the loaded startup shares. Layout configuration does not select a
+task, change storage, enable live mode, or start an agent.
+
 Config reads are capped at 64 KiB and errors do not echo file content. Do not
 put credentials in this file. Snapshot mode does not read the default config.
 

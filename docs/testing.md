@@ -374,3 +374,19 @@ stacked/wide geometry, paused history during appended events, draft retention,
 resized composer clicks, modal/paste isolation, compact/zoom preservation and
 reset. It captures stacked and wide frames. `--binary` uses an existing build.
 Pure `test_pane_layout` covers constraints and snapshot isolation separately.
+
+
+## Layout configuration fixture
+
+```sh
+uv run --with pyte --with pillow python scripts/smoke-layout-config.py \
+  --preview /tmp/factory-layout-config.png
+```
+
+This uses temporary HOME/XDG directories and TOML files. It checks default and
+explicit discovery, no-config bypass, stacked/wide startup shares, Settings,
+runtime adjustment and reset without writes, and disk edits taking effect on the
+next launch. An explicit live launch uses a never-started local shell fixture and
+a temporary database to verify configuration/CLI plumbing, not execution or jj.
+Invalid percentages fail before storage opens and do not expose source text.
+`--binary` uses an existing executable. No credentials or model are accessed.

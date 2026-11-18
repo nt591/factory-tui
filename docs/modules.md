@@ -170,6 +170,9 @@ against these interfaces during the normal Dune build.
   abstract launch-local width/height preferences and a current adjustable split.
   Proportions survive terminal reflow; bounds preserve both regions. Zoom and
   compact fallbacks hide the adjustable split without erasing preferences.
+  Abstract validated startup defaults are separate from runtime overrides; reset
+  returns to the loaded defaults. Config passes optional 10–90 board percentages
+  through App startup, and Settings reads accessors without mutating layout.
   It has no controller, persistence, terminal, or process dependency.
 - `Composer_guidance`: pure execution-mode-aware reply controls. Live Codex-only
   and imported-harness recovery instructions stay separate from input dispatch;

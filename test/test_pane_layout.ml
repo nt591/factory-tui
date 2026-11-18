@@ -78,6 +78,28 @@ let () =
             | Board | Detail -> true))
         [ false; true ])
     [ (1, 1); (60, 17); (120, 21); (154, 50); (155, 30); (200, 60); (1000, 1000) ];
+  let configured =
+    match Pane_layout.make_defaults ~board_width:(Some 55) ~board_height:(Some 40) with
+    | Ok defaults -> defaults
+    | Error error -> failwith error
+  in
+  check "invalid programmatic defaults rejected"
+    (Result.is_error (Pane_layout.make_defaults ~board_width:(Some 0) ~board_height:None));
+  Pane_layout.set_defaults preferences configured;
+  check "configured height applied" (choose 120 30 false = Stacked 12);
+  check "configured width applied independently" (choose 200 60 true = Side_by_side 110);
+  ignore (Pane_layout.resize preferences ~detail:true ~delta:5);
+  check "runtime width overrides configured default"
+    (choose 200 60 true = Side_by_side 105);
+  Pane_layout.reset preferences;
+  check "reset returns to configured defaults, not automatic"
+    (choose 200 60 true = Side_by_side 110 && choose 120 30 false = Stacked 12);
+  check "configured height scales with resize" (choose 120 60 false = Stacked 24);
+  check "configured proportions clamp without losing preference"
+    (choose 155 60 false = Side_by_side 88 && choose 200 60 false = Side_by_side 110);
+  Pane_layout.set_defaults preferences Pane_layout.automatic;
+  check "removing configured defaults restores automatic sizes"
+    (choose 120 30 false = Stacked 16 && choose 200 60 false = Side_by_side 116);
   let controller = Controller.create ~external_events:true () in
   let saved = Controller.snapshot controller in
   let original = Ui.render controller ~width:120 ~height:36 in
@@ -149,6 +171,19 @@ let () =
   check "confirmation prefix cannot start a run"
     ((Option.get (Controller.selected controller)).active = active_before);
   controller.live_confirmation <- None;
+  controller.status <- "fixture";
+  Pane_layout.set_defaults controller.pane_layout configured;
+  ignore (Ui.render controller ~width:120 ~height:36);
+  window controller '+';
+  ignore (Ui.render controller ~width:120 ~height:36);
+  window controller '=';
+  let configured_frame = Ui.render controller ~width:120 ~height:36 in
+  let r, _, _, _ = List.hd configured_frame.columns in
+  check "render uses configured reset dimensions" (r.h = 12);
+  check "reset status names configured defaults"
+    (controller.status = "Configured pane sizes restored.");
+  check "configured layout does not alter persisted data"
+    ((Controller.snapshot controller).tasks = saved.tasks);
   List.iter
     (fun (width, height) ->
       ignore (Ui.render controller ~width ~height);

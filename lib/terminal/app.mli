@@ -4,6 +4,7 @@ val interactive :
   ?fake_harness:bool ->
   ?live:Live_runner.config ->
   ?workspace_defaults:Workspace_defaults.t ->
+  ?layout:Pane_layout.defaults ->
   events:string ->
   database:string ->
   unit ->

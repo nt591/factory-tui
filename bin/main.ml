@@ -170,7 +170,8 @@ let () =
         | Error error -> invalid_arg error
       in
       match
-        App.interactive ~live ~workspace_defaults:settings.workspace ~events:""
+        App.interactive ~live ~workspace_defaults:settings.workspace
+          ~layout:settings.layout ~events:""
           ~database:(Option.get settings.database)
           ()
       with
@@ -239,7 +240,7 @@ let () =
         | Ok settings -> (
             match
               App.interactive ~fake_harness:!fake_harness ~events:!events
-                ~workspace_defaults:settings.workspace
+                ~workspace_defaults:settings.workspace ~layout:settings.layout
                 ~database:(Option.value ~default:"" settings.database)
                 ()
             with

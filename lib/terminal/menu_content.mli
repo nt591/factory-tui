@@ -3,4 +3,8 @@ type mode = Simulation | Fake | Replay | Live of Model.execution_policy
 val help : mode:mode -> string list
 
 val settings :
-  mode:mode -> database:string option -> task:Model.task option -> string list
+  mode:mode ->
+  database:string option ->
+  task:Model.task option ->
+  layout:Pane_layout.defaults ->
+  string list

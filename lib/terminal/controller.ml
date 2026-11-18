@@ -846,7 +846,7 @@ let resize_panes t delta =
   if not (contains t.status "Storage error:") then
     t.status <-
       (match result with
-      | Pane_layout.Changed -> "Pane split adjusted. Ctrl-W = restores automatic sizes."
+      | Pane_layout.Changed -> "Pane split adjusted. Ctrl-W = restores startup sizes."
       | Pane_layout.At_limit -> "Pane size limit keeps both regions usable."
       | Pane_layout.No_split ->
           if t.zoom then "No board/chat split is visible. Return from zoom with e."
@@ -892,7 +892,10 @@ let normal_key t (key, mods) =
         | `ASCII '=' ->
             Pane_layout.reset t.pane_layout;
             if not (contains t.status "Storage error:") then
-              t.status <- "Automatic pane sizes restored."
+              t.status <-
+                (if Pane_layout.defaults t.pane_layout = Pane_layout.automatic then
+                   "Automatic pane sizes restored."
+                 else "Configured pane sizes restored.")
         | _ -> ())
   else if prefix = Go && key = `ASCII 'g' then command (fun () -> edge t false)
   else (

@@ -10,7 +10,8 @@ let snapshot ~size t =
   Notty_unix.output_image (Ui.render t ~width ~height).image
 
 let interactive ?(fake_harness = false) ?live
-    ?(workspace_defaults = Workspace_defaults.empty) ~events ~database () =
+    ?(workspace_defaults = Workspace_defaults.empty) ?(layout = Pane_layout.automatic)
+    ~events ~database () =
   if live <> None && (fake_harness || events <> "" || database = "") then
     Error "Live UI needs SQLite and cannot use replay or fake mode."
   else if fake_harness && events <> "" then
@@ -20,6 +21,7 @@ let interactive ?(fake_harness = false) ?live
   else
     let t = Controller.create ~external_events:(events <> "") ~fake_harness () in
     Controller.set_workspace_defaults t workspace_defaults;
+    Pane_layout.set_defaults t.pane_layout layout;
     t.database_path <- (if database = "" then None else Some database);
     let opened =
       if database = "" then Ok None

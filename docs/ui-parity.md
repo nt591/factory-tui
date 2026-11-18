@@ -447,7 +447,7 @@ query retention, and no task/run creation from match navigation.
 
 
 Primary pane resizing uses `Ctrl-W +/-` (grow/shrink focused board or shared task
-detail region) and `Ctrl-W =` (automatic sizes). Counts before Ctrl-W adjust several
+detail region) and `Ctrl-W =` (startup defaults). Counts before Ctrl-W adjust several
 rows/columns. Width and height preferences are independent launch-local ratios,
 not task or database settings. Small terminals clamp preferences without changing
 them; zoom has no primary split to adjust. Usable stacked terminals reserve editor
@@ -455,3 +455,13 @@ room. Pure tests and `scripts/smoke-panes.py` verify actual stacked/wide borders
 mouse composer targets, drafts, paused history during incoming output, compact
 and zoom restoration, counts, reset, and modal/paste isolation. Resizing does not
 change focus, task selection or the explicit run-confirmation boundary.
+
+
+TOML `[layout]` can set optional starting board width/height percentages (integers
+10–90). The main area excludes the sidebar, and the body excludes header/footer.
+The terminal still clamps both regions to usable minimums. Loaded values appear
+in Settings. Ctrl-W `=` returns to startup defaults; runtime adjustments and reset
+never save config. `--no-config` keeps automatic sizes. Parser/layout/settings
+unit tests and a temporary-config PTY check cover discovered/explicit/ignored
+config, reset, disk edits taking effect next launch, simulation/live startup
+inactivity, exact config bytes, and invalid-value failure before storage opens.

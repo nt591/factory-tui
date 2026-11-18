@@ -13,7 +13,22 @@ let () =
   let task = Model.make ~id:"fixture" ~title:"Inspect settings" ~repository:"fixture" in
   let settings mode task =
     Menu_content.settings ~mode ~database:(Some "/fixture/board.sqlite") ~task
+      ~layout:Pane_layout.automatic
   in
+  let defaults =
+    match Pane_layout.make_defaults ~board_width:(Some 55) ~board_height:(Some 40) with
+    | Ok value -> value
+    | Error error -> failwith error
+  in
+  let layout_settings =
+    Menu_content.settings ~mode:Simulation ~database:None ~task:None ~layout:defaults
+  in
+  check "settings disclose configured pane proportions"
+    (contains layout_settings "Board width: 55%"
+    && contains layout_settings "Board height: 40%");
+  check "settings name config and no-write boundary"
+    (contains layout_settings "board_width_percent"
+    && contains layout_settings "No config is written");
   List.iter
     (fun policy ->
       let mode = Menu_content.Live policy in

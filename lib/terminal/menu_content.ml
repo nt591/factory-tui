@@ -46,7 +46,7 @@ let help ~mode =
     "Menu: Tab/h/l switches tabs; j/k scrolls; ? or Escape closes.";
   ]
 
-let settings ~mode ~database ~task =
+let settings ~mode ~database ~task ~layout =
   [
     "SESSION SETTINGS";
     "";
@@ -96,4 +96,22 @@ let settings ~mode ~database ~task =
              | _ -> "m edits model / H changes harness");
           "Past run settings do not change.";
         ])
-  @ [ ""; "Menu: Tab/h/l switches tabs; j/k scrolls; ? or Escape closes." ]
+  @ [
+      "";
+      "LAYOUT / STARTUP DEFAULTS";
+      ("Board width: "
+      ^
+      match Pane_layout.board_width layout with
+      | None -> "automatic"
+      | Some value -> Printf.sprintf "%d%%" value);
+      ("Board height: "
+      ^
+      match Pane_layout.board_height layout with
+      | None -> "automatic"
+      | Some value -> Printf.sprintf "%d%%" value);
+      "[layout] board_width_percent / board_height_percent = 10..90";
+      "Ctrl-W +/- adjusts this launch; = restores startup defaults.";
+      "Terminal limits keep both regions usable. No config is written.";
+      "";
+      "Menu: Tab/h/l switches tabs; j/k scrolls; ? or Escape closes.";
+    ]

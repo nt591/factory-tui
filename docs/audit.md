@@ -21,7 +21,7 @@ accessible help/settings. The staged native-app implementation remains the guide
 | Compose and queue instructions | Abstract Text_edit cursor state, multiline draft, Ctrl-L/Alt-Enter newline, safe bracketed paste, captured submitted messages acknowledged only at turn start. Drafts/queued replies survive persistence. Composer selection copy is mode/width-aware and explicitly labels Enter as queuing; long model IDs do not hide queue or live-harness instructions (bounded-content and long-model PTY checks); unit/controller and installed-agent PTY checks cover live controls and unchanged active-run identity. | Implemented; grapheme-aware movement/deletion and wrapping; terminal-dependent emoji width and oversized-cluster cropping |
 | Settings/history | Next-run model/harness settings do not rewrite captured run records. Activity shows newest-first attempts without reversing stored chronology (unit/codec and installed-agent resume UI checks), plus active run age/frozen recorded duration with timestamp edge-case and PTY coverage; age includes pre-spawn waits and does not imply progress. Requested read/write policy is captured per run and legacy snapshots default read-only. Live Codex-only preflight and active model-capture tests. Normal/menu H cannot switch live Codex to unsupported Claude; explicit recovery of imported Claude and accepted editor refusal have unit and loopback shortcut coverage. | Implemented; Claude is simulation only |
 | SQLite and restart | Versioned snapshots, separate run rows, ordered events, transaction rollback, exclusive ownership, coalesced bounded writes, shutdown flush, Working recovery. Storage and PTY save/reopen cover real temporary databases. Pure pre-recovery summaries and restart PTY checks report actual interrupted-task and retained-draft counts, without claiming every reopen is interrupted. | Implemented |
-| Low-effort configuration | Optional default/XDG TOML, explicit file, CLI override/no-config, capped reads and rejected unknown fields. Argument-free startup discovery and optional editable workspace defaults with no creation on launch are covered by the PTY smoke. | Implemented |
+| Low-effort configuration | Optional default/XDG TOML, explicit file, CLI override/no-config, capped reads and rejected unknown fields. Argument-free startup discovery and optional editable workspace defaults with no creation on launch are covered by the PTY smoke. Optional typed layout percentages have parser/layout tests and discovered/explicit/no-config PTY coverage; reset uses loaded defaults without writing config. | Implemented |
 | Installed sandbox cases | Opt-in loopback fixed-tool sentinel probe on Codex 0.166.0/macOS: read-only deny, task/temp writes allow, ordinary sibling deny, never-escalation refuse. No real credentials or model. | Exact cases verified; not a security audit |
 | Stop/retry ownership | Live runner serializes task/canonical workspace ownership through checkpoint, cancellation, drain and join; independent directories run concurrently. Temporary alias/checkpoint tests detect overlap and waiting-run shutdown. | Implemented within one runner; not global process containment |
 | Supervision | Bounded stdout/stderr/lines/events, monotonic timeout, cancellation/process-group cleanup, checkpoint-before-spawn, bounded queue/separate outcome. Fake-process tests plus confirmed live-mode PTY path. | Implemented within documented process-group limits |
@@ -58,7 +58,7 @@ accessible help/settings. The staged native-app implementation remains the guide
    bootstrap failed before application compilation. This does not validate a new
    operating system, editor tools, cross-OS support, signing or notarization. The
    local archive is not represented as a public production release.
-4. **Additional usability refinements.** Saved layout defaults, terminal-dependent
+4. **Additional usability refinements.** Terminal-dependent
    emoji rendering and fully abstract controller view state remain
    candidates. They do not justify claiming current rendering or interaction
    quality from unit tests alone; keep inspecting PTY captures.
@@ -86,7 +86,10 @@ This does not prove human comprehension or real-provider safety.
 Primary board/detail regions also support launch-local proportional resizing via
 counted Ctrl-W +/- and reset via Ctrl-W =. Pure and replay PTY tests verify limits,
 actual borders, reading position, drafts, mouse composer targets and restoration.
-These are runtime preferences, not persisted layout configuration.
+Optional typed TOML startup percentages are also verified through parser/layout
+checks and temporary-config PTYs: discovery, no-config, reset, next-launch edits,
+Settings disclosure and no automatic writes. Preferences are not stored in task
+snapshots, and layout configuration cannot enable execution.
 
 The active goal is not marked complete by this audit. The UI and local execution
 foundation are verified, but the full software-factory implementation still has
