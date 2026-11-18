@@ -683,7 +683,7 @@ uv run --with pyte --with pillow python scripts/check-ui.py \
   --output /tmp/factory-ui-check-new
 ```
 
-The runner checks formatting and runs scripts/check.sh, then all 15 fixture-only
+The runner checks formatting and runs scripts/check.sh, then all 16 fixture-only
 PTY cases sequentially against the same executable. It never invokes the installed
 Codex, sandbox probes, fresh-switch reconstruction or a real provider. Each child
 uses --binary so it cannot rebuild during terminal execution. Sidebar, column and
@@ -778,3 +778,10 @@ visible exact text, follow state, unchanged active run and independent Activity 
 It repeats with an older search match, then checks empty failed submission and unsent
 Escape preserve position. The board-history PTY queues a reply after Home and verifies
 it appears without starting a run. No model or real workspace is used.
+
+`test_input_feedback` covers visible submission errors, retained editor/message state,
+cursor-only feedback, recovery, model immutability, storage-warning priority, blank
+task validation and limit-warning precedence. `smoke-input-feedback.py` exercises
+empty reply, invalid model correction, and blank task recovery through actual terminal
+input in isolated HOME/XDG with an empty replay. It uses no agent or storage and is
+included in check-ui.py. Preview captures the editor with its error line.

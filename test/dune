@@ -397,3 +397,8 @@
  (name test_reply_visibility)
  (modules test_reply_visibility)
  (libraries factory_tui notty))
+
+(test
+ (name test_input_feedback)
+ (modules test_input_feedback)
+ (libraries factory_tui notty))

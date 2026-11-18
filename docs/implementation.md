@@ -730,7 +730,7 @@ agreement with the previous algorithm. A scoped ten-search measurement reported
 and does not impose timing or allocation thresholds in tests.
 
 
-scripts/check-ui.py consolidates the full terminal regression and 14 dedicated UI
+scripts/check-ui.py consolidates the full terminal regression and 15 dedicated UI
 fixtures into one sequential verification command. A single format/build/unit phase
 precedes the PTYs, which all use the exact selected --binary without rebuilding.
 New private output directories retain atomic reports, per-case logs and previews;
@@ -816,3 +816,12 @@ and unsent Escape keep the paused position; Activity memory and run state are no
 changed. Pure input/render tests and the board-history replay PTY verify immediate
 queued-reply visibility, search retention, failed/unsent anchors, independent Activity
 position and no automatic execution.
+
+Transient input_error makes submit-validation feedback visible below the footer
+editor, independently of normal status. Reply/model failures retain text/cursor and
+backing values; blank task creation now reports an instruction requirement. Actual
+text changes or entering another input action clear the error; cursor movement does
+not. Input-limit warnings retain precedence. Failure feedback does not overwrite a
+current Storage error. Pure editor/render tests and a dedicated replay PTY verify
+empty reply, invalid model, blank task and valid recovery. The fixture is part of
+the one-build UI catalogue, now 16 cases. No new bindings or persistence fields.

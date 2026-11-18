@@ -252,3 +252,8 @@ Neutral fallback avoids inventing a reason from absent/inconsistent history.
 Queued-reply visibility has pure input/viewport checks and a replay terminal case:
 successful submission returns to latest, while failed/unsent editing retains history.
 Search queries, Activity positions and active-run state remain separate.
+
+Submission validation is visible during editing, with pure input/render checks and
+a dedicated replay PTY for empty replies, invalid model IDs and blank task creation.
+The shared UI catalogue includes this 16th case. Failed edits retain data/cursors;
+valid recovery changes no execution boundary and adds no new keybindings.

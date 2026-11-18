@@ -638,6 +638,8 @@ let render t ~width:cols ~height:rows =
              Printf.sprintf
                " Edit not applied / limit %s · delete text or paste a smaller value"
                (if limit = 256 then "256 bytes" else "64 KiB")
+         | _ when t.input <> Normal && t.input_error <> None ->
+             " " ^ Option.get t.input_error
          | _ ->
              " hjkl: move · gg/G: first/last · Ctrl-W hjkl: pane · Ctrl-U/D: half-page · \
               Ctrl-B/F: page · e: zoom · Esc: back"));

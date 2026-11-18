@@ -26,6 +26,7 @@ CASES = (
     "confirmation",
     "layout-config",
     "input-limit",
+    "input-feedback",
     "queue-summary",
     "review-notice",
     "panes",

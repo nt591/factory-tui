@@ -897,3 +897,8 @@ Successfully queuing a reply returns chat to the latest message so you can see w
 was submitted, even if you composed while reading old history. Failed submission
 and Escape keep the existing reading position. Search queries remain available,
 Activity keeps its own position, and queuing still does not start or steer a run.
+
+Empty replies, invalid next-run model IDs, and blank new-task instructions report
+validation feedback below the editor. The text and cursor stay intact. Cursor-only
+movement keeps the error; editing the text clears it. Escape keeps a reply draft or
+cancels the field as usual. Validation does not start a run or create a task.

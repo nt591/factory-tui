@@ -79,6 +79,7 @@ type t = {
   mutable database_path : string option;
   mutable input : input;
   mutable input_limit : int option;
+  mutable input_error : string option;
   mutable query : string;
   chat_search : Chat_search.t;
   chat_viewport : Chat_viewport.t;
@@ -146,6 +147,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     database_path = None;
     input = Normal;
     input_limit = None;
+    input_error = None;
     query = "";
     chat_search = Chat_search.create ();
     chat_viewport = Chat_viewport.create ();
@@ -323,6 +325,7 @@ let report_creation t text =
 let rec act t action =
   reset_keys t;
   t.input_limit <- None;
+  t.input_error <- None;
   match action with
   | Select id ->
       select t id;
@@ -662,7 +665,9 @@ let accept_input t editor =
     reject_input t limit;
     false)
   else (
-    if Text_edit.text editor <> Text_edit.text t.editor then t.input_limit <- None;
+    if Text_edit.text editor <> Text_edit.text t.editor then (
+      t.input_limit <- None;
+      t.input_error <- None);
     t.editor <- editor;
     (match t.input with
     | Search ->
@@ -706,6 +711,10 @@ let paste_key t (key, mods) =
         insert_text t (Buffer.contents buffer)
     | _ -> ()
 
+let input_failure t error =
+  t.input_error <- Some error;
+  if not (String.starts_with ~prefix:"Storage error:" t.status) then t.status <- error
+
 let submit t =
   match t.input with
   | Normal | Search | Chat_search -> t.input <- Normal
@@ -714,7 +723,7 @@ let submit t =
       | None -> t.input <- Normal
       | Some task -> (
           match send task ~id:(next_id t "message") (draft t) with
-          | Error error -> t.status <- error
+          | Error error -> input_failure t error
           | Ok task ->
               replace t task;
               set_draft t "";
@@ -729,7 +738,7 @@ let submit t =
       | None -> t.input <- Normal
       | Some task -> (
           match set_model task t.model_text with
-          | Error error -> t.status <- error
+          | Error error -> input_failure t error
           | Ok task ->
               replace t task;
               t.input <- Normal;
@@ -745,6 +754,7 @@ let submit t =
         select t id;
         t.input <- Normal;
         t.status <- "Task created in memory. Start runs a simulated fixture.")
+      else input_failure t "Enter a task instruction before creating a task."
 
 let navigation_tasks t =
   Board_navigation.vertical
