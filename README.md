@@ -892,3 +892,8 @@ Needs-you cards distinguish “Reply requested,” “Run failed,” and “Run 
 from the latest recorded attempt. Cards with no compatible outcome show “Needs
 attention” instead of guessing. The same reason appears in compact previews; new
 update counts remain alongside it. Open the task chat for the full diagnostic.
+
+Successfully queuing a reply returns chat to the latest message so you can see what
+was submitted, even if you composed while reading old history. Failed submission
+and Escape keep the existing reading position. Search queries remain available,
+Activity keeps its own position, and queuing still does not start or steer a run.

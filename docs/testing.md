@@ -772,3 +772,9 @@ selection, missing history, Ready omission, update coexistence and snapshot isol
 The queue-summary replay PTY additionally checks the seeded question card and the
 interrupted task's board reason after returning from chat. Full diagnostics remain
 in conversation; no model or real workspace is accessed by this fixture.
+
+`test_reply_visibility` composes from paused history, submits successfully and checks
+visible exact text, follow state, unchanged active run and independent Activity memory.
+It repeats with an older search match, then checks empty failed submission and unsent
+Escape preserve position. The board-history PTY queues a reply after Home and verifies
+it appears without starting a run. No model or real workspace is used.

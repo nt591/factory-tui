@@ -190,6 +190,26 @@ def main():
                 "inspecting moved task clears badge without starting a run",
                 "Background final reply" in tui.text(),
             )
+            tui.send(b"\x1b[<0;10;22M\x1b[<0;10;22m\x1b[H")
+            tui.wait("paused before reply", lambda: "reading history" in tui.text())
+            tui.send(b"i")
+            tui.send(b"\x1b[200~Reply queued from old history\x1b[201~\r")
+            tui.wait(
+                "submitted reply visible",
+                lambda: (
+                    "Reply queued from old history" in tui.text()
+                    and "reading history" not in tui.text()
+                ),
+            )
+            tui.check(
+                "submitting from history returns to the queued reply without starting a run",
+                "T-102 / Ready / conversation" in tui.text()
+                and "Reply / next turn · 2 queued" in tui.text(),
+            )
+            if args.preview:
+                tui.preview(
+                    args.preview.with_stem(args.preview.stem + "-submitted-reply")
+                )
             tui.send(b"q")
             tui.wait_exit()
             tui.check(

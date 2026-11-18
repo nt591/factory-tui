@@ -392,3 +392,8 @@
  (name test_task_attention)
  (modules test_task_attention)
  (libraries factory_tui notty))
+
+(test
+ (name test_reply_visibility)
+ (modules test_reply_visibility)
+ (libraries factory_tui notty))

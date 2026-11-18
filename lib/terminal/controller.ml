@@ -719,6 +719,7 @@ let submit t =
               replace t task;
               set_draft t "";
               t.input <- Normal;
+              act t Follow_chat;
               t.status <-
                 (if t.live_config <> None then
                    "Reply queued for the next confirmed turn; active run is unchanged."

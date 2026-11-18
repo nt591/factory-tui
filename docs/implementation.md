@@ -807,3 +807,12 @@ metadata shares this pure view with compact previews, preserving update badges.
 No error-text parsing, lifecycle change or stored-history mutation is introduced.
 Pure lifecycle/record-order/render tests and the queue replay PTY verify input
 request and interruption reasons on the board while queued replies stay intact.
+
+Successful reply submission follows the current task's latest chat after appending
+its queued message. This makes the submitted instruction visible rather than leaving
+it below a paused-history viewport. Existing Follow_chat behavior retains the query,
+consumes a pending seek and resets only chat anchoring/distance. Failed submissions
+and unsent Escape keep the paused position; Activity memory and run state are not
+changed. Pure input/render tests and the board-history replay PTY verify immediate
+queued-reply visibility, search retention, failed/unsent anchors, independent Activity
+position and no automatic execution.

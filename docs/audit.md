@@ -248,3 +248,7 @@ Needs-you card reasons share a pure task/run-status view with compact previews.
 Lifecycle/render tests and replay input/stop board checks verify reply-requested
 and interruption visibility, recorded failure handling and retained queued replies.
 Neutral fallback avoids inventing a reason from absent/inconsistent history.
+
+Queued-reply visibility has pure input/viewport checks and a replay terminal case:
+successful submission returns to latest, while failed/unsent editing retains history.
+Search queries, Activity positions and active-run state remain separate.
