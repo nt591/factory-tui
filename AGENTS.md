@@ -2,7 +2,8 @@
 
 Use OCaml and Dune. Keep state transitions separate from terminal rendering.
 Use jj. Commit tested increments and move the local main bookmark to each
-completed commit. Do not push without an explicit request.
+completed commit. Push tested increments to origin/main as authorized by the user. Do not push
+unverified working-copy changes or force-update remote history.
 Follow docs/implementation.md. Keep its status accurate in each implementation
 commit. Do not skip safety gates to match the native application feature list.
 Do not edit the in-flight Rust application at ../factory.

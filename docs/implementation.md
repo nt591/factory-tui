@@ -866,3 +866,12 @@ No new keybindings, persistence fields or execution behavior are added.
 The composer PTY readiness condition includes its submit-guidance footer as well
 as the draft window. This prevents assertion against an observed partial redraw;
 its existing timeout and content checks remain unchanged.
+
+The board summary identifies a selected conversation whose card is hidden by the
+active/archive or repository/search filters. Its Show card control clears board
+filters and selects the matching active or Archive view without reselecting the
+task, resetting transcript search, sending a draft or starting a run. Expansion
+closes so the card can be inspected. Full labels have exact mouse targets; narrow
+headers use a short label and omit the button below its minimum usable width.
+Controller/layout tests and temporary SQLite PTYs verify active and accepted
+reveal, retained conversation data, input/modal isolation and no execution.

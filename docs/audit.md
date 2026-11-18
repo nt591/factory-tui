@@ -292,3 +292,18 @@ produced 58 previews. Evidence: `/tmp/factory-view-selection-ui-20261118-final/r
 Archive/expanded-chat previews were inspected. CLI invocation (20), fake execution
 (19), and temporary package (14) checks passed separately. These are fixture-only
 results; provider, security and public-release limitations remain unchanged.
+
+The board summary identifies a selected conversation whose card is hidden by the
+active/archive or repository/search filters. Its Show card control clears board
+filters and selects the matching active or Archive view without reselecting the
+task, resetting transcript search, sending a draft or starting a run. Expansion
+closes so the card can be inspected. Full labels have exact mouse targets; narrow
+headers use a short label and omit the button below its minimum usable width.
+Controller/layout tests and temporary SQLite PTYs verify active and accepted
+reveal, retained conversation data, input/modal isolation and no execution.
+
+Show-card verification on 2026-11-18 passed format/build/unit gates, including 141
+board-summary checks, and all 17 fixture UI cases (58 previews). Evidence:
+`/tmp/factory-show-card-ui-20261118/report.json`. The off-board Archive preview
+was inspected. Separate CLI invocation (20), fake execution (19) and temporary
+package (14) checks passed. Real-provider and release limitations remain unchanged.

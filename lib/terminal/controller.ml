@@ -15,6 +15,7 @@ type action =
   | Repository of string option
   | Session_board
   | Archive_view
+  | Reveal_selected
   | Menu_tab of menu_tab
   | Close_menu
   | Toggle_raw_tools
@@ -385,6 +386,19 @@ let rec act t action =
       t.board_scroll <- 0;
       Column_scroll.clear t.column_scroll;
       focus_pane t Board
+  | Reveal_selected -> (
+      match selected t with
+      | None -> ()
+      | Some task ->
+          t.archive <- task.state = Done;
+          t.repository <- None;
+          t.query <- "";
+          t.sidebar_scroll <- None;
+          t.board_scroll <- 0;
+          Column_scroll.clear t.column_scroll;
+          Column_scroll.follow t.column_scroll task.state;
+          focus_pane t Board;
+          t.zoom <- false)
   | Next_repository ->
       let options =
         None :: List.map (fun repository -> Some repository) (repositories t)

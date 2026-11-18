@@ -648,3 +648,12 @@ Board search keeps its existing match-selection behavior. Pure controller tests
 and the SQLite restart PTY cover active-chat/archive and accepted-chat/active-board
 switches, mouse/keyboard input, retained read-only drafts and unchanged task history.
 No new keybindings, persistence fields or execution behavior are added.
+
+The board summary identifies a selected conversation whose card is hidden by the
+active/archive or repository/search filters. Its Show card control clears board
+filters and selects the matching active or Archive view without reselecting the
+task, resetting transcript search, sending a draft or starting a run. Expansion
+closes so the card can be inspected. Full labels have exact mouse targets; narrow
+headers use a short label and omit the button below its minimum usable width.
+Controller/layout tests and temporary SQLite PTYs verify active and accepted
+reveal, retained conversation data, input/modal isolation and no execution.

@@ -15,6 +15,7 @@ type action =
   | Repository of string option
   | Session_board
   | Archive_view
+  | Reveal_selected
   | Menu_tab of menu_tab
   | Close_menu
   | Toggle_raw_tools

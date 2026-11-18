@@ -73,6 +73,23 @@ def main():
                     "retained draft is read-only after restart",
                     "draft retained" in tui.text() and "i to edit" not in tui.text(),
                 )
+                reveal_column = tui.screen.display[2].index(
+                    "[Chat off-board / Show card]"
+                )
+                tui.send(
+                    f"\x1b[<0;{reveal_column + 1};3M\x1b[<0;{reveal_column + 1};3m".encode()
+                )
+                tui.wait(
+                    "Show card reveals accepted task",
+                    lambda: "1 tasks accepted" in tui.screen.display[2],
+                )
+                tui.check(
+                    "revealing accepted card keeps chat and retained draft",
+                    f"{accepted['id']} / Done / conversation" in tui.text()
+                    and "draft retained" in tui.text()
+                    and "Show card" not in tui.screen.display[2],
+                )
+                tui.send(b"b")
                 tui.send(b"\x1b")
                 tui.check(
                     "Escape preserves accepted chat on active board",
@@ -101,6 +118,24 @@ def main():
                 )
                 if args.preview and attempt == 1:
                     tui.preview(args.preview.with_stem(args.preview.stem + "-archive"))
+                reveal_column = tui.screen.display[2].index(
+                    "[Chat off-board / Show card]"
+                )
+                tui.send(
+                    f"\x1b[<0;{reveal_column + 1};3M\x1b[<0;{reveal_column + 1};3m".encode()
+                )
+                tui.wait(
+                    "Show card reveals active task",
+                    lambda: (
+                        "Queued 1" in tui.text()
+                        and "Show card" not in tui.screen.display[2]
+                    ),
+                )
+                tui.check(
+                    "revealing active card keeps selected conversation",
+                    f"{active['id']} / Queued / conversation" in tui.text(),
+                )
+                tui.send(b"d")
                 tui.send(b"dbd")
                 tui.check(
                     "keyboard view switches keep active conversation open",

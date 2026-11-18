@@ -1,10 +1,10 @@
-type action = Toggle_archive | Search
+type action = Toggle_archive | Search | Reveal_selected
 type hit = { x : int; width : int; action : action }
 type t = { text : string; hits : hit list }
 
 let width value = Notty.I.width (Notty.I.string Notty.A.empty value)
 
-let make ~width:columns ~archive ~repository ~count ~query =
+let base ~width:columns ~archive ~repository ~count ~query =
   let label =
     if archive then "Archive"
     else Option.value ~default:"Session board" repository |> Terminal_text.line
@@ -43,3 +43,21 @@ let make ~width:columns ~archive ~repository ~count ~query =
         hits = [ { x = width prefix; width = width search; action = Search } ];
       }
     else { text = Text_layout.ellipsize columns (" " ^ count); hits = [] }
+
+let make ~width:columns ~archive ~repository ~count ~query ~hidden =
+  let button =
+    if (not hidden) || columns < 32 then ""
+    else if columns < 70 then "[Show card]"
+    else "[Chat off-board / Show card]"
+  in
+  if button = "" then base ~width:columns ~archive ~repository ~count ~query
+  else
+    let summary =
+      base ~width:(columns - String.length button - 3) ~archive ~repository ~count ~query
+    in
+    let x = width summary.text + 3 in
+    {
+      text = summary.text ^ " | " ^ button;
+      hits =
+        summary.hits @ [ { x; width = String.length button; action = Reveal_selected } ];
+    }

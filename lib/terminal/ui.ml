@@ -128,6 +128,9 @@ let render t ~width:cols ~height:rows =
     Board_summary.make ~width:main_width ~archive:t.archive
       ~repository:(Option.map repository_label t.repository)
       ~count:(List.length board_tasks) ~query:t.query
+      ~hidden:
+        (selected t <> None
+        && not (List.exists (fun (task : task) -> task.id = t.selected) board_tasks))
   in
   paint sidebar_width 2 (line main_width (attr muted) summary.text);
   List.iter
@@ -135,7 +138,8 @@ let render t ~width:cols ~height:rows =
       hit (sidebar_width + item.x) 2 item.width 1
         (match item.action with
         | Board_summary.Toggle_archive -> Toggle_archive
-        | Board_summary.Search -> Begin_search))
+        | Board_summary.Search -> Begin_search
+        | Board_summary.Reveal_selected -> Reveal_selected))
     summary.hits;
   let body_y = 3 and body_h = max 0 (rows - 6) in
   let task = selected t in
