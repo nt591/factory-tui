@@ -337,3 +337,8 @@
  (name test_form_limits)
  (modules test_form_limits)
  (libraries factory_tui notty))
+
+(test
+ (name test_confirmation_cache)
+ (modules test_confirmation_cache)
+ (libraries factory_tui notty unix))

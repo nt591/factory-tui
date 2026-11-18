@@ -161,3 +161,9 @@ Workspace-form input rejection has pure full-field and supplied-form render chec
 for exact cursor/text retention, named feedback, Unicode recovery and operational
 report preservation. The full-limit case is not claimed as a PTY paste check;
 normal creation and form feedback remain covered by the terminal regression.
+
+
+Confirmation preparation reuse has pure cached/uncached layout equivalence and
+invalidation checks plus complete-disclosure and fake-run PTY coverage. A scoped
+local component measurement shows reduced wrapping/allocation, not whole-app or
+cross-machine performance. Cache presence does not grant review coverage.

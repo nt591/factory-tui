@@ -18,4 +18,4 @@ val render :
   view
 
 val required_height :
-  ?policy:Model.execution_policy -> Model.task option -> width:int -> int
+  ?policy:Model.execution_policy -> ?viewport:t -> Model.task option -> width:int -> int

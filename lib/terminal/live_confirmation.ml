@@ -3,8 +3,10 @@ open Notty
 type action = Run | Cancel
 type hit = { x : int; y : int; width : int; action : action }
 type view = { image : Notty.image; hits : hit list; readable : bool; content_rows : int }
+type prepared = { disclosed : string list; width : int; rows : string array; fits : bool }
 
 type t = {
+  mutable prepared : prepared option;
   mutable layout : (string list * int * int) option;
   mutable offset : int;
   mutable capacity : int;
@@ -12,12 +14,17 @@ type t = {
   mutable visited : (int * int) list;
 }
 
-let create () = { layout = None; offset = 0; capacity = 0; total = 0; visited = [] }
+let create () =
+  { prepared = None; layout = None; offset = 0; capacity = 0; total = 0; visited = [] }
 
-let reset t =
+let clear_coverage t =
   t.layout <- None;
   t.offset <- 0;
   t.visited <- []
+
+let reset t =
+  t.prepared <- None;
+  clear_coverage t
 
 let move t offset = t.offset <- max 0 (min offset (max 0 (t.total - t.capacity)))
 let scroll t delta = move t (t.offset + delta)
@@ -71,13 +78,29 @@ let disclosure ~policy task =
         "Thread: " ^ Option.value ~default:"new thread" task.thread_id;
       ]
 
-let wrapped ~policy task width =
-  List.concat_map
-    (fun text -> Text_layout.wrap (max 1 (width - 2)) (Terminal_text.line text))
-    (disclosure ~policy task)
+let prepare viewport ~policy task width =
+  let width = max 1 width in
+  let disclosed = disclosure ~policy task in
+  match viewport.prepared with
+  | Some prepared when prepared.width = width && prepared.disclosed = disclosed ->
+      prepared
+  | _ ->
+      let rows =
+        List.concat_map
+          (fun text -> Text_layout.wrap (max 1 (width - 2)) (Terminal_text.line text))
+          disclosed
+        |> Array.of_list
+      in
+      let fits =
+        Array.for_all (fun row -> I.width (I.string A.empty row) <= width - 2) rows
+      in
+      let prepared = { disclosed; width; rows; fits } in
+      viewport.prepared <- Some prepared;
+      prepared
 
-let required_height ?(policy = Model.Read_only) task ~width =
-  max 13 (List.length (wrapped ~policy task width) + 4)
+let required_height ?(policy = Model.Read_only) ?viewport task ~width =
+  let viewport = Option.value ~default:(create ()) viewport in
+  max 13 (Array.length (prepare viewport ~policy task width).rows + 4)
 
 let can_confirm t ~policy task =
   match t.layout with
@@ -88,19 +111,16 @@ let can_confirm t ~policy task =
 
 let render ?(policy = Model.Read_only) ?viewport task ~width:cols ~height:rows =
   let cols = max 1 cols and rows = max 1 rows in
-  let details = wrapped ~policy task cols in
   let viewport = Option.value ~default:(create ()) viewport in
-  let layout = (disclosure ~policy task, cols, rows) in
+  let prepared = prepare viewport ~policy task cols in
+  let layout = (prepared.disclosed, cols, rows) in
   if viewport.layout <> Some layout then (
-    reset viewport;
+    clear_coverage viewport;
     viewport.layout <- Some layout);
-  viewport.total <- List.length details;
+  viewport.total <- Array.length prepared.rows;
   viewport.capacity <- max 0 (rows - 4);
   move viewport viewport.offset;
-  let usable =
-    cols >= 64 && rows >= 13 && task <> None
-    && List.for_all (fun row -> I.width (I.string A.empty row) <= cols - 2) details
-  in
+  let usable = cols >= 64 && rows >= 13 && task <> None && prepared.fits in
   if usable then
     visit viewport viewport.offset
       (min viewport.total (viewport.offset + viewport.capacity));
@@ -114,10 +134,9 @@ let render ?(policy = Model.Read_only) ?viewport task ~width:cols ~height:rows =
   let button_y = rows - 2 in
   let lines =
     if usable then
-      List.filteri
-        (fun index _ ->
-          index >= viewport.offset && index - viewport.offset < viewport.capacity)
-        details
+      List.init
+        (min viewport.capacity (viewport.total - viewport.offset))
+        (fun index -> prepared.rows.(viewport.offset + index))
     else
       List.concat_map
         (fun value -> Text_layout.wrap (max 1 (cols - 2)) value)

@@ -634,3 +634,16 @@ Latest targets keep their priority. No page capacity, selection or persistence r
 changes. Pure perimeter/search-strip/positive-geometry tests and the replay history
 PTY verify title-wheel inactivity, normal body scroll, paused-anchor retention and
 Latest follow. Existing modal/sidebar scroll regions remain unchanged.
+
+
+Live_confirmation caches one prepared disclosure by raw detail values and width.
+Height selection and rendering share its sanitized wrapped rows and width check;
+rendering slices only the visible array window. Height changes reset review coverage
+without rewrapping unchanged text, while raw-detail/width changes rebuild preparation
+and invalidate coverage at render. New-dialog reset drops both cache and coverage.
+Authorization still checks current raw details and shown dimensions, not cache
+presence. Pure cached/uncached equality and invalidation tests, complete-disclosure
+checks and the fake-run PTY verify the safety boundary. A scoped local 60-KiB-title
+measurement (20 height/render frames, including image construction) reported 1.65 ms
+and 5.9 MB allocation with reuse versus 114.51 ms and 308.1 MB without reuse. This
+excludes full Ui, terminal output and process work and is not a timing test gate.

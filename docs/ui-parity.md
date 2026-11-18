@@ -576,3 +576,11 @@ range borders no longer scroll content or change focus on wheel input. Chat's se
 strip is excluded too. Borders remain clickable, and body wheel/Latest behavior is
 unchanged. Pure perimeter/search/geometry tests and replay PTY title-wheel checks
 verify this distinction without changing tasks, drafts or viewport capacities.
+
+
+Confirmation height and rendering share a prepared disclosure cache instead of
+rewrapping complete titles every frame. One raw-detail/width-keyed row array is
+retained; only visible row images are built. This changes no layout or interaction.
+Coverage remains separate and invalidates on dimensions/details, reset drops both,
+and preparation cannot enable Run. Pure view-equivalence/invalidation checks and
+the existing full-disclosure/fake-run PTY cover the authorization boundary.

@@ -731,7 +731,11 @@ let render t ~width:cols ~height:rows =
         | None -> Model.Read_only
         | Some config -> Live_runner.policy config
       in
-      let height = min rows (Live_confirmation.required_height ~policy task ~width) in
+      let height =
+        min rows
+          (Live_confirmation.required_height ~policy ~viewport:t.confirmation_viewport
+             task ~width)
+      in
       let x = (cols - width) / 2 and y = (rows - height) / 2 in
       let view =
         Live_confirmation.render ~policy ~viewport:t.confirmation_viewport task ~width

@@ -346,3 +346,11 @@ Ui.frame.panes, which retains full pane geometry for focus and inspection. Chat
 wheel geometry skips its search strip. Columns retain their full range rectangles
 but wheel dispatch uses inset boundaries. Border clicks still focus panes; border
 wheel events do not scroll or focus. Modal/sidebar regions retain their own rules.
+
+
+Live_confirmation's abstract viewport owns a single prepared row array keyed by
+raw disclosure values and width. required_height can share it through the optional
+viewport argument; Ui passes the same viewport to height selection and render.
+Row-width validation is prepared once, and visible rows are sliced directly.
+Coverage remains separate, resets with dimensions/details, and is not granted by
+preparation. Public reset drops both retained rows and authorization coverage.

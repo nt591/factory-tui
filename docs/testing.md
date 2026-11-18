@@ -571,3 +571,21 @@ terminal sizes. The board-history PTY additionally sends wheel events over colum
 chat and Activity titles before normal body scrolling and mouse Latest follow.
 It uses only temporary replay events. Full terminal checks cover existing modal,
 sidebar, column-body and reply interactions with the separated geometry.
+
+
+## Confirmation preparation cache
+
+Normal test_confirmation_cache compares cached and uncached views, raw-detail and
+width invalidation, unchanged scrolling, height-query inactivity, new-dialog reset
+and missing-task refusal. Existing test_confirmation_layout and smoke-confirmation
+exercise shown-row coverage, exact current identity, reflow reset and confirmed
+fake execution. To measure only disclosure height/render work:
+
+```sh
+opam exec --switch=. -- dune exec test/test_confirmation_cache.exe -- --measure
+```
+
+One local run with a 60-KiB title and 20 frames reported 1.65 ms / 5,927,040 allocated
+bytes with reuse versus 114.51 ms / 308,112,384 without reuse. It includes image
+construction, but not full Ui, terminal output or process work. Measurement uses
+no model or workspace. No elapsed-time or allocation ratio is a unit-test gate.
