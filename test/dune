@@ -412,3 +412,8 @@
  (name test_shortcut_guidance)
  (modules test_shortcut_guidance)
  (libraries factory_tui notty))
+
+(test
+ (name test_input_controls)
+ (modules test_input_controls)
+ (libraries factory_tui notty))

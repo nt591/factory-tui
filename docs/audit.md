@@ -323,3 +323,14 @@ format/build/unit gates, and all 17 fixture UI cases with 59 previews. Evidence:
 `/tmp/factory-shortcuts-ui-20261118/report.json`. The insert-mode preview was
 inspected. Separate CLI invocation (20), fake execution (19) and temporary package
 (14) checks passed. No installed provider or real model was called.
+
+Input_controls.ml/.mli supplies editor-only Queue/Apply/Create/Finish, Close and
+reply-Newline buttons. The action row no longer advertises inert normal-mode
+controls during input. Clicks use the same Enter/Escape/Ctrl-L handler as keyboard
+input, including validation, exact draft/newline retention and storage-warning
+priority. Targets carry their input mode; different-mode stale frames and modal
+input cannot execute them. Full labels alone receive hitboxes; small terminals
+omit buttons that cannot fit. Normal card clicks and modal controls retain their
+existing input isolation. Pure mouse/render tests and the input-feedback PTY
+verify clicked submission, newline, model correction, task creation and search
+closure without starting agents.

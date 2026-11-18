@@ -4,10 +4,12 @@ open Controller
 
 type rect = { x : int; y : int; w : int; h : int }
 type hit = { rect : rect; action : action }
+type input_hit = { rect : rect; input : Controller.input; action : Input_controls.action }
 
 type frame = {
   image : image;
   hits : hit list;
+  input_controls : input_hit list;
   sidebar : (rect * int) option;
   columns : (rect * Model.state * int * int) list;
   panes : (rect * Controller.focus) list;
@@ -73,10 +75,10 @@ let border ?(footer = "") cols rows ~title ~color ~focused content =
 
 let hit_at frame x y =
   List.find_opt
-    (fun { rect; _ } ->
+    (fun ({ rect; _ } : hit) ->
       x >= rect.x && x < rect.x + rect.w && y >= rect.y && y < rect.y + rect.h)
     frame.hits
-  |> Option.map (fun hit -> hit.action)
+  |> Option.map (fun (hit : hit) -> hit.action)
 
 let render t ~width:cols ~height:rows =
   let cols = max 1 cols and rows = max 1 rows in
@@ -87,6 +89,7 @@ let render t ~width:cols ~height:rows =
     if x >= 0 && y >= 0 && w > 0 && h > 0 then
       hits := { rect = { x; y; w; h }; action } :: !hits
   in
+  let input_controls = ref [] in
   let sidebar = ref None and column_regions = ref [] and panes = ref [] in
   let scroll_panes = ref [] in
   let scroll_region (r : rect) focus skipped =
@@ -627,20 +630,26 @@ let render t ~width:cols ~height:rows =
   if rows >= 4 then
     paint 0 (rows - 3)
       (line cols (attr (if t.input = Normal then muted else accent)) input_text);
-  let buttons =
-    Action_bar.items ~task ~live:(t.live_config <> None) ~replay:t.external_events
-      ~fake:t.fake_harness ~storage:(t.database_path <> None) ~expanded:t.zoom
-  in
   let x = ref 0 in
+  let button title on_hit =
+    let w = String.length title + 2 in
+    if !x + w <= cols then (
+      paint !x (rows - 2) (line w (emphasis accent) (" " ^ title ^ " "));
+      on_hit { x = !x; y = rows - 2; w; h = 1 };
+      x := !x + w)
+  in
   if rows >= 4 then
-    List.iter
-      (fun (title, action) ->
-        let w = String.length title + 2 in
-        if !x + w <= cols then (
-          paint !x (rows - 2) (line w (emphasis accent) (" " ^ title ^ " "));
-          hit !x (rows - 2) w 1 action;
-          x := !x + w))
-      buttons;
+    if t.input = Normal then
+      Action_bar.items ~task ~live:(t.live_config <> None) ~replay:t.external_events
+        ~fake:t.fake_harness ~storage:(t.database_path <> None) ~expanded:t.zoom
+      |> List.iter (fun (title, action) ->
+          button title (fun r -> hit r.x r.y r.w r.h action))
+    else
+      Input_controls.items t.input
+      |> List.iter (fun (item : Input_controls.item) ->
+          button item.label (fun rect ->
+              input_controls :=
+                { rect; input = t.input; action = item.action } :: !input_controls));
   if rows >= 4 then
     paint 0 (rows - 1)
       (line cols
@@ -695,6 +704,7 @@ let render t ~width:cols ~height:rows =
     in
     paint x y (border w h ~title:"Help / Settings" ~color:accent ~focused:true content);
     hits := [];
+    input_controls := [];
     hit (x + 1) (y + 1) (min 18 (w - 2)) 1 (Menu_tab Help_tab);
     if w > 20 then hit (x + 19) (y + 1) (min 18 (w - 20)) 1 (Menu_tab Settings_tab));
   (match t.workspace_form with
@@ -710,6 +720,7 @@ let render t ~width:cols ~height:rows =
       in
       paint x y dialog.image;
       hits := [];
+      input_controls := [];
       List.iter
         (fun (item : Workspace_dialog.hit) ->
           let action =
@@ -731,6 +742,7 @@ let render t ~width:cols ~height:rows =
           view.scroll_region;
       paint 0 1 view.image;
       hits := [];
+      input_controls := [];
       List.iter
         (fun (item : Review_view.hit) ->
           let action =
@@ -770,6 +782,7 @@ let render t ~width:cols ~height:rows =
       t.confirmation_readable <- view.readable;
       paint x y view.image;
       hits := [];
+      input_controls := [];
       List.iter
         (fun (item : Live_confirmation.hit) ->
           hit (x + item.x) (y + item.y) item.width 1
@@ -781,6 +794,7 @@ let render t ~width:cols ~height:rows =
   {
     image = fit cols rows !canvas;
     hits = !hits;
+    input_controls = !input_controls;
     sidebar = !sidebar;
     columns = !column_regions;
     panes = !panes;
@@ -788,7 +802,7 @@ let render t ~width:cols ~height:rows =
     modal_scroll = !modal_scroll;
   }
 
-let mouse t frame ~now = function
+let mouse (t : Controller.t) frame ~now = function
   | `Press `Left, (x, y), _ ->
       if t.input = Normal then (
         reset_keys t;
@@ -808,6 +822,18 @@ let mouse t frame ~now = function
             t.last_click <- None;
             act t action
         | None -> t.last_click <- None)
+      else if
+        (not t.help) && t.live_confirmation = None && t.review = None
+        && t.workspace_form = None
+      then
+        List.find_opt
+          (fun (hit : input_hit) ->
+            let r = hit.rect in
+            hit.input = t.input && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h)
+          frame.input_controls
+        |> Option.iter (fun (hit : input_hit) ->
+            t.last_click <- None;
+            Input_controls.key ~input:t.input hit.action |> Option.iter (key t))
   | `Press (`Scroll direction), (x, y), mods ->
       let over_modal_content =
         match frame.modal_scroll with

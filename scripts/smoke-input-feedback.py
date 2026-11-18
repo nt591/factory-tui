@@ -31,6 +31,13 @@ def main():
             [str(binary), "--no-config", "--events", str(replay)], env
         ) as tui:
             tui.ready()
+
+            def click_control(label):
+                row = tui.screen.display[-2]
+                column = row.index(label) + 1
+                line = tui.screen.lines - 1
+                tui.send(f"\x1b[<0;{column};{line}M\x1b[<0;{column};{line}m".encode())
+
             tui.send(b"ei")
             tui.wait(
                 "reply insert guidance",
@@ -58,7 +65,14 @@ def main():
                 "feedback clears on edit",
                 lambda: "INSERT / Enter queues" in tui.screen.display[-1],
             )
-            tui.send(b"\r")
+            click_control("[Newline / Ctrl-L]")
+            tui.send(b"Second line")
+            tui.check(
+                "reply editor shows only usable input controls",
+                "[Queue reply / Enter]" in tui.screen.display[-2]
+                and "i reply" not in tui.screen.display[-2],
+            )
+            click_control("[Queue reply / Enter]")
             tui.wait(
                 "valid reply queued",
                 lambda: (
@@ -80,7 +94,8 @@ def main():
                 "invalid model text retained at cursor",
                 "-▏coding-large" in tui.text() and "Model (next run):" in tui.text(),
             )
-            tui.send(b"\x7f\r")
+            tui.send(b"\x7f")
+            click_control("[Apply model / Enter]")
             tui.wait("model corrected", lambda: "Next-run model updated" in tui.text())
             tui.send(b"n")
             tui.wait(
@@ -93,7 +108,8 @@ def main():
                 lambda: "Enter a task instruction" in tui.screen.display[-1],
             )
             tui.check("blank task stays in creation editor", "New task:" in tui.text())
-            tui.send(b"Created after feedback\r")
+            tui.send(b"Created after feedback")
+            click_control("[Create task / Enter]")
             tui.wait(
                 "task created",
                 lambda: (
@@ -119,12 +135,14 @@ def main():
                 "transcript search editing guidance",
                 lambda: "CHAT SEARCH / Enter finishes" in tui.screen.display[-1],
             )
-            tui.send(b"Created\r")
+            tui.send(b"Created")
+            click_control("[Finish search / Enter]")
             tui.wait(
                 "transcript result guidance",
                 lambda: "n/N: matches" in tui.screen.display[-1],
             )
-            tui.send(b"\x1b")
+            tui.send(b"S")
+            click_control("[Clear search / Esc]")
             tui.wait(
                 "search cleared guidance",
                 lambda: "End: latest" in tui.screen.display[-1],

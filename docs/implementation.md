@@ -885,3 +885,14 @@ views say return, and the pending pane prefix names pane controls. Input-limit a
 validation feedback keep precedence. No binding, state transition, persistence or
 execution behavior changes. Pure layout/render tests and the input-feedback PTY
 verify the mode changes and recovery from validation errors.
+
+Input_controls.ml/.mli supplies editor-only Queue/Apply/Create/Finish, Close and
+reply-Newline buttons. The action row no longer advertises inert normal-mode
+controls during input. Clicks use the same Enter/Escape/Ctrl-L handler as keyboard
+input, including validation, exact draft/newline retention and storage-warning
+priority. Targets carry their input mode; different-mode stale frames and modal
+input cannot execute them. Full labels alone receive hitboxes; small terminals
+omit buttons that cannot fit. Normal card clicks and modal controls retain their
+existing input isolation. Pure mouse/render tests and the input-feedback PTY
+verify clicked submission, newline, model correction, task creation and search
+closure without starting agents.

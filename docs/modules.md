@@ -31,6 +31,8 @@ is coupled; moving directories alone does not remove that coupling.
 Each library module has an explicit interface. The compiler checks implementations
 against these interfaces during the normal Dune build.
 
+- `Input_controls`: pure editor button labels and keyboard-action mapping. UI
+  targets retain their editor mode and reject modal or stale different-mode clicks.
 - `Shortcut_guidance`: pure current-mode/pane shortcut copy with terminal-width
   limits. Input validation and size warnings take priority in the renderer.
 - `Model`: immutable task/run/event data and lifecycle transitions. Records and

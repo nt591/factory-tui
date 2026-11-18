@@ -1,9 +1,11 @@
 type rect = { x : int; y : int; w : int; h : int }
 type hit = { rect : rect; action : Controller.action }
+type input_hit = { rect : rect; input : Controller.input; action : Input_controls.action }
 
 type frame = {
   image : Notty.image;
   hits : hit list;
+  input_controls : input_hit list;
   sidebar : (rect * int) option;
   columns : (rect * Model.state * int * int) list;
   panes : (rect * Controller.focus) list;
