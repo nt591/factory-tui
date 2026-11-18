@@ -153,6 +153,7 @@ plugins, modify shell startup files, or require global OCaml tool installations.
 - Arrow keys or `hjkl` navigate. Compact task lists follow displayed row order
   across states; four-column boards keep vertical motion within a column and
   horizontal motion between columns. Mouse wheel and Page Up/Down scroll.
+  Status counters describe the repository/search-filtered board, not hidden tasks.
   Overflowing columns/lists show the visible range and above/below arrows.
   Wheel input targets the visible pane under the pointer, not keyboard focus;
   footer/composer surfaces do not scroll another pane. Chat and Activity retain

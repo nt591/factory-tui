@@ -97,12 +97,13 @@ let render t ~width:cols ~height:rows =
   paint 0 0 (line cols A.(fg accent ++ bg background ++ st bold) header);
   let sidebar_width = if cols >= 145 && not t.zoom then 22 else 0 in
   let main_width = cols - sidebar_width in
+  let board_tasks = visible t in
   let states = if t.archive then [ Done ] else columns in
   let meter_width = max 1 (main_width / List.length states) in
   List.iteri
     (fun i state ->
       let count =
-        List.length (List.filter (fun (task : task) -> task.state = state) t.tasks)
+        List.length (List.filter (fun (task : task) -> task.state = state) board_tasks)
       in
       let body = Printf.sprintf " %02d  %s" count (label state) in
       paint
@@ -115,7 +116,7 @@ let render t ~width:cols ~height:rows =
     Printf.sprintf " %s  |  %d tasks%s  |%s"
       (if t.archive then "Archive"
        else match t.repository with None -> "Session board" | Some repo -> repo)
-      (List.length (visible t))
+      (List.length board_tasks)
       (if t.archive then " accepted" else "")
       query
   in

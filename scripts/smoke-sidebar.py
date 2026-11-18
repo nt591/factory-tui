@@ -65,6 +65,11 @@ def main():
                 "repository click filters board",
                 "T-05" in tui.text() and "task 05" in tui.text(),
             )
+            tui.check(
+                "repository counters match the filtered board",
+                "01  Queued" in tui.screen.display[1]
+                and "40  Queued" not in tui.screen.display[1],
+            )
             if args.preview:
                 tui.preview(args.preview)
             tui.send(b"b")

@@ -288,3 +288,9 @@ A one-row pane still advances one row. While editing the jj executable these
 shortcuts do not move the patch or alter the path, and only unmodified Enter
 refreshes. Unsupported modifiers do not trigger plain-key commands. Unit tests
 and actual PTY control bytes after resize verify behavior; review remains read-only.
+
+Board counters use the same repository/search/archive-filtered task set as the
+visible cards. Active views exclude accepted tasks; Archive counts only matching
+accepted tasks. Filtering does not close a selected conversation outside the
+board filter. Unit/render tests cover repository/query/empty/archive counts, and
+the forty-repository PTY fixture checks counters after clicking a repository.

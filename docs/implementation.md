@@ -287,3 +287,9 @@ its rendered patch capacity, including one-row panes. Control-letter decoding
 matches the main TUI; unrelated/mixed modifiers cannot invoke refresh or path
 editing. Paging keys are inactive while editing the executable, and modified
 Enter cannot refresh it. Unit and resized-terminal PTY checks cover these paths.
+
+Board counters use the same repository/search/archive-filtered task set as the
+visible cards. Active views exclude accepted tasks; Archive counts only matching
+accepted tasks. Filtering does not close a selected conversation outside the
+board filter. Unit/render tests cover repository/query/empty/archive counts, and
+the forty-repository PTY fixture checks counters after clicking a repository.
