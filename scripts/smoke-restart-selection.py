@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+"""Verify accepted conversation selection survives a real SQLite UI restart."""
+
+import argparse
+import json
+import os
+import sqlite3
+import subprocess
+import tempfile
+from pathlib import Path
+
+from fixtures.terminal import Terminal
+
+
+def read(database):
+    with sqlite3.connect(database) as db:
+        return json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--binary", type=Path)
+    parser.add_argument("--preview", type=Path)
+    args = parser.parse_args()
+    root = Path(__file__).resolve().parent.parent
+    if args.binary is None:
+        subprocess.run([str(root / "scripts/build.sh")], cwd=root, check=True)
+    binary = (args.binary or root / "_build/default/bin/main.exe").resolve()
+    with tempfile.TemporaryDirectory(prefix="factory-restart-selection-") as temporary:
+        directory = Path(temporary)
+        home = directory / "home"
+        home.mkdir()
+        database = directory / "board.sqlite"
+        replay = directory / "empty.jsonl"
+        replay.write_text("")
+        env = {key: os.environ[key] for key in ("PATH", "LANG") if key in os.environ}
+        env.update(HOME=str(home), XDG_CONFIG_HOME=str(home), TMPDIR=str(directory))
+        command = [
+            str(binary),
+            "--no-config",
+            "--database",
+            str(database),
+            "--events",
+            str(replay),
+        ]
+        with Terminal(command, env) as tui:
+            tui.ready()
+            tui.send(b"q")
+            tui.wait_exit()
+        saved = read(database)
+        active = next(task for task in saved["tasks"] if task["state"] == "queued")
+        accepted = next(task for task in saved["tasks"] if task["state"] == "ready")
+        accepted["state"] = "done"
+        saved.update(
+            tasks=[active, accepted],
+            selected=accepted["id"],
+            drafts=[[accepted["id"], "Retained draft for accepted task"]],
+        )
+        with sqlite3.connect(database) as db:
+            db.execute("UPDATE snapshot SET payload=?", (json.dumps(saved),))
+        for attempt in range(2):
+            with Terminal(command, env) as tui:
+                tui.ready()
+                tui.wait(
+                    "restored accepted chat",
+                    lambda: f"{accepted['id']} / Done / conversation" in tui.text(),
+                )
+                tui.check(
+                    "active board and accepted chat remain independent",
+                    "Queued 1" in tui.text() and "1 tasks" in tui.screen.display[2],
+                )
+                tui.check(
+                    "retained draft is read-only after restart",
+                    "draft retained" in tui.text() and "i to edit" not in tui.text(),
+                )
+                tui.send(b"e")
+                tui.wait(
+                    "accepted conversation expanded",
+                    lambda: "Navigation tests pass" in tui.text(),
+                )
+                tui.check(
+                    "restart does not expose task execution or reply controls",
+                    "i reply" not in tui.screen.display[-2]
+                    and "s start" not in tui.screen.display[-2],
+                )
+                if args.preview and attempt == 1:
+                    tui.preview(args.preview)
+                tui.send(b"q")
+                tui.wait_exit()
+            current = read(database)
+            assert current["selected"] == accepted["id"]
+            assert (
+                current["tasks"] == saved["tasks"]
+                and current["drafts"] == saved["drafts"]
+            )
+        assert list(home.iterdir()) == []
+        print(
+            "PASS: repeated restart preserves selected archived conversation and exact task/draft data"
+        )
+    print("Temporary SQLite/replay only. No model, credentials or workspace access.")
+
+
+if __name__ == "__main__":
+    main()

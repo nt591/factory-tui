@@ -27,6 +27,7 @@ CASES = (
     "layout-config",
     "input-limit",
     "input-feedback",
+    "restart-selection",
     "queue-summary",
     "review-notice",
     "panes",

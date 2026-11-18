@@ -56,7 +56,7 @@ let () =
           frame.hits));
   let saved = Controller.snapshot controller in
   let loaded = ok (Snapshot.decode (Snapshot.encode saved)) in
-  controller.archive <- true;
+  controller.archive <- false;
   Controller.restore controller loaded;
   check "restart preserves exact pending archived data"
     ((Option.get (Controller.selected controller)).messages = ready.messages

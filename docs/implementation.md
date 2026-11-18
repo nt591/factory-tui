@@ -730,7 +730,7 @@ agreement with the previous algorithm. A scoped ten-search measurement reported
 and does not impose timing or allocation thresholds in tests.
 
 
-scripts/check-ui.py consolidates the full terminal regression and 15 dedicated UI
+scripts/check-ui.py consolidates the full terminal regression and 16 dedicated UI
 fixtures into one sequential verification command. A single format/build/unit phase
 precedes the PTYs, which all use the exact selected --binary without rebuilding.
 New private output directories retain atomic reports, per-case logs and previews;
@@ -824,7 +824,7 @@ text changes or entering another input action clear the error; cursor movement d
 not. Input-limit warnings retain precedence. Failure feedback does not overwrite a
 current Storage error. Pure editor/render tests and a dedicated replay PTY verify
 empty reply, invalid model, blank task and valid recovery. The fixture is part of
-the one-build UI catalogue, now 16 cases. No new bindings or persistence fields.
+the one-build UI catalogue, now 17 cases. No new bindings or persistence fields.
 
 Successful local reply/model/task submission clears input-specific errors without
 replacing a current Storage error footer. The accepted local value still updates,
@@ -843,3 +843,13 @@ composer controls afterward. Storage-error status retains precedence. Pure state
 codec/width tests and the board-history replay PTY verify acceptance with queued
 follow-ups and a draft, visible retained markers and read-only controls. Restart
 checks inspect the preserved archive rather than auto-resuming its pending work.
+
+Controller.restore validates saved selection against retained tasks, not visible
+board cards. A valid accepted or filtered-out conversation remains selected while
+board filters stay independent. A missing ID falls back to the first visible task,
+then a retained task if the filtered board is empty. Empty snapshots clear selection.
+Existing selection resets initialize transient reading state and recovery status
+remains accurate; no task/draft/history is rewritten or agent resumed. Pure active/
+archive/filter/missing/empty tests and a repeated SQLite PTY restart verify accepted
+chat and read-only drafts alongside an active board. The dedicated restart-selection
+case joins the full fixture UI catalogue, now 17 cases.

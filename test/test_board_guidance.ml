@@ -129,8 +129,10 @@ let () =
   let saved_archive = Controller.snapshot archived in
   let reopened = Controller.create () in
   ok (Controller.initialize_board reopened ~saved:(Some saved_archive) ~live:None);
-  check "active restart does not select an archived task"
-    (reopened.selected = "" && not reopened.archive);
+  check "active restart retains archived chat independently of board"
+    (reopened.selected = accepted.id
+    && (not reopened.archive)
+    && Controller.visible reopened = []);
   Controller.key reopened (`ASCII 'd', []);
   check "opening archive selects the retained task" (reopened.selected = accepted.id);
   Controller.key reopened (`ASCII 'e', []);

@@ -683,7 +683,7 @@ uv run --with pyte --with pillow python scripts/check-ui.py \
   --output /tmp/factory-ui-check-new
 ```
 
-The runner checks formatting and runs scripts/check.sh, then all 16 fixture-only
+The runner checks formatting and runs scripts/check.sh, then all 17 fixture-only
 PTY cases sequentially against the same executable. It never invokes the installed
 Codex, sandbox probes, fresh-switch reconstruction or a real provider. Each child
 uses --binary so it cannot rebuild during terminal execution. Sidebar, column and
@@ -796,3 +796,10 @@ roundtrip the strict codec, inspect archived state and verify read-only hitboxes
 width limits and storage-warning priority. The board-history PTY accepts a Ready
 task with two pending instructions and a draft and checks visible retention markers
 without reply/run controls. No model or workspace operation is used.
+
+`smoke-restart-selection.py` builds a temporary board with one active task and one
+selected accepted task, including its retained draft. Two real UI restarts verify
+accepted chat selection, independent active counters, read-only controls, expanded
+answer and exact saved tasks/drafts/selection. HOME/XDG are isolated; no agent or
+workspace operation is used. The case is included in check-ui.py. Unit restart and
+onboarding tests cover accepted selection, empty filters, absent IDs and empty state.

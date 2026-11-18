@@ -287,7 +287,14 @@ let restore t saved =
   t.selected <- saved.selected;
   t.serial <- saved.serial;
   t.schedules <- [];
-  repair_selection t;
+  (* Board filters must not replace a retained conversation during restart. *)
+  let selection =
+    match selected t with
+    | Some task -> Some task
+    | None -> (
+        match visible t with task :: _ -> Some task | [] -> List.nth_opt t.tasks 0)
+  in
+  (match selection with Some task -> select t task.id | None -> t.selected <- "");
   t.status <- guidance
 
 let tick t now =

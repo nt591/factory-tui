@@ -266,3 +266,8 @@ Acceptance pending-data disclosure has pure state/codec/archive checks and a rep
 PTY with queued follow-ups and an unsent draft. Their identities/content remain
 retained; the accepted detail view reports retention, not next-turn execution.
 No automatic sending, merge, push, workspace deletion or storage recovery is added.
+
+Restart conversation selection has pure filter/archive/fallback tests and repeated
+SQLite terminal coverage. Accepted chat remains selected independently of an active
+board; retained drafts stay read-only and exact history is unchanged. The fixture UI
+catalogue includes restart-selection as its 17th case. No agent resumes on restart.

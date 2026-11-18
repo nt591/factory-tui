@@ -57,5 +57,39 @@ let () =
     (controller.status = "Saved conversations restored. No interrupted runs.");
   check "guidance does not change input snapshots"
     (saved.tasks = [ active ] && saved.drafts = [ (active.id, "Kept draft") ]);
+  let archived =
+    {
+      (snapshot
+         [ task "active-board" Queued; task "accepted" Done ]
+         [ ("accepted", "Retained read-only draft") ])
+      with
+      selected = "accepted";
+    }
+  in
+  controller.archive <- false;
+  Controller.restore controller archived;
+  check "restart retains accepted conversation outside active board"
+    (controller.selected = "accepted"
+    && (Option.get (Controller.selected controller)).state = Done
+    && Controller.draft controller = "Retained read-only draft");
+  check "active filter remains independent of restored chat"
+    (List.map (fun (task : Model.task) -> task.id) (Controller.visible controller)
+    = [ "active-board" ]);
+  controller.query <- "no matching tasks";
+  Controller.restore controller archived;
+  check "empty board filter cannot clear valid restored selection"
+    (controller.selected = "accepted");
+  let missing = { archived with selected = "deleted" } in
+  controller.query <- "";
+  Controller.restore controller missing;
+  check "missing selected task falls back to first visible card"
+    (controller.selected = "active-board");
+  controller.query <- "no matching tasks";
+  Controller.restore controller missing;
+  check "missing selection with empty board still chooses retained conversation"
+    (controller.selected = "active-board");
+  Controller.restore controller (snapshot [] []);
+  check "empty snapshot clears nonexistent conversation"
+    (controller.selected = "" && Controller.selected controller = None);
   Printf.printf
     "Passed %d restart guidance checks. Pure snapshots and controller recovery.\n" !checks

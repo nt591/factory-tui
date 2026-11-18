@@ -908,3 +908,8 @@ The accepted detail border names retained queued messages and a retained draft;
 acceptance status makes clear they were not sent. Nothing is merged, pushed or
 deleted, and the archived task cannot start a new run. Retained draft content stays
 in its snapshot even though the composer is read-only.
+
+Restart restores the selected conversation even if that task is accepted or outside
+the active board filter. The board can show current work while chat shows archived
+history. Missing saved selections fall back to an available task; empty snapshots
+show no conversation. Restoring selection never resumes an agent or changes drafts.
