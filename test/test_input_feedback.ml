@@ -75,5 +75,43 @@ let () =
   controller.input_limit <- Some 65536;
   check "limit rejection takes priority when both errors exist"
     (Controller.contains (render controller) "Edit not applied / limit 64 KiB");
+  List.iter
+    (fun (action, value) ->
+      let controller = Controller.create ~external_events:true () in
+      Controller.act controller action;
+      Controller.set_input controller value;
+      controller.status <- "Storage error: unsaved conversation";
+      controller.input_error <- Some "Previous validation";
+      let runs =
+        List.concat_map (fun (task : Model.task) -> task.runs) controller.tasks
+      in
+      Controller.submit controller;
+      check "successful local submission preserves persistence warning"
+        (controller.status = "Storage error: unsaved conversation"
+        && controller.input = Normal);
+      check "success clears field validation but does not claim storage recovery"
+        (controller.input_error = None && controller.input_limit = None);
+      let frame = Ui.render controller ~width:120 ~height:36 in
+      let buffer = Buffer.create 8192 in
+      Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (120, 36) frame.image;
+      check "unsaved warning remains visible after editor closes"
+        (Controller.contains (Buffer.contents buffer)
+           "Storage error: unsaved conversation");
+      check "submission under warning starts no additional run"
+        (List.concat_map (fun (task : Model.task) -> task.runs) controller.tasks = runs);
+      check "local edit is retained despite persistence warning"
+        (match action with
+        | Controller.Begin_compose ->
+            List.exists
+              (fun (message : Model.message) -> message.text = value && message.queued)
+              (Option.get (Controller.selected controller)).messages
+        | Begin_model -> (Option.get (Controller.selected controller)).model = value
+        | Begin_new -> (Option.get (Controller.selected controller)).title = value
+        | _ -> false))
+    [
+      (Controller.Begin_compose, "Unsaved reply");
+      (Controller.Begin_model, "local-model");
+      (Controller.Begin_new, "Unsaved task");
+    ];
   Printf.printf
     "Passed %d input-validation feedback checks. Pure editor/rendering only.\n" !checks

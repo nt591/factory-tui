@@ -715,6 +715,11 @@ let input_failure t error =
   t.input_error <- Some error;
   if not (String.starts_with ~prefix:"Storage error:" t.status) then t.status <- error
 
+let submission_success t message =
+  t.input_error <- None;
+  t.input_limit <- None;
+  if not (String.starts_with ~prefix:"Storage error:" t.status) then t.status <- message
+
 let submit t =
   match t.input with
   | Normal | Search | Chat_search -> t.input <- Normal
@@ -729,7 +734,7 @@ let submit t =
               set_draft t "";
               t.input <- Normal;
               act t Follow_chat;
-              t.status <-
+              submission_success t
                 (if t.live_config <> None then
                    "Reply queued for the next confirmed turn; active run is unchanged."
                  else "Reply queued for the next run. No live agent receives it.")))
@@ -742,7 +747,8 @@ let submit t =
           | Ok task ->
               replace t task;
               t.input <- Normal;
-              t.status <- "Next-run model updated. Gateway compatibility is unverified."))
+              submission_success t
+                "Next-run model updated. Gateway compatibility is unverified."))
   | New_task ->
       let title = String.trim t.new_title in
       if title <> "" then (
@@ -753,7 +759,7 @@ let submit t =
         t.query <- "";
         select t id;
         t.input <- Normal;
-        t.status <- "Task created in memory. Start runs a simulated fixture.")
+        submission_success t "Task created in memory. Start runs a simulated fixture.")
       else input_failure t "Enter a task instruction before creating a task."
 
 let navigation_tasks t =

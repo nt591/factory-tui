@@ -785,3 +785,8 @@ task validation and limit-warning precedence. `smoke-input-feedback.py` exercise
 empty reply, invalid model correction, and blank task recovery through actual terminal
 input in isolated HOME/XDG with an empty replay. It uses no agent or storage and is
 included in check-ui.py. Preview captures the editor with its error line.
+
+Input-feedback tests also submit valid reply/model/task edits under an injected
+persistence warning. They verify accepted local values, cleared field validation,
+visible Storage error after editor exit and no additional run. This is a pure
+controller/rendering priority check, not a PTY disk-failure or recovery probe.

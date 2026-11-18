@@ -825,3 +825,11 @@ not. Input-limit warnings retain precedence. Failure feedback does not overwrite
 current Storage error. Pure editor/render tests and a dedicated replay PTY verify
 empty reply, invalid model, blank task and valid recovery. The fixture is part of
 the one-build UI catalogue, now 16 cases. No new bindings or persistence fields.
+
+Successful local reply/model/task submission clears input-specific errors without
+replacing a current Storage error footer. The accepted local value still updates,
+reply follow behavior remains intact, and no automatic retry or durability claim
+is made. A shared private submission-success helper enforces that priority. Pure
+input/render checks cover all three submission paths, visible warnings after editor
+exit, retained local values and unchanged runs. Database failure injection is covered
+by persistence tests; this increment tests controller warning priority only.

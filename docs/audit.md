@@ -257,3 +257,7 @@ Submission validation is visible during editing, with pure input/render checks a
 a dedicated replay PTY for empty replies, invalid model IDs and blank task creation.
 The shared UI catalogue includes this 16th case. Failed edits retain data/cursors;
 valid recovery changes no execution boundary and adds no new keybindings.
+
+Local submission success does not mask a persistence warning. Pure reply/model/task
+input and rendering checks verify accepted local state, visible warning and no
+extra runs; no automatic storage recovery or durability assertion is introduced.
