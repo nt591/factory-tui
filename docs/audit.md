@@ -351,3 +351,12 @@ workload, and the build-on-demand 20-task/36-message smoke all completed exact
 persistence and replay checks. Separate CLI invocation (20), fake execution (19)
 and temporary package (14) checks passed. This increment changes no OCaml runtime
 behavior; the preceding editor-controls increment passed all 17 fixture UI cases.
+
+E2E comparison verification on 2026-11-18 passed nine pure comparison tests,
+format/build/unit gates, CLI invocation (20), fake execution (19) and temporary
+package (14) checks. An unchanged executable/observer repeat completed all default
+workload checks and compared successfully against the retained 200-task report;
+the different 1,000-task report was refused. Repeat and comparison evidence:
+`/tmp/factory-e2e-perf-repeat-20261118.json` and
+`/tmp/factory-e2e-perf-comparison-20261118.json`. No runtime optimization or timing
+gate is introduced; profiling and performance cleanup remain follow-up work.

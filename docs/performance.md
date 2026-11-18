@@ -116,3 +116,39 @@ interaction. Do not infer a bottleneck's cause from this table alone. Repeat wit
 one dimension changed at a time, then profile the relevant application and
 observer work separately. No timing target, model throughput or GUI advantage is
 claimed by either run.
+
+## Compare a repeat or candidate build
+
+Use the same arguments and observer for both measurements, then compare:
+
+```sh
+python3 scripts/compare-e2e.py \
+  docs/verification/e2e-perf-200-20261118.json \
+  /tmp/factory-e2e-baseline-new.json
+```
+
+`--json` writes the comparison as JSON to stdout. The command reads reports only;
+it does not build, run the TUI, change files or enforce a timing budget. Positive
+percentages mean larger observed cost. A zero baseline has no percentage ratio.
+The table reports median changes and p95 differences. Resource observations show
+mean CPU/terminal bytes per launch and maximum sampled RSS, not peak memory.
+
+Only complete successful schema-version-1 reports are accepted. The comparator
+checks raw sample counts, finite/nonnegative values, reconstructed summaries,
+complete action sets and unique resource observations for each workload/launch.
+Workload parameters (including launch/cycle counts and deadline), platform,
+architecture, Python/pyte, benchmark hash and measurement/scope text must match.
+Binary hashes and sizes may differ: those are the candidate being measured.
+Changed benchmark logic requires a fresh pair of baselines, not an override.
+
+The checked-in 200 and 1,000 cases are deliberately rejected as a direct comparison
+because their dimensions differ. Matching platform strings cannot establish that
+hardware, background load or cache state is identical. Small-sample differences
+are observations, not statistically established regressions. Repeat unchanged
+builds to understand variability before drawing conclusions about a candidate.
+
+Pure comparison tests are included in `scripts/check.sh`:
+
+```sh
+python3 scripts/test-compare-e2e.py
+```

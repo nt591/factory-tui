@@ -811,3 +811,9 @@ SQLite and replay workloads. See `docs/performance.md` for commands, parameters,
 raw samples, resource attribution and observer limitations. `passed` establishes
 correctness of the measured workflow, not a latency budget. Pure report/statistics/
 fixture tests run through `scripts/check.sh`; the benchmark remains opt-in.
+
+The pure `scripts/test-compare-e2e.py` suite checks successful self/candidate
+comparison, zero baselines, metadata mismatches, incomplete/invalid samples,
+resource uniqueness and CLI refusal. The comparison command rejects the two
+checked-in scale workloads as incompatible rather than treating scale as a
+candidate regression. It runs no executable or external service.

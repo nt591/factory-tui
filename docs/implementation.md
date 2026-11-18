@@ -905,3 +905,11 @@ driven Ready movement. CPU, sampled main-process RSS, terminal bytes and binary/
 observer metadata are reported. Pure measurement-helper tests are part of check.sh.
 See docs/performance.md for scope and reproducible commands. These measurements
 establish a baseline, not a release latency target or native-GUI comparison.
+
+E2E baseline comparison is available through scripts/compare-e2e.py. It validates
+complete raw action/resource samples and their statistics before comparing reports.
+Workload and measurement metadata must match; failed/interrupted or incompatible
+reports are rejected without a speedup claim. Executable hashes can differ for a
+candidate build. Human and JSON output disclose latency/resource deltas without
+release gates or statistical significance claims. Nine pure validation/CLI tests
+run in check.sh. See docs/performance.md for repeat/candidate comparison commands.
