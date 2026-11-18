@@ -740,3 +740,13 @@ state and interrupt cleanup without running UI processes. The suite excludes
 installed agents, provider calls, sandbox probes and toolchain reconstruction;
 package/CLI checks remain separate. This improves repeatable verification rather
 than claiming real-provider or release completeness.
+
+Chat_search retains matches in chronological array order and indexes each matching
+message ID to its result ordinal. Match counters and n/N movement no longer scan
+the result list; changed immutable messages rebuild the array/index together.
+Selection remains ID-based across reorder/streaming; removed selected matches
+choose the first surviving result, and pending seeks retain their existing behavior.
+Public interfaces and literal matching are unchanged. Pure 20,000-result traversal
+checks cover wraparound, reorder, selected removal, index pruning and clear/single/
+empty cases. Existing full UI/search fixtures verify visible counts and navigation.
+No timing threshold or whole-app speed claim is introduced.

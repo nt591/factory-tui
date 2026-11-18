@@ -708,3 +708,11 @@ All previews currently use the macOS Menlo font. The report is fixture regressio
 evidence, not a visual-quality verdict, provider/sandbox audit, clean-OS validation
 or public release gate. Inspect relevant captures. CLI invocation/execution and
 package reproducibility/install checks remain separate commands.
+
+`test_search_navigation` traverses all 20,000 matching results and verifies ordinal,
+message identity, wraparound and one-shot seeks. Reordering preserves selected ID
+with a new ordinal; selected-match removal chooses a valid replacement; replacing
+with a single result and clearing remove old membership. Tests have no performance
+threshold. The full fixture UI suite retains actual search count/highlight/input
+coverage. One initial parallel process test hit its existing invalid-event cleanup
+one-second assertion; it remains unrelated/undiagnosed, with no deadline changes.

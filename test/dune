@@ -367,3 +367,8 @@
  (name test_literal_search)
  (modules test_literal_search)
  (libraries factory_tui unix))
+
+(test
+ (name test_search_navigation)
+ (modules test_search_navigation)
+ (libraries factory_tui))

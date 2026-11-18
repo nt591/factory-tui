@@ -1,18 +1,18 @@
 type t = {
   mutable query : string;
   mutable search : Literal_search.t;
-  mutable matches : string list;
+  mutable matches : string array;
   mutable selected : string option;
   mutable pending_seek : bool;
   mutable cached_messages : Model.message list option;
-  membership : (string, unit) Hashtbl.t;
+  membership : (string, int) Hashtbl.t;
 }
 
 let create () =
   {
     query = "";
     search = Literal_search.prepare "";
-    matches = [];
+    matches = [||];
     selected = None;
     pending_seek = false;
     cached_messages = None;
@@ -32,7 +32,7 @@ let set_query t query =
 let clear t =
   t.query <- "";
   t.search <- Literal_search.prepare "";
-  t.matches <- [];
+  t.matches <- [||];
   t.selected <- None;
   t.pending_seek <- false;
   t.cached_messages <- None;
@@ -55,12 +55,13 @@ let sync t messages =
               else None)
             messages
       in
+      let matches = Array.of_list matches in
       Hashtbl.clear t.membership;
-      List.iter (fun id -> Hashtbl.replace t.membership id ()) matches;
+      Array.iteri (fun index id -> Hashtbl.replace t.membership id index) matches;
       let selected =
         match t.selected with
         | Some id when Hashtbl.mem t.membership id -> Some id
-        | _ -> ( match matches with [] -> None | id :: _ -> Some id)
+        | _ -> if Array.length matches = 0 then None else Some matches.(0)
       in
       if selected <> t.selected then t.pending_seek <- true;
       t.selected <- selected;
@@ -68,18 +69,17 @@ let sync t messages =
       t.cached_messages <- Some messages
 
 let position t =
-  let rec index n = function
-    | [] -> 0
-    | id :: _ when t.selected = Some id -> n
-    | _ :: rest -> index (n + 1) rest
+  let index =
+    Option.bind t.selected (Hashtbl.find_opt t.membership)
+    |> Option.fold ~none:0 ~some:(fun index -> index + 1)
   in
-  (index 1 t.matches, List.length t.matches)
+  (index, Array.length t.matches)
 
 let move t ~backwards =
   let index, count = position t in
   if count > 0 then (
     let next = if backwards then (index + count - 2) mod count else index mod count in
-    t.selected <- Some (List.nth t.matches next);
+    t.selected <- Some t.matches.(next);
     t.pending_seek <- true)
 
 let matches t id = Hashtbl.mem t.membership id

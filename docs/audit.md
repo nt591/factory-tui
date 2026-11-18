@@ -212,3 +212,8 @@ review checks against one build, retaining logs, previews and a fail-fast JSON
 report. It includes format/build/unit gates unless --binary explicitly skips them.
 Its case catalogue excludes installed-agent and real-provider work; full fixture
 success does not replace the unresolved security/provider/release boundaries.
+
+Large search-result navigation has 20,000-result traversal and lifecycle tests.
+Its private array/index changes no selection-by-ID semantics or persisted state.
+The recurring process invalid-event cleanup timing assertion failed in an initial
+parallel run; no deadline or process code was modified to hide it.

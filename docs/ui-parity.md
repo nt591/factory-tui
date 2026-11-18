@@ -627,3 +627,8 @@ metacharacters and UTF-8 bytes keep their existing semantics. Reference-corpus a
 large repeated-prefix tests verify equivalent matching; existing terminal search
 checks retain count/highlight/navigation and exact query behavior. The optimization
 does not change saved text or add regex/Unicode case-folding features.
+
+Transcript match counters and n/N navigation use indexed ordinals and an ordered
+array, avoiding scans through large result lists. Selected message IDs stay stable
+across streamed updates/reorder. Large-result tests verify every destination,
+wraparound, selected removal and index pruning; public search behavior is unchanged.

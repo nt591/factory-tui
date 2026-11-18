@@ -401,3 +401,8 @@ to each call. Chat_search prepares only when query changes, while Controller.vis
 prepares once per filter pass. Matching is literal byte search, not a regex or
 Unicode case-folding service. No text, task, match-selection or saved state is
 rewritten by matching.
+
+Chat_search's private match array and ID-to-ordinal index serve both membership and
+position lookup. The selected value is still a stable message ID, not a saved index.
+Sync replaces current array/index together and prunes removed matches. Counters and
+next/previous movement avoid list traversal without changing seek or cache rules.
