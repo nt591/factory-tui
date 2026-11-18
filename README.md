@@ -162,7 +162,9 @@ plugins, modify shell startup files, or require global OCaml tool installations.
   stack them. Narrow terminals use a compact task list with expandable detail.
 - Tab / Shift-Tab cycle panes forward / backward. The focused pane is highlighted.
 - Vim navigation in normal mode:
-  - `h/l`: previous / next nonempty column; `j/k`: next / previous card.
+  - `h/l`: previous / next nonempty column, preserving the selected row where
+    possible and clamping to the last card in a shorter column.
+    `j/k`: next / previous card.
   - `gg` / `G`: first / last card in the current column (or archive).
   - Counts repeat moves: `3j`, `2l`. Counts are capped at 999.
   - In task detail, `j/k` scroll one line; `gg/G` go to top / bottom.

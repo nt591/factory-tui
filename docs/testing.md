@@ -435,3 +435,18 @@ verifies both author tails and bodies, searches the full author, then verifies
 exact stored messages/runs. HOME/XDG are temporary; no agent, credentials or real
 workspace are used. `--binary` avoids rebuilding. Pure `test_chat_author` checks
 header tones, bounds, index uniqueness and body-anchor preservation.
+
+
+## Row-aligned board navigation fixture
+
+```sh
+uv run --with pyte --with pillow python scripts/smoke-board-navigation.py \
+  --preview /tmp/factory-board-navigation.png
+```
+
+The real terminal loads a temporary SQLite board with five Queued, five Needs you
+and two Ready tasks; Working is empty. An empty replay file prevents timed events.
+Checks cover row-aligned horizontal movement, skipping the empty column, counts,
+short-column clamping, destination visibility and its expanded chat. Final saved
+tasks/runs/drafts remain exact; only selection changes. HOME/XDG are isolated.
+No agent, credentials or real workspace are accessed. `--binary` avoids rebuilding.

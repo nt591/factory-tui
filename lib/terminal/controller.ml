@@ -739,32 +739,13 @@ let submit t =
         t.input <- Normal;
         t.status <- "Task created in memory. Start runs a simulated fixture.")
 
-let ordered_tasks t =
-  let tasks = visible t in
-  if t.archive then tasks
-  else
-    List.concat_map
-      (fun state -> List.filter (fun (task : task) -> task.state = state) tasks)
-      columns
-
 let navigation_tasks t =
-  let tasks = if t.board_list then visible t else ordered_tasks t in
-  match selected t with
-  | Some task
-    when (not t.archive) && (not t.board_list)
-         && List.exists (fun (x : task) -> x.id = task.id) tasks ->
-      List.filter (fun (x : task) -> x.state = task.state) tasks
-  | _ -> tasks
+  Board_navigation.vertical
+    ~columns:((not t.archive) && not t.board_list)
+    ~selected:t.selected (visible t)
 
 let move_in t tasks delta =
-  let rec index i = function
-    | [] -> if delta >= 0 then -1 else List.length tasks
-    | (task : task) :: _ when task.id = t.selected -> i
-    | _ :: rest -> index (i + 1) rest
-  in
-  if tasks <> [] then
-    select t
-      (List.nth tasks (max 0 (min (List.length tasks - 1) (index 0 tasks + delta)))).id
+  Option.iter (select t) (Board_navigation.move ~selected:t.selected ~delta tasks)
 
 let scroll t delta =
   let delta = if t.focus = Activity then delta else -delta in
@@ -776,36 +757,18 @@ let navigate t direction =
       let delta = if direction = `Up then -1 else 1 in
       if t.focus <> Board || t.zoom then scroll t delta
       else move_in t (navigation_tasks t) delta
-  | `Left | `Right -> (
+  | `Left | `Right ->
       if t.focus <> Board || t.zoom then ()
       else if t.archive || t.board_list then
         move_in t (navigation_tasks t) (if direction = `Left then -1 else 1)
       else
-        match selected t with
-        | None -> ()
-        | Some task ->
-            let states = if direction = `Left then List.rev columns else columns in
-            let rec find = function
-              | [] -> ()
-              | state :: rest when state = task.state -> next rest
-              | _ :: rest -> find rest
-            and next = function
-              | [] -> ()
-              | state :: rest -> (
-                  match
-                    List.find_opt (fun (x : task) -> x.state = state) (ordered_tasks t)
-                  with
-                  | Some x -> select t x.id
-                  | None -> next rest)
-            in
-            find states)
+        Option.iter (select t)
+          (Board_navigation.horizontal ~right:(direction = `Right) ~selected:t.selected
+             (visible t))
 
 let edge t last =
   if t.focus = Board && not t.zoom then
-    let tasks = navigation_tasks t in
-    match if last then List.rev tasks else tasks with
-    | task :: _ -> select t task.id
-    | [] -> ()
+    Option.iter (select t) (Board_navigation.edge ~last (navigation_tasks t))
   else if t.focus = Activity then t.scroll <- (if last then 1_000_000 else 0)
   else t.scroll <- (if last then 0 else 1_000_000)
 

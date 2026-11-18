@@ -513,3 +513,15 @@ widths, controls, empty labels, queued tone, header index uniqueness, stable bod
 anchors during author growth, and stored-state isolation. A temporary SQLite PTY
 checks long author tails, delivery labels, complete bodies, full-author search and
 unchanged persisted messages/runs. No model or workspace operation is used.
+
+
+Board selection rules live in the pure `Board_navigation.ml/.mli` module:
+vertical/edge/page selection uses visible current-column order or compact/archive
+list order. Horizontal column movement preserves the selected row ordinal, skips
+empty columns, and clamps to the last card when the destination is shorter.
+The next move uses the resulting ordinal, not a hidden preferred row. Visible
+filters and current event-driven states define destinations; no stored card order
+is changed. Controller applies only the selected identity and existing viewport
+follow behavior. Pure tests and a temporary-board PTY check verify aligned cards,
+shorter columns, empty-state skipping, counts, opening the selected chat, filters,
+current-state movement, edge cases, bounded deltas, and saved task/run isolation.

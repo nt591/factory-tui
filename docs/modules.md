@@ -267,3 +267,11 @@ headers retain Author tone; their indices are non-positive and increase through
 zero. Body indices start at one independently of header length, so header growth
 does not renumber body anchors. The first matching message row remains the search
 seek target. Raw stored authors and message records are not modified by layout.
+
+
+`Board_navigation` computes vertical candidate lists, bounded list moves, edge
+selection, and row-aligned horizontal destinations from supplied visible tasks.
+It has no Controller or rendering dependency and mutates no tasks. Controller
+keeps focus, selection guidance, scroll resets and input dispatch; the renderer
+still reports compact/column mode and page capacity. Missing filtered selections
+have no invented horizontal destination, while list moves enter from an edge.

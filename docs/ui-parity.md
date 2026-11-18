@@ -492,3 +492,13 @@ body anchors start at one, independently of header height; paused body reading
 survives author growth. Pure and temporary stored-message PTY checks verify full
 author tails, delivery labels, body order, full-author search and unchanged saved
 content. Extremely long headers still require scrolling to read all rows.
+
+
+Horizontal board navigation aligns the selected row across nonempty columns,
+clamping to the last card in shorter destinations. Subsequent moves use that
+current row. Compact/archive lists retain displayed-order movement. The pure
+Board_navigation module separates destination rules from controller side effects.
+Unit and temporary-board PTY checks verify counts, empty-column skipping, exact
+selected-card/chat identity, shorter-column clamping, filters, current-state
+movement and unchanged saved tasks/runs. Column scrolling follows the destination
+so an aligned card is visible before it is opened.
