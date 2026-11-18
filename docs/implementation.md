@@ -1098,3 +1098,29 @@ Pure tests cover section boundary styles, stable pane geometry, forward/reverse
 Tab order, clickable board focus and unchanged snapshots. The 23-case fixture UI
 audit covers all three focus states, resize/history retention and mouse-only archive
 navigation with restart/restore; its 69 previews remain outside the repository.
+
+
+Ctrl-X task deletion is implemented with a typed confirmation dialog. Normal/reply
+input can open it; Enter requires the exact word delete and pasted Enter cannot
+confirm. The captured task ID is rechecked for active, waiting and owned process
+handles, including stopped handles that still need cleanup. Running tasks must stop
+first. Deletion removes only the task, draft, scheduled/pending events and its SQLite
+run/event rows. Other tasks, workspace files and external agent history remain.
+A persistent task stays in memory until the snapshot/run/event transaction has a
+durable checkpoint; failed storage leaves it visible. This is not secure erasure.
+
+Board Enter/double-click opens the expanded conversation in insert mode for writable
+tasks; archived tasks remain read-only. Conversation Enter opens the editor without
+changing the layout. e expands idempotently, preserving history when already
+expanded. Escape leaves editing first, then returns from expanded chat with Board
+focus. Tab exits reply editing with its draft intact; Tab into Conversation stays
+in read mode. Startup remains navigation-only and starts no agent.
+
+Validation covers 45 pure/temporary-storage deletion checks, including failed
+checkpoint rollback, plus conversation-entry/layer navigation tests. The 24-case
+fixture UI audit passes and emits 72 previews; relevant insert/deletion/focus views
+were inspected. CLI discovery/config/invocation/execution and temporary packaging
+checks pass. The real-binary fixture performance harness passes with three launches
+and three interaction rounds over 200 tasks/messages. Evidence remains outside the
+repository; no live agent, provider key or network request is needed for these UI
+and performance checks.

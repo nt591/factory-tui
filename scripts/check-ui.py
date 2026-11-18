@@ -26,6 +26,7 @@ CASES = (
     "direct-send",
     "default-mode",
     "archive-safety",
+    "task-deletion",
     "layout-config",
     "input-limit",
     "input-feedback",

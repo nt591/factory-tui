@@ -462,3 +462,13 @@
  (name test_section_focus)
  (modules test_section_focus)
  (libraries factory_tui notty))
+
+(test
+ (name test_task_deletion)
+ (modules test_task_deletion)
+ (libraries factory_tui notty unix sqlite3))
+
+(test
+ (name test_conversation_entry)
+ (modules test_conversation_entry)
+ (libraries factory_tui notty))

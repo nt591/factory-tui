@@ -405,7 +405,7 @@ try:
         send(b"T")
         check("raw tool diagnostics available", '"command_execution"' in text())
         send(b"T")
-        send(b"e")
+        send(b"\x1b")
         check("Activity expansion returns to previous task layout", "Reply / next turn" in text()
               and " / activity / expanded" not in text())
         send(b"t")

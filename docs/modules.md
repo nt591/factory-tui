@@ -433,3 +433,10 @@ retention copy. Controller preserves messages/drafts and storage-error priority.
 - `Executable_path`: discovers runnable regular files in PATH without executing
   a shell. Explicit configured paths still take precedence.
 - `Hotkey_bar`: grouped terminal key/action rendering with distinct key styling.
+
+
+`lib/terminal/task_deletion.ml/.mli` owns the bounded confirmation text and exact-word
+check. Controller captures task identity, checks process ownership and publishes
+persistent deletion only after a successful checkpoint. Storage removes the matching
+run/event rows in the same transaction as the snapshot. Demo and live runner
+`owned_tasks` accessors keep canceled-but-unreaped handles in the deletion guard.

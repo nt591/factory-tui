@@ -88,7 +88,7 @@ def main():
             )
             if args.preview:
                 tui.preview(args.preview.with_stem(args.preview.stem + "-after-stop"))
-            tui.send(b"e")
+            tui.send(b"\x1b")
             tui.wait(
                 "interrupted card reason",
                 lambda: any(

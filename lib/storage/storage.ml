@@ -1,4 +1,10 @@
-type t = { db : Sqlite3.db; lock : Unix.file_descr; path : string; mutable closed : bool }
+type t = {
+  db : Sqlite3.db;
+  lock : Unix.file_descr;
+  path : string;
+  mutable closed : bool;
+  mutable saved_task_ids : string list option;
+}
 
 exception Storage_error of string
 
@@ -105,7 +111,7 @@ let open_store path =
                   raise error);
               exec db "PRAGMA synchronous=FULL";
               Hashtbl.add owners path ();
-              { db; lock; path; closed = false }
+              { db; lock; path; closed = false; saved_task_ids = None }
             with error ->
               ignore (Sqlite3.db_close db);
               raise error
@@ -127,6 +133,34 @@ let load store =
               | Error error -> raise (Storage_error error))
           | _ -> raise (Storage_error "Cannot load snapshot.")))
 
+let delete_task_events db ids =
+  if ids <> [] then
+    let sequences =
+      statement db "SELECT sequence,payload FROM events" (fun stmt ->
+          let rec loop sequences =
+            match Sqlite3.step stmt with
+            | Sqlite3.Rc.DONE -> sequences
+            | Sqlite3.Rc.ROW -> (
+                match Events.decode (Sqlite3.column_text stmt 1) with
+                | Error _ -> raise (Storage_error "Cannot inspect stored task events.")
+                | Ok event ->
+                    let sequences =
+                      if List.mem event.Model.task_id ids then
+                        Sqlite3.column_int64 stmt 0 :: sequences
+                      else sequences
+                    in
+                    loop sequences)
+            | _ -> raise (Storage_error "Cannot inspect stored task events.")
+          in
+          loop [])
+    in
+    List.iter
+      (fun sequence ->
+        statement db "DELETE FROM events WHERE sequence=?" (fun stmt ->
+            ensure (Sqlite3.bind stmt 1 (Sqlite3.Data.INT sequence));
+            ensure (Sqlite3.step stmt)))
+      sequences
+
 let save store snapshot ~events =
   protect (fun () ->
       check store;
@@ -136,6 +170,13 @@ let save store snapshot ~events =
       | Error error -> raise (Storage_error error));
       if List.length events > 1024 then
         raise (Storage_error "Too many events in one storage batch.");
+      let ids = List.map (fun (task : Model.task) -> task.id) snapshot.tasks in
+      let present = Hashtbl.create (List.length ids) in
+      List.iter (fun id -> Hashtbl.replace present id ()) ids;
+      (* A coalesced batch can contain output from a task removed by its snapshot. *)
+      let events =
+        List.filter (fun event -> Hashtbl.mem present event.Model.task_id) events
+      in
       let event_payloads =
         List.map
           (fun event ->
@@ -147,6 +188,19 @@ let save store snapshot ~events =
       in
       exec store.db "BEGIN IMMEDIATE";
       try
+        let previous =
+          match store.saved_task_ids with
+          | Some ids -> ids
+          | None -> (
+              match load store with
+              | Ok (Some previous) ->
+                  List.map (fun (task : Model.task) -> task.id) previous.tasks
+              | Ok None -> []
+              | Error error -> raise (Storage_error error))
+        in
+        let removed = List.filter (fun id -> not (Hashtbl.mem present id)) previous in
+        (* Snapshot, run rows and event rows must commit or roll back together. *)
+        delete_task_events store.db removed;
         statement store.db "INSERT OR REPLACE INTO snapshot(id,payload) VALUES(1,?)"
           (fun stmt ->
             ensure (Sqlite3.bind stmt 1 (Sqlite3.Data.TEXT payload));
@@ -175,7 +229,8 @@ let save store snapshot ~events =
                 ensure (Sqlite3.bind stmt 1 (Sqlite3.Data.TEXT payload));
                 ensure (Sqlite3.step stmt)))
           event_payloads;
-        exec store.db "COMMIT"
+        exec store.db "COMMIT";
+        store.saved_task_ids <- Some ids
       with error ->
         ignore (Sqlite3.exec store.db "ROLLBACK");
         raise error)

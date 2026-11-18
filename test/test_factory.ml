@@ -176,7 +176,10 @@ let () =
   Ui.mouse ui frame ~now:1. (`Press `Left, (card.rect.x, card.rect.y), []);
   check "mouse selects card" (ui.selected = "T-101" && not ui.zoom);
   Ui.mouse ui frame ~now:1.2 (`Press `Left, (card.rect.x, card.rect.y), []);
-  check "double click expands" ui.zoom;
+  check "double click expands with editor" (ui.zoom && ui.input = Controller.Compose);
+  Controller.key ui (`Escape, []);
+  check "first Escape keeps expanded conversation"
+    (ui.zoom && ui.input = Controller.Normal);
   Controller.key ui (`Escape, []);
   check "Escape returns to board" (not ui.zoom);
   Controller.act ui (Controller.Select "T-102");
@@ -201,7 +204,9 @@ let () =
     (List.length (Controller.visible ui) = 1 && ui.selected = "T-104");
   Controller.key ui (`Enter, []);
   Controller.key ui (`Escape, []);
-  check "Escape clears search" (ui.query = "");
+  check "first Escape from conversation returns board focus" (ui.focus = Controller.Board);
+  Controller.key ui (`Escape, []);
+  check "Escape on board clears search" (ui.query = "");
   Controller.act ui Controller.Begin_new;
   Controller.set_input ui "A new simulated task";
   Controller.submit ui;

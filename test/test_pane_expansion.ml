@@ -107,17 +107,20 @@ let () =
     ((not t.zoom) && (not t.activity_expanded) && t.focus = Controller.Activity);
   Controller.key t (`ASCII 'e', []);
   Controller.key t (`ASCII 'e', []);
-  check "Activity e toggles back" ((not t.zoom) && t.focus = Controller.Activity);
+  check "Activity e stays expanded" (t.zoom && t.focus = Controller.Activity);
+  Controller.key t (`Escape, []);
   Controller.act t (Controller.Focus Controller.Board);
   Controller.key t (`Enter, []);
   check "board Enter still expands chat"
     (t.zoom && (not t.activity_expanded) && t.focus = Controller.Conversation);
+  check "opening writable task defaults to insert" (t.input = Controller.Compose);
+  Controller.key t (`Escape, []);
   Controller.act t (Controller.Focus Controller.Activity);
   Controller.key t (`ASCII 'e', []);
   check "Activity can expand from expanded task layout"
     (t.activity_expanded && t.activity_origin_zoom);
-  Controller.key t (`ASCII 'e', []);
-  check "nested Activity expansion restores expanded task layout"
+  Controller.key t (`Escape, []);
+  check "nested Activity Escape restores expanded task layout"
     (t.zoom && (not t.activity_expanded) && t.focus = Controller.Activity);
   Controller.key t (`ASCII 'e', []);
   Controller.key t (`Tab, []);

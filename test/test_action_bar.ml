@@ -73,7 +73,7 @@ let () =
   check "Claude live task cannot offer execution"
     (not (has (items ~live:true (Some { live_task with harness = Claude })) Start));
   check "return label reflects expansion"
-    (List.mem ("e return", Zoom) (items ~expanded:true (Some task)));
+    (List.mem ("Esc back", Back) (items ~expanded:true (Some task)));
   let controller = Controller.create ~external_events:true () in
   controller.tasks <- [ task ];
   controller.selected <- task.id;

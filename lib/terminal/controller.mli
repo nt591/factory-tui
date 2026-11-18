@@ -9,6 +9,11 @@ type model_target = Task_model of string | Workspace_model of Workspace_form.t
 type action =
   | Select of string
   | Zoom
+  | Open_conversation
+  | Back
+  | Begin_delete
+  | Cancel_delete
+  | Confirm_delete
   | Focus of focus
   | Start
   | Stop
@@ -65,6 +70,9 @@ type t = {
   mutable model_target : model_target option;
   mutable live_config : Live_runner.config option;
   mutable live_waiting_tasks : string list;
+  mutable owned_tasks : string list;
+  mutable deletion : Task_deletion.t option;
+  mutable deletion_request : string option;
   mutable review : Review.t option;
   mutable jj_executable : string;
   mutable workspace_defaults : Workspace_defaults.t;
@@ -143,6 +151,7 @@ val key : t -> Notty.Unescape.key -> unit
 val insert_text : t -> string -> unit
 val paste_key : t -> Notty.Unescape.key -> unit
 val demo_context : t -> Demo.Runner.context
+val poll_deletion : t -> storage:Persistence.t option -> unit
 val poll_creation : t -> storage:Persistence.t option -> unit
 val finish_creation : t -> storage:Persistence.t option -> unit
 val enable_live : t -> Live_runner.config -> (unit, string) result

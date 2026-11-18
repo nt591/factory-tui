@@ -248,7 +248,7 @@ def run(args, report):
                         (
                             "chat_expand",
                             b"e",
-                            lambda: "e return" in tui.screen.display[-2],
+                            lambda: "Esc back" in tui.screen.display[-2],
                         ),
                         (
                             "composer_open",
@@ -290,7 +290,7 @@ def run(args, report):
                         ),
                         (
                             "chat_return",
-                            b"e",
+                            b"\x1b",
                             lambda: "e expand" in tui.screen.display[-2],
                         ),
                         (
@@ -379,7 +379,7 @@ def run(args, report):
                 record("replay_startup_backlog", (time.perf_counter() - started) * 1000)
                 memory = [rss(tui.process.pid)]
                 tui.input(b"e")
-                tui.observe(lambda: "e return" in tui.screen.display[-2], args.timeout)
+                tui.observe(lambda: "Esc back" in tui.screen.display[-2], args.timeout)
                 for step in range(args.interactions):
                     marker = f"Stream-{iteration}-{step}"
                     envelope = {

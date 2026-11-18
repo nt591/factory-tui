@@ -101,6 +101,7 @@ type run = {
 type t = { config : config; mutable runs : run list; mutable waiting : string list }
 
 let create config = { config; runs = []; waiting = [] }
+let owned_tasks runner = List.map (fun run -> run.task_id) runner.runs
 let waiting_tasks runner = runner.waiting
 
 let workspace_key directory =

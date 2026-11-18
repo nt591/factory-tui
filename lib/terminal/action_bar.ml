@@ -7,7 +7,9 @@ let items ~archive ~task ~live ~replay ~fake ~storage ~expanded =
   @ (match task with
     | None -> []
     | Some task ->
-        [ ((if expanded then "e return" else "e expand"), Zoom) ]
+        [
+          ((if expanded then "Esc back" else "e expand"), if expanded then Back else Zoom);
+        ]
         @ (if task.state = Done then [ ("u restore", Restore_task) ] else [])
         @ (if task.workspace <> None then [ ("v changes", Open_review) ] else [])
         @ (if task.state = Ready then [ ("Ctrl-A archive", Accept) ] else [])
@@ -32,4 +34,5 @@ let items ~archive ~task ~live ~replay ~fake ~storage ~expanded =
      else [ ("n demo", Begin_new) ])
   @ (if archive then [] else [ ("Archive", Toggle_archive) ])
   @ (if live || replay || fake then [] else [ ("f pause", Toggle_pause) ])
+  @ (if task <> None then [ ("Ctrl-X delete", Begin_delete) ] else [])
   @ [ ("q quit", Quit) ]

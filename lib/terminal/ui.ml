@@ -326,9 +326,7 @@ let render t ~width:cols ~height:rows =
          ~title:
            ((match task with None -> "Task" | Some task -> task.id)
            ^ " / activity"
-           ^
-           if t.activity_expanded then " / expanded · e or Esc returns"
-           else " / e expands")
+           ^ if t.activity_expanded then " / expanded · Esc returns" else " / e expands")
          ~color:accent ~focused:(t.focus = Activity) content);
     panes := (r, Activity) :: !panes;
     scroll_region r Activity 0;
@@ -419,7 +417,7 @@ let render t ~width:cols ~height:rows =
            (I.vcat rows)))
     else (
       paint r.x r.y
-        (border ~section:true r.w r.h ~title:"Board / h l: lanes / Tab: conversation"
+        (border ~section:true r.w r.h ~title:"Board / h l: lanes / Enter: chat"
            ~color:accent ~focused:(t.focus = Board) I.empty);
       hit r.x r.y r.w 1 (Focus Board);
       let r = { x = r.x + 1; y = r.y + 1; w = r.w - 2; h = r.h - 2 } in
@@ -847,6 +845,36 @@ let render t ~width:cols ~height:rows =
           if capacity > 0 && w >= 5 then
             hit (x + 1) (y + 4 + (i * 2)) (w - 2) 2 (Choose_project project.name))
         displayed);
+  (match t.deletion with
+  | None -> ()
+  | Some dialog ->
+      let w = min 86 cols in
+      let inner = max 1 (w - 4) in
+      let lines = List.concat_map (wrap_title inner) (Task_deletion.rows dialog) in
+      let h = min rows (List.length lines + 2) in
+      let x = (cols - w) / 2 and y = (rows - h) / 2 in
+      let content = I.vcat (List.map (line inner (attr text)) lines) |> I.hpad 1 1 in
+      paint x y
+        (border ~section:true w h ~title:"Delete task / permanent"
+           ~color:(state_color Needs_you) ~focused:true content);
+      if rows >= 4 then (
+        paint 0 (rows - 2) (block cols 1 (attr muted));
+        paint 0 (rows - 1) (block cols 1 (attr muted));
+        paint 0 (rows - 2) (line cols (attr muted) " Delete task / Esc cancels");
+        paint 0 (rows - 1)
+          (line cols
+             (attr (state_color Needs_you))
+             " Type delete in the dialog, then Enter. Workspace files stay intact."));
+      hits := [];
+      input_controls := [];
+      sidebar := None;
+      column_regions := [];
+      panes := [];
+      scroll_panes := [];
+      modal_scroll := Some { x; y; w; h };
+      if w >= 18 && h >= 2 then (
+        paint (x + 2) (y + h - 1) (Hotkey_bar.action "[Cancel / Esc]");
+        hit (x + 2) (y + h - 1) 14 1 Cancel_delete));
   {
     image = fit cols rows !canvas;
     hits = !hits;
@@ -860,7 +888,9 @@ let render t ~width:cols ~height:rows =
 
 let mouse (t : Controller.t) frame ~now = function
   | `Press `Left, (x, y), _ ->
-      if t.input = Normal then (
+      if t.deletion <> None then (
+        if hit_at frame x y = Some Cancel_delete then act t Cancel_delete)
+      else if t.input = Normal then (
         reset_keys t;
         match hit_at frame x y with
         | Some action when t.project_picker <> None -> (
@@ -881,11 +911,32 @@ let mouse (t : Controller.t) frame ~now = function
             t.last_click <- Some (id, now);
             if double then (
               t.last_click <- None;
-              act t Zoom)
+              act t Open_conversation)
         | Some action ->
             t.last_click <- None;
             act t action
         | None -> t.last_click <- None)
+      else if
+        t.input = Compose && (not t.help) && t.review = None && t.workspace_form = None
+        && t.model_target = None
+      then
+        match hit_at frame x y with
+        | Some
+            ((Select _ | Focus _ | Back | Session_board | Archive_view | Toggle_archive)
+             as action) ->
+            t.input <- Normal;
+            act t action
+        | _ ->
+            List.find_opt
+              (fun (hit : input_hit) ->
+                let r = hit.rect in
+                hit.input = t.input && x >= r.x
+                && x < r.x + r.w
+                && y >= r.y
+                && y < r.y + r.h)
+              frame.input_controls
+            |> Option.iter (fun (hit : input_hit) ->
+                Input_controls.key ~input:t.input hit.action |> Option.iter (key t))
       else if (not t.help) && t.review = None && t.workspace_form = None then
         List.find_opt
           (fun (hit : input_hit) ->
@@ -901,7 +952,8 @@ let mouse (t : Controller.t) frame ~now = function
         | Some r -> x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h
         | None -> false
       in
-      if t.project_picker <> None then (
+      if t.deletion <> None then ()
+      else if t.project_picker <> None then (
         if over_modal_content then
           Project_picker.move (Option.get t.project_picker)
             (if direction = `Up then -3 else 3))

@@ -187,7 +187,7 @@ keeps later replies pending for the next turn; it does not accept stdin injectio
 Ctrl-S saves a task without running it. `s` sends/retries pending instructions.
 Read-only remains the default filesystem policy; opt into --workspace-write for
 writes. Sending through your provider can consume usage. Setup configures provider
-defaults, not permission bypass. Archive navigation uses `d` to toggle, `b` to
+defaults, not permission bypass. Archive navigation uses the clickable Archive control, `b` to
 return to a visible session board, or Escape from the archive board.
 
 Codex and jj executable paths are optional overrides. Normal launch discovers

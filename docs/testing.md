@@ -876,3 +876,15 @@ return/restore controls and u restoration after a SQLite restart. The restored
 Ready task retains exact history, pending reply, draft and identity with no run.
 Pure tests additionally cover disabled function key, editor isolation, other-state
 refusal, read-only transition and storage-warning priority. Catalogue: 23 UI cases.
+
+
+### Task deletion and conversation entry
+
+`scripts/smoke-task-deletion.py` uses temporary SQLite and a workspace sentinel.
+It verifies Enter-to-compose, e-only expansion, layered Escape, typed deletion,
+paste/cancel isolation, task-only history removal, restart and last-task deletion.
+It starts no agent and makes no network request. It is included in check-ui.py.
+Pure `test_task_deletion` checks captured identity, active/waiting/owned process
+refusal and atomic deletion rollback. `test_conversation_entry` covers insert/read
+entry and visible focus after returning to the board. Workspace and external agent
+history deletion are not supported or exercised.

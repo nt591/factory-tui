@@ -21,6 +21,7 @@ type context = {
 
 type t
 
+val owned_tasks : t -> string list
 val create : config -> t
 val waiting_tasks : t -> string list
 val poll : t -> context -> storage:Persistence.t -> unit

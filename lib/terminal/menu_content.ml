@@ -6,7 +6,7 @@ let help ~mode =
   [
     "FACTORY / terminal";
     "";
-    "Click a card to inspect chat. Enter/e expands; Escape returns.";
+    "Click a card to inspect chat. Enter opens a task with its reply editor.";
     "Focus Activity and e expands tool output to full terminal width.";
     "hjkl/arrows navigate. Counts repeat movement (for example, 3j).";
     "gg / G: first / last card, or top / bottom of the focused pane.";
@@ -16,7 +16,7 @@ let help ~mode =
     "Ctrl-U/D: half-page. Ctrl-B/F: full-page. Tab/Shift-Tab: cycle.";
     "Mouse wheel and Page Up/Down scroll. Home/End: first/last.";
     "Paused chat: click Latest on its border, or End, to follow output.";
-    "i composes a reply. Enter sends; Ctrl-L/Alt-Enter adds a line.";
+    "e expands once; Escape returns a layer. Enter/i in chat composes a reply.";
     "Arrows edit; Home/End move within a line; Escape keeps the draft.";
     (match mode with
     | Live _ -> "n/W creates a workspace task. Setup starts no agent."
@@ -43,6 +43,7 @@ let help ~mode =
     "Cards move from events; selected chat stays attached to its task.";
     "Process exit alone never marks a task Ready.";
     "Acceptance does not merge, push, or delete a workspace.";
+    "Ctrl-X deletes an idle task after typing delete. Workspace files stay intact.";
     "Startup starts no agent. Live mode and writes require explicit opt-in.";
     "Configured SQLite storage retains chats and drafts.";
     "";

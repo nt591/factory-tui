@@ -200,12 +200,13 @@ plugins, modify shell startup files, or require global OCaml tool installations.
 ## Interface
 
 - Click a card to focus it and inspect its conversation and activity.
-- Double-click or Enter/`e` on a card expands its task chat. Focus Activity with
-  Tab or Ctrl-W, then `e` gives tool output the full terminal width; `e`/Escape
+- Double-click or Enter on a card opens its task chat in insert mode when writable.
+  `e` expands in reading mode; it does not toggle back. Focus Activity with
+  Tab or Ctrl-W, then `e` gives tool output the full terminal width; Escape
   returns to the preceding task layout. Task selection, drafts, and run state
   remain unchanged. Tab or `i` returns from Activity-only display to visible chat.
 - Four columns contain bordered cards: Queued, Working, Needs you, Ready.
-  `d` opens accepted tasks. Acceptance leaves the selected chat open and read-only.
+  Click Archive to view accepted tasks. Acceptance leaves the selected chat open and read-only.
 - Wide layouts show a repository sidebar. `R` cycles repositories at any size;
   `b` returns to all active tasks. Repository filtering does not close the chat.
 - Wide terminals place the board and task detail side by side. Medium terminals
@@ -229,7 +230,9 @@ plugins, modify shell startup files, or require global OCaml tool installations.
     The independent width/height preferences
     scale on terminal resize and last only for this launch; zoom keeps them intact.
     Minimum sizes prevent one region from hiding the other.
-  - `i` enters the reply composer; Escape returns to normal mode and keeps the draft.
+  - Enter in Conversation or `i` enters the reply composer. Escape keeps the draft
+    and returns to reading; another Escape returns to the board with board focus.
+    Tab leaves the composer and moves to the next section without losing its draft.
     Navigation keys are literal text while composing or searching.
   - Pending counts and `g` / Ctrl-W prefixes appear in the status line.
 - Arrow keys or `hjkl` navigate. Compact task lists follow displayed row order
@@ -973,4 +976,11 @@ retained, and restore starts no run. Use b to return to the visible session boar
 
 Tab cycles Board → Conversation → Activity, with a heavy boundary around the active
 section. h/l or arrows navigate board lanes. Tab does not resize the layout; e expands
-explicitly. Plain d has no archive action. Ctrl-X deletion is not implemented.
+explicitly. Plain d has no archive action. Ctrl-X opens task-deletion confirmation; type `delete` and press Enter.
+
+Task deletion is permanent in the TUI, unlike reversible archiving. Running tasks
+must be stopped with x and finish process cleanup first. Deletion removes the task,
+its draft and SQLite run/event rows in one transaction. The UI waits for a durable
+checkpoint before removing it. Workspace files, agent-owned sessions, replay input
+files and external backups remain unchanged. This is not secure disk erasure.
+Startup remains in board navigation mode and never starts an agent.

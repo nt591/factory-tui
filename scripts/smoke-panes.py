@@ -171,7 +171,7 @@ def main():
             tui.wait("zoom opens", lambda: conversation_row(tui) == 3)
             tui.send(b"\x17+")
             tui.wait("zoom resize guidance", lambda: "Return from zoom" in tui.text())
-            tui.send(b"e")
+            tui.send(b"\x1b")
             tui.wait(
                 "zoom returns to stored split",
                 lambda: conversation_row(tui) == original_top,
@@ -182,6 +182,7 @@ def main():
                 lambda: conversation_row(tui) == 3 and conversation_column(tui) > 100,
             )
             original_column = conversation_column(tui)
+            tui.send(b"\x17l")
             tui.send(b"5\x17+")
             tui.wait(
                 "wide chat growth",

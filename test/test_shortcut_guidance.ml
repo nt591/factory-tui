@@ -19,7 +19,7 @@ let () =
   check "expanded board focus uses conversation guidance"
     (hint ~expanded:true 120 = hint ~focus:Conversation ~expanded:true 120);
   check "expanded reading guidance describes return action"
-    (Controller.contains (hint ~focus:Activity ~expanded:true 120) "e: return"
+    (Controller.contains (hint ~focus:Activity ~expanded:true 120) "Esc: back"
     && not (Controller.contains (hint ~focus:Activity ~expanded:true 120) "e: expand"));
   check "chat search hints disclose match navigation and clear action"
     (Controller.contains (hint ~focus:Conversation ~searching:true 120) "n/N: matches"

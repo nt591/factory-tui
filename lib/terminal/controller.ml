@@ -9,6 +9,11 @@ type model_target = Task_model of string | Workspace_model of Workspace_form.t
 type action =
   | Select of string
   | Zoom
+  | Open_conversation
+  | Back
+  | Begin_delete
+  | Cancel_delete
+  | Confirm_delete
   | Focus of focus
   | Start
   | Stop
@@ -65,6 +70,9 @@ type t = {
   mutable model_target : model_target option;
   mutable live_config : Live_runner.config option;
   mutable live_waiting_tasks : string list;
+  mutable owned_tasks : string list;
+  mutable deletion : Task_deletion.t option;
+  mutable deletion_request : string option;
   mutable review : Review.t option;
   mutable jj_executable : string;
   mutable workspace_defaults : Workspace_defaults.t;
@@ -130,6 +138,9 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     model_target = None;
     live_config = None;
     live_waiting_tasks = [];
+    owned_tasks = [];
+    deletion = None;
+    deletion_request = None;
     review = None;
     jj_executable = "";
     workspace_defaults = Workspace_defaults.empty;
@@ -346,6 +357,80 @@ let close_expansion t =
   t.activity_expanded <- false;
   focus_pane t focus
 
+let deletion_busy t id =
+  List.mem id t.owned_tasks
+  || List.mem id t.live_waiting_tasks
+  || List.exists
+       (fun (task : task) ->
+         task.id = id && (task.active <> None || task.state = Working))
+       t.tasks
+
+let deleted_snapshot t id =
+  let saved = snapshot t in
+  let tasks = List.filter (fun (task : task) -> task.id <> id) saved.tasks in
+  let selected =
+    if saved.selected <> id then saved.selected
+    else
+      match List.filter (fun (task : task) -> task.id <> id) (visible t) with
+      | task :: _ -> task.id
+      | [] -> ""
+  in
+  { saved with tasks; drafts = List.remove_assoc id saved.drafts; selected }
+
+let remove_task t id =
+  let saved = deleted_snapshot t id in
+  t.tasks <- saved.tasks;
+  t.drafts <- saved.drafts;
+  t.storage_events <- List.filter (fun event -> event.task_id <> id) t.storage_events;
+  t.schedules <- List.filter (fun (_, event) -> event.task_id <> id) t.schedules;
+  Task_updates.clear t.task_updates id;
+  t.deletion <- None;
+  t.deletion_request <- None;
+  t.input <- Normal;
+  t.editor <- Text_edit.create "";
+  t.last_click <- None;
+  if t.selected = id then (
+    t.selected <- saved.selected;
+    Chat_search.clear t.chat_search;
+    Chat_layout.clear t.chat_layout;
+    Tool_cache.clear t.tool_cache;
+    reset_chat_view t;
+    Pane_scroll.clear t.pane_scroll;
+    t.scroll <- 0);
+  t.zoom <- false;
+  focus_pane t Board;
+  t.status <- "Task deleted. Workspace files and agent-owned history are unchanged."
+
+let poll_deletion t ~storage =
+  match t.deletion_request with
+  | None -> ()
+  | Some id -> (
+      t.deletion_request <- None;
+      if deletion_busy t id then (
+        t.deletion <- None;
+        t.status <- "Task is still running. Stop it and wait for process cleanup.")
+      else
+        let result =
+          match storage with
+          | None -> Error "Persistent storage is required to delete this task."
+          | Some worker -> (
+              match Persistence.flush worker with
+              | Error error -> Error error
+              | Ok () -> (
+                  let events =
+                    List.filter (fun event -> event.task_id <> id) t.storage_events
+                  in
+                  match Persistence.submit worker (deleted_snapshot t id) ~events with
+                  | Error error -> Error error
+                  | Ok () -> Persistence.flush worker))
+        in
+        (* Keep the task visible until its deletion has a durable checkpoint. *)
+        match result with
+        | Error error -> t.status <- "Storage error: " ^ error
+        | Ok () ->
+            remove_task t id;
+            t.storage_events <- [])
+
 let report_creation t text =
   t.status <- text;
   Option.iter (fun form -> Workspace_form.report form text) t.workspace_form
@@ -359,14 +444,51 @@ let rec act t action =
       select t id;
       focus_pane t Board
   | Focus focus -> focus_pane t focus
+  | Open_conversation ->
+      t.zoom <- true;
+      focus_pane t Conversation;
+      act t Begin_compose
+  | Back ->
+      if t.input <> Normal then t.input <- Normal
+      else if Chat_search.query t.chat_search <> "" && t.focus = Conversation then
+        Chat_search.clear t.chat_search
+      else if t.zoom then close_expansion t
+      else if t.focus <> Board then focus_pane t Board
+      else (
+        t.query <- "";
+        if t.archive then act t Session_board else ensure_selection t)
+  | Begin_delete -> (
+      match selected t with
+      | None -> ()
+      | Some task ->
+          if String.starts_with ~prefix:"Storage error:" t.status then ()
+          else if deletion_busy t task.id then
+            t.status <-
+              "Stop the task with x and wait for process cleanup before deleting it."
+          else t.deletion <- Some (Task_deletion.create task))
+  | Cancel_delete ->
+      t.deletion <- None;
+      t.deletion_request <- None
+  | Confirm_delete -> (
+      match t.deletion with
+      | None -> ()
+      | Some dialog when not (Task_deletion.ready dialog) -> ()
+      | Some dialog ->
+          let id = Task_deletion.id dialog in
+          if String.starts_with ~prefix:"Storage error:" t.status then ()
+          else if deletion_busy t id then (
+            t.deletion <- None;
+            t.status <- "Task is still running. Stop it and wait for process cleanup.")
+          else if t.database_path = None then remove_task t id
+          else t.deletion_request <- Some id)
   | Zoom ->
-      if t.activity_expanded then close_expansion t
+      if t.activity_expanded || (t.zoom && t.focus = Conversation) then ()
       else if t.focus = Activity then (
         t.activity_origin_zoom <- t.zoom;
         t.zoom <- true;
         t.activity_expanded <- true)
       else (
-        t.zoom <- not t.zoom;
+        t.zoom <- true;
         focus_pane t Conversation;
         reset_chat_view t;
         t.scroll <- 0)
@@ -842,7 +964,11 @@ let insert_text t value =
     else ignore (accept_input t editor)
 
 let paste_key t (key, mods) =
-  if t.project_picker <> None then
+  if t.deletion <> None then
+    match key with
+    | `ASCII char -> Task_deletion.insert (Option.get t.deletion) (String.make 1 char)
+    | _ -> ()
+  else if t.project_picker <> None then
     let picker = Option.get t.project_picker in
     match key with
     | `ASCII char -> Project_picker.insert picker (String.make 1 char)
@@ -1009,7 +1135,7 @@ let resize_panes t delta =
       | Pane_layout.Changed -> "Pane split adjusted. Ctrl-W = restores startup sizes."
       | Pane_layout.At_limit -> "Pane size limit keeps both regions usable."
       | Pane_layout.No_split ->
-          if t.zoom then "No board/chat split is visible. Return from zoom with e."
+          if t.zoom then "No board/chat split is visible. Return from zoom with Esc."
           else
             "No board/chat split is visible. Enlarge the terminal to show both regions.")
 
@@ -1024,6 +1150,7 @@ let normal_key t (key, mods) =
     command (fun () ->
         match key with
         | `ASCII 'a' when prefix <> Window -> act t Accept
+        | `ASCII 'x' when prefix <> Window -> act t Begin_delete
         | `ASCII 'w' ->
             if prefix = Window then cycle_focus t false
             else (
@@ -1069,18 +1196,15 @@ let normal_key t (key, mods) =
     | `ASCII 'G' -> command (fun () -> edge t true)
     | `ASCII 'q' -> command (fun () -> act t Quit)
     | `ASCII '?' | `Function 1 -> command (fun () -> act t Help)
-    | `ASCII 'e' | `Enter -> command (fun () -> act t Zoom)
-    | `Escape ->
+    | `ASCII 'e' -> command (fun () -> act t Zoom)
+    | `Enter ->
         command (fun () ->
-            if Chat_search.query t.chat_search <> "" && t.focus = Conversation then
-              Chat_search.clear t.chat_search
-            else if t.zoom then (
-              close_expansion t;
-              reset_chat_view t;
-              t.scroll <- 0)
-            else (
-              t.query <- "";
-              if t.archive then act t Session_board else ensure_selection t))
+            act t
+              (match t.focus with
+              | Board -> Open_conversation
+              | Conversation -> Begin_compose
+              | Activity -> Zoom))
+    | `Escape -> command (fun () -> act t Back)
     | `ASCII '/' ->
         command (fun () ->
             act t (if t.focus = Conversation then Begin_chat_search else Begin_search))
@@ -1132,6 +1256,12 @@ let key t (key, mods) =
   if key = `ASCII 'c' && List.mem `Ctrl mods then (
     reset_keys t;
     t.quit <- true)
+  else if t.deletion <> None then (
+    reset_keys t;
+    match Task_deletion.key (Option.get t.deletion) (key, mods) with
+    | Cancel -> act t Cancel_delete
+    | Confirm -> act t Confirm_delete
+    | Edit -> ())
   else if t.project_picker <> None then
     let picker = Option.get t.project_picker in
     match key with
@@ -1189,6 +1319,11 @@ let key t (key, mods) =
         act t Begin_model
     | `ASCII 'H' when t.menu_tab = Settings_tab -> act t Next_harness
     | _ -> ())
+  else if key = `ASCII 'x' && List.mem `Ctrl mods && t.input = Compose then
+    act t Begin_delete
+  else if key = `Tab && t.input = Compose then (
+    t.input <- Normal;
+    cycle_focus t (List.mem `Shift mods))
   else if t.input <> Normal then (
     reset_keys t;
     match key with

@@ -154,6 +154,13 @@ let interactive ?(allow_demo_history = true) ?(projects = []) ?(fake_harness = f
                   ~storage:(Option.get worker);
                 t.live_waiting_tasks <- Live_runner.waiting_tasks runner)
               live_runner;
+            t.owned_tasks <-
+              (Demo.Runner.owned_tasks runner
+              @
+              match live_runner with
+              | None -> []
+              | Some runner -> Live_runner.owned_tasks runner);
+            Controller.poll_deletion t ~storage:worker;
             persist ();
             let width, height = Notty_unix.Term.size term in
             let frame = Ui.render t ~width ~height in

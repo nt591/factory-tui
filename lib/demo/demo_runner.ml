@@ -15,6 +15,7 @@ type run = { task_id : string; run_id : string; handle : Run_handle.t }
 type t = { mutable runs : run list }
 
 let create () = { runs = [] }
+let owned_tasks runner = List.map (fun run -> run.task_id) runner.runs
 
 let script =
   {|cat >/dev/null

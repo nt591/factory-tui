@@ -108,7 +108,8 @@ Archived tasks keep their conversation, run history, working directory, queued
 replies and draft. They are read-only until restored. No merge, push or deletion
 occurs on archiving.
 
-Click **Archive** in the sidebar/action bar to open it. Plain `d` has no action. Select the task and press **`u`** or click **Restore**
+Click **Archive** in the sidebar/action bar to open it. Plain `d` has no action.
+Select the task and press **`u`** or click **Restore**
 to put it back in Ready and return to the visible session board. This clears board
 filters that could hide the restored card, but does not send any retained message
 or start an agent. The next send is a separate action. `b` returns to the session
@@ -123,5 +124,22 @@ on the board to move between lanes. Tab does not expand or resize sections; e st
 expands explicitly. Narrow terminals show the focused detail when both sections
 cannot fit.
 
-Ctrl-X deletion is not implemented. Archiving and restoring never delete a task's
-working directory.
+Enter on a board card or double-click opens its expanded conversation. Writable
+tasks start in insert mode; archived tasks stay read-only. Enter in a conversation
+opens its reply editor without changing the view. e only expands. Escape keeps an
+edited draft and returns to reading; the next Escape returns from the expanded
+conversation to the board with Board focus. Tab leaves editing and moves sections.
+Tab into Conversation remains in reading mode. Startup uses board navigation mode.
+
+## Delete a task
+
+Press Ctrl-X in normal mode or the reply editor. Type `delete`, then press Enter;
+Escape or the Cancel button cancels. Empty Enter, y and bracketed paste cannot
+confirm. Running tasks must be stopped with x and finish process cleanup first.
+The dialog captures a task ID and rechecks it before deletion.
+
+Deletion is permanent in the TUI: the task, chat, draft and stored run/event rows
+are removed. SQLite commits those changes together; the UI keeps the task until
+that checkpoint succeeds. Other tasks stay unchanged. Workspace files, external
+agent sessions, replay input files and backups are not deleted. This is not secure
+disk erasure. Use reversible archiving if you may want to restore the task.
