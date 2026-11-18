@@ -348,3 +348,10 @@ their chronological run lists. Each row still shows captured harness/model,
 simulation/live origin, policy, outcome, and age/duration. No section is shown
 for a task with no runs. Unit ordering/codec checks and installed-agent loopback
 resume/inspection checks verify recent history without modifying records.
+
+Each expanded tool item includes its recorded source attempt and captured harness,
+model, simulation/live origin, and policy. Old output is not relabeled with current
+next-run settings. Scoped keys map to recorded run IDs; legacy/unmatched keys say
+`Source run: not recorded` rather than guessing. Raw payloads remain unchanged and
+show the same origin context. Pure prefix/history tests and fake/installed-agent
+terminal checks verify source attribution after resume. Inspection starts no run.

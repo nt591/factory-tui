@@ -375,6 +375,8 @@ try:
         check("focused Activity expands to full width", " / activity / expanded" in text()
               and "Reply / next turn" not in text())
         check("expanded Activity exposes complete output line", "Fixed local fixture output. No workspace changes." in text())
+        check("fixture tool output identifies its simulated source attempt",
+              "Source run: demo-run-201 / Codex / coding-large / simulated / read-only" in text())
         check("completed fixture history shows recorded duration", "recorded duration" in text())
         if args.preview:
             preview(args.preview.with_stem(args.preview.stem + "-activity-expanded"))

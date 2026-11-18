@@ -100,6 +100,39 @@ let () =
     }
   in
   let history = { task with runs = [ earlier; latest ] } in
+  let origin_history =
+    {
+      history with
+      tools =
+        [
+          ("earlier/same-item", snd (List.hd task.tools));
+          ("latest/same-item", snd (List.hd task.tools));
+        ];
+    }
+  in
+  let origins = lines (Some origin_history) in
+  check "historical tool origin retains captured simulated settings"
+    (List.mem "Source run: earlier / Claude / old-model / simulated / read-only" origins);
+  check "latest tool origin retains captured live write policy"
+    (List.mem "Source run: latest / Codex / latest-model / live / workspace-write" origins);
+  check "raw tool inspection keeps origin disclosure"
+    (contains
+       (lines ~raw:true (Some origin_history))
+       "Source run: earlier / Claude / old-model / simulated / read-only");
+  let overlapping =
+    {
+      history with
+      runs =
+        [ { earlier with run_id = "attempt" }; { latest with run_id = "attempt/sub" } ];
+      tools = [ ("attempt/sub/item", snd (List.hd task.tools)) ];
+    }
+  in
+  check "run origin uses longest complete run prefix"
+    (contains (lines (Some overlapping)) "Source run: attempt/sub / Codex / latest-model");
+  check "similar run IDs cannot claim unscoped tool origin"
+    (contains
+       (lines (Some { history with tools = [ ("latest-other/item", "unstructured") ] }))
+       "Source run: not recorded");
   let history_rows = lines ~expanded:false (Some history) in
   let rendered_runs = List.filter (String.starts_with ~prefix:"run ") history_rows in
   check "history view names reverse chronology"

@@ -305,6 +305,15 @@ def main():
                     and task["runs"][-1]["id"] in displayed_runs[0]
                     and task["runs"][0]["id"] in displayed_runs[1],
                 )
+                tui.send(b"t")
+                tui.wait("expanded tool origin", lambda: "Source run:" in tui.text())
+                tui.check(
+                    "recorded tool activity identifies its original live attempt",
+                    "Source run: "
+                    + task["runs"][0]["id"]
+                    + " / Codex / gpt-4.1 / live / workspace-write"
+                    in tui.text(),
+                )
                 if args.preview:
                     tui.preview(args.preview.with_stem(args.preview.stem + "-history"))
                 tui.send(b"\x1b")

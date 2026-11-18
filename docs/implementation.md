@@ -353,3 +353,10 @@ label. Captured model, harness, outcome, policy, and duration stay attached to e
 record. The underlying task/snapshot retains chronological order; rendering never
 sorts or rewrites saved history. Pure ordering/codec checks and the installed-agent
 loopback UI test verify two attempts in the view after same-thread resume.
+
+Expanded tool activity identifies the recorded source run with its captured harness,
+model, simulation/live origin and execution policy. The scoped tool key, not the
+selected next-run settings or raw payload item ID, determines that origin. Matching
+uses the longest complete run-ID prefix; unmatched legacy keys say not recorded.
+Raw/readable views retain this context. Unit and fake/installed-agent PTY checks
+verify old tool attribution after a later attempt without changing stored events.
