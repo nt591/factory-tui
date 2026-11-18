@@ -388,3 +388,9 @@ queued captured message records. A no-change acknowledgement retains the complet
 transcript list by identity, allowing Chat_layout to reuse its document. Snapshot
 uses a separate ephemeral message-ID index for captured-reference existence checks;
 uniqueness validation remains unchanged. No index is persisted or exposed.
+
+Queue_summary is a pure task-to-delivery-count view. Its ephemeral captured-ID
+index distinguishes queued messages owned by the active run from queued future
+replies. Ui uses its bounded title for the reply border; controller input and
+model transitions remain unchanged. Editor drafts are not task messages and are
+not included in these counts.

@@ -258,7 +258,8 @@ let render t ~width:cols ~height:rows =
         |> I.hpad 1 1
       in
       paint r.x (r.y + chat_height)
-        (border r.w composer_height ~title:"Reply / next turn"
+        (border r.w composer_height
+           ~title:(Queue_summary.title ~width:(r.w - 5) task)
            ~footer:
              (if task.state = Done then ""
               else Composer_layout.position ~width:(r.w - 5) window)

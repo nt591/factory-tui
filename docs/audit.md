@@ -198,3 +198,7 @@ Large-turn acknowledgement has pure 20,000-message coverage for captured-only fl
 later replies, immutable-record/cache reuse and strict reference validation. A scoped
 local CPU comparison supports the indexing optimization, not whole-app latency or
 cross-machine performance. No timing threshold is a safety/test gate.
+
+Reply queue visibility has pure task/render checks and actual replay terminal input
+coverage for captured acknowledgement, unsent drafts, next-turn replies and stop
+retention. Counts describe delivery flags only, not model progress or billing.

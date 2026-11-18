@@ -643,3 +643,17 @@ One local three-pass comparison reported 1.47 ms for indexed reductions and 2355
 for the previous submitted-list membership scan. This is scoped CPU work, excluding
 storage, transcript rendering and terminal output. No elapsed-time threshold or
 performance ratio is asserted by tests.
+
+## Reply queue summary fixture
+
+```sh
+uv run --with pyte --with pillow python scripts/smoke-queue-summary.py \
+  --preview /tmp/factory-queue-summary.png
+```
+
+Temporary replay events acknowledge and interrupt the seeded task while replies
+are queued through actual terminal input. Checks distinguish captured instructions,
+unsent drafts and later replies, then verify acknowledgement and stop retention.
+No storage, agent, credentials or real workspace are used. Pure test_queue_summary
+covers state transitions, accepted-task copy, border widths and saved-state
+isolation. `--binary` avoids rebuilding.

@@ -852,3 +852,9 @@ A captured prompt must resolve every submitted message ID exactly once. Missing 
 duplicate IDs stop that run before spawn instead of sending a partial prompt, and
 the failure appears in its channel with queued instructions retained. Reply IDs
 must be unique and contain 1–1024 bytes; invalid insertion is rejected before storage.
+
+The reply border summarizes message delivery: captured queued instructions show
+“awaiting ack,” while replies queued after the run started show “next.” Once the
+captured set is acknowledged, the border shows only the remaining queued count.
+Unsent drafts are not counted. These labels report delivery state, not agent
+progress; they do not start or interrupt a run.

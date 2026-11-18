@@ -357,3 +357,8 @@
  (name test_turn_ack)
  (modules test_turn_ack)
  (libraries factory_tui unix))
+
+(test
+ (name test_queue_summary)
+ (modules test_queue_summary)
+ (libraries factory_tui notty))

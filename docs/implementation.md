@@ -707,3 +707,12 @@ tests verify chronology, late replies, record/cache reuse and codec rejection of
 missing/duplicate references. A scoped local three-pass comparison measured 1.47 ms
 for indexed reductions versus 2355.72 ms for the previous membership scan; this
 excludes storage, rendering and terminal output and is not a timing test gate.
+
+Queue_summary.ml/.mli separates unacknowledged captured instructions from replies
+held for the next turn. It uses active submitted-ID membership and queued flags;
+sent history and unsent drafts are excluded. The composer title reports awaiting
+ack/next counts or a normal idle queued count, bounded to its border width. No edit
+rows or page capacity are consumed. Pure state/render checks and a replay PTY
+verify draft exclusion, queued submission, turn acknowledgement and interruption
+retention without automatic execution. The title does not imply progress or token
+consumption, and accepted tasks do not advertise a runnable queue.

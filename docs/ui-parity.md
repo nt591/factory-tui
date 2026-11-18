@@ -614,3 +614,9 @@ message records. Repeated acknowledgement leaves the wrapped transcript cache
 valid without changing revision/event semantics. Pure large-list and codec checks
 verify captured-only delivery flags, later-reply retention and identity reuse;
 existing terminal/fake-run tests verify normal chat/card movement.
+
+The reply title exposes unacknowledged captured instruction and next-turn reply
+counts. Drafts and sent history are excluded. After acknowledgement only later
+queued replies remain in the count; interruption returns unacknowledged items to
+the ordinary queue. Pure and replay PTY checks cover these cases without changing
+selection, saved text, edit capacity or explicit execution controls.
