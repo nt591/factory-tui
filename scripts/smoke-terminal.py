@@ -170,6 +170,16 @@ try:
           and "Pasted third lin!e" in text())
     if args.preview:
         preview(args.preview.with_stem(args.preview.stem + "-multiline"))
+    send(b"/line")
+    send(b"\r")
+    check("chat search displays matching message count", "/chat line" in text() and "1/1 messages" in text())
+    send(b"nN")
+    check("chat match navigation starts no run", "/chat line" in text() and "T-101 / Queued / conversation" in text())
+    if args.preview:
+        preview(args.preview.with_stem(args.preview.stem + "-chat-search"))
+    send(b"\x1b")
+    check("Escape clears chat search before zoom", "/chat line" not in text() and "T-101 / Queued / conversation" in text())
+
     send(b"\x1b")
 
     send(b"s")

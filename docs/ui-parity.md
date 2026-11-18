@@ -49,7 +49,8 @@ The `W` creation form creates isolated Queued tasks with persistent workspace id
 fixture data only. Do not present a simulated tool result as real verification.
 The composer supports multiline drafts (Ctrl-L or Alt-Enter), Unicode codepoint
 cursor movement, insertion/deletion, and newline-preserving paste. Further refinements may include
-grapheme-aware cursor movement, configurable layouts, and transcript search.
+grapheme-aware cursor movement and configurable layouts. Chat search now uses
+literal matching, visible message counts, and n/N navigation anchored to IDs.
 Changes review is implemented as a full-screen pane rather than a drawer.
 
 Live workspace-write must be explicit on launch; the banner and confirmation

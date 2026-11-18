@@ -11,6 +11,7 @@ accessible help/settings. The staged native-app implementation remains the guide
 | --- | --- | --- |
 | Four self-updating columns | `Model.apply` derives Queued/Working/Needs you/Ready. Factory and PTY tests verify automatic movement from both timer and supervised process events. | Implemented |
 | Open and explore a task | Controller/Ui selection, split chat/activity, Enter/e and double-click expansion; PTY verifies click, expansion, Escape, and selected identity after movement. | Implemented |
+| Transcript search | Contextual / or S, literal matching by text/author, n/N cycling, stable message identity, visible counts/highlighting, no saved-draft mutations. Unit and PTY checks. | Implemented |
 | Readable mock-inspired layout | Bordered cards with wrapped titles, repository sidebar, selected card tint, persistent transcript/composer, collapsed tool output. Rendered PTY captures were inspected at 120x36 and 180x50. | Implemented; user visual preference still matters |
 | Help/settings | `?` opens tabbed modal, keyboard/mouse tabs, scrolling, current storage and next-run settings; tests verify modal isolation and content. | Implemented |
 | Vim navigation | hjkl, gg/G, counts, Ctrl-W pane selection, half/full-page keys, and mode-specific editing. Tests include actual terminal-decoded control bytes. | Implemented |
@@ -49,7 +50,7 @@ accessible help/settings. The staged native-app implementation remains the guide
    support, signing, and notarization are not verified. The local archive is not
    represented as a public production release.
 4. **Additional usability refinements.** Grapheme-aware editing, configurable
-   panes, transcript search, and fully abstract controller view state remain
+   panes and fully abstract controller view state remain
    candidates. They do not justify claiming current rendering or interaction
    quality from unit tests alone; keep inspecting PTY captures.
 5. **Operational limits.** Group cancellation does not contain descendants that

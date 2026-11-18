@@ -165,36 +165,70 @@ let render t ~width:cols ~height:rows =
     let inner = max 1 (r.w - 4) in
     let title, rows =
       match task with
-      | None -> ("Conversation", [ (muted, "Select a task. Enter or e expands it.") ])
+      | None ->
+          ("Conversation", [ (muted, "Select a task. Enter or e expands it.", None) ])
       | Some task ->
+          Chat_search.sync t.chat_search task.messages;
           let rows =
             List.concat_map
               (fun (m : message) ->
                 ( (if m.queued then state_color Needs_you else accent),
-                  m.author
+                  (m.author
                   ^
                   if m.queued then " / queued"
                   else if m.author = "You" then " / sent"
-                  else "" )
-                :: List.map (fun row -> (text, row)) (wrap inner m.text)
-                @ [ (muted, "") ])
+                  else ""),
+                  Some m.id )
+                :: List.map (fun row -> (text, row, Some m.id)) (wrap inner m.text)
+                @ [ (muted, "", None) ])
               task.messages
           in
           (task.id ^ " / " ^ label task.state ^ " / conversation", rows)
     in
-    let available = max 0 (chat_height - 2) in
+    let searching = t.input = Chat_search || Chat_search.query t.chat_search <> "" in
+    let available = max 0 (chat_height - 2 - if searching then 1 else 0) in
     if t.focus = Conversation then (
       t.page_rows <- max 1 available;
       t.scroll <- min t.scroll (max 0 (List.length rows - available)));
+    (match Chat_search.seek t.chat_search with
+    | None -> ()
+    | Some id ->
+        let rec find index = function
+          | [] -> 0
+          | (_, _, Some row_id) :: _ when row_id = id -> index
+          | _ :: rest -> find (index + 1) rest
+        in
+        let offset = min (find 0 rows) (max 0 (List.length rows - available)) in
+        t.scroll <- max 0 (List.length rows - available - offset));
     let offset = max 0 (List.length rows - available - t.scroll) in
     let rows = List.filteri (fun i _ -> i >= offset) rows in
     let content =
       I.vcat
-        (List.map (fun (color, text) -> I.hpad 1 1 (line inner (attr color) text)) rows)
+        (List.map
+           (fun (color, text, id) ->
+             let attribute =
+               match id with
+               | Some id when Chat_search.current t.chat_search = Some id ->
+                   A.(attr color ++ bg (color_rgb 38 57 72) ++ st bold)
+               | Some id when Chat_search.matches t.chat_search id ->
+                   A.(attr color ++ st underline)
+               | _ -> attr color
+             in
+             I.hpad 1 1 (line inner attribute text))
+           rows)
     in
     paint r.x r.y
       (border r.w chat_height ~title ~color:accent ~focused:(t.focus = Conversation)
-         content);
+         (if not searching then content
+          else
+            let position, count = Chat_search.position t.chat_search in
+            let description =
+              Printf.sprintf " /chat %s%s · %d/%d messages · n/N matches"
+                (Chat_search.query t.chat_search)
+                (if t.input = Chat_search then "▏" else "")
+                position count
+            in
+            I.(line (r.w - 2) (emphasis accent) description <-> content)));
     hit r.x r.y r.w chat_height (Focus Conversation);
     if composer_height > 0 then (
       let task = Option.get task in
@@ -492,6 +526,10 @@ let render t ~width:cols ~height:rows =
         (if draft t <> "" then " Draft saved. i to edit | " else " ")
         ^ (if pending_keys = "" then "" else "[" ^ pending_keys ^ "] ")
         ^ t.status
+    | Chat_search ->
+        " Chat search: "
+        ^ Chat_search.query t.chat_search
+        ^ "▏ [Enter finish / Esc close]"
     | Search -> " Search: " ^ t.query ^ "▏  [Enter finish / Esc close]"
     | Compose -> " Reply (queued): " ^ draft t ^ "▏  [Enter send / Esc keep draft]"
     | Edit_model -> " Model (next run): " ^ t.model_text ^ "▏ [Enter apply / Esc cancel]"
@@ -535,7 +573,7 @@ let render t ~width:cols ~height:rows =
          " hjkl: move · gg/G: first/last · Ctrl-W hjkl: pane · Ctrl-U/D: half-page · \
           Ctrl-B/F: page · e: zoom · Esc: back");
   if t.help then (
-    let w = min 86 cols and h = min 29 rows in
+    let w = min 86 cols and h = min 31 rows in
     let x = (cols - w) / 2 and y = (rows - h) / 2 in
     let help_rows =
       [
@@ -556,7 +594,8 @@ let render t ~width:cols ~height:rows =
         "b returns to all tasks. R cycles repositories. d opens Archive.";
         "v opens real workspace changes; r refreshes; Escape returns.";
         "t expands/collapses tools. f pauses/resumes demo events.";
-        "/ filters tasks by title, ID, or repository. Escape clears search.";
+        "/ searches focused board or chat. S searches chat from any pane.";
+        "In chat search: n/N moves matches; Escape clears. Literal search.";
         "";
         "Cards move from events; selected chat stays attached to its task.";
         "Process exit alone never marks a task Ready.";
@@ -573,9 +612,13 @@ let render t ~width:cols ~height:rows =
         "";
         ("Execution: "
         ^
-        if t.fake_harness then "local process fixtures"
-        else if t.external_events then "fixture replay"
-        else "simulated agents");
+        match t.live_config with
+        | Some config ->
+            "live Codex / " ^ Live_runner.policy_label config ^ " / confirmation required"
+        | None ->
+            if t.fake_harness then "local process fixtures"
+            else if t.external_events then "fixture replay"
+            else "simulated agents");
         "Setup never starts an agent. Live runs require confirmation.";
         "";
         "STORAGE";

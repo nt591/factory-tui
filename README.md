@@ -149,7 +149,12 @@ plugins, modify shell startup files, or require global OCaml tool installations.
   - Pending counts and `g` / Ctrl-W prefixes appear in the status line.
 - Arrow keys or `hjkl` navigate. Mouse wheel and Page Up/Down scroll.
   Conversations follow new messages until you scroll back; End resumes following.
-- `/` searches title, repository, or task ID. Escape clears the finished search.
+- `/` searches the focused pane: title/repository/task ID on the board, or message
+  text and author in chat. `S` opens chat search from any pane. Enter finishes the
+  query; `n/N` selects the next/previous matching message while focused in chat.
+  Matches are literal, ASCII-case-insensitive (Unicode otherwise exact), capped
+  at 256 query bytes, and counted once per message. Escape clears chat search
+  before leaving task zoom. Search never changes saved drafts or task content.
 - `i` composes a reply; Enter queues it. Ctrl-L or Alt-Enter inserts a newline.
   Arrows move the cursor, Home/End move within a line, and Backspace/Delete edit.
   Multiline paste preserves newlines without submitting or activating shortcuts.

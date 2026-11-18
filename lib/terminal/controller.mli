@@ -1,7 +1,7 @@
 open Model
 
 type focus = Board | Conversation | Activity
-type input = Normal | Search | Compose | New_task | Edit_model
+type input = Normal | Search | Chat_search | Compose | New_task | Edit_model
 type menu_tab = Help_tab | Settings_tab
 type prefix = No_prefix | Go | Window
 
@@ -25,6 +25,10 @@ type action =
   | Toggle_pause
   | Help
   | Quit
+  | Begin_chat_search
+  | Next_chat_match
+  | Previous_chat_match
+  | Clear_chat_search
   | Begin_search
   | Begin_compose
   | Confirm_live
@@ -62,6 +66,7 @@ type t = {
   mutable database_path : string option;
   mutable input : input;
   mutable query : string;
+  chat_search : Chat_search.t;
   mutable new_title : string;
   mutable model_text : string;
   mutable editor : Text_edit.t;

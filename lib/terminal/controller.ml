@@ -1,7 +1,7 @@
 open Model
 
 type focus = Board | Conversation | Activity
-type input = Normal | Search | Compose | New_task | Edit_model
+type input = Normal | Search | Chat_search | Compose | New_task | Edit_model
 type menu_tab = Help_tab | Settings_tab
 type prefix = No_prefix | Go | Window
 
@@ -25,6 +25,10 @@ type action =
   | Toggle_pause
   | Help
   | Quit
+  | Begin_chat_search
+  | Next_chat_match
+  | Previous_chat_match
+  | Clear_chat_search
   | Begin_search
   | Begin_compose
   | Confirm_live
@@ -62,6 +66,7 @@ type t = {
   mutable database_path : string option;
   mutable input : input;
   mutable query : string;
+  chat_search : Chat_search.t;
   mutable new_title : string;
   mutable model_text : string;
   mutable editor : Text_edit.t;
@@ -111,6 +116,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     database_path = None;
     input = Normal;
     query = "";
+    chat_search = Chat_search.create ();
     new_title = "";
     model_text = "";
     editor = Text_edit.create "";
@@ -177,6 +183,7 @@ let reset_keys t =
   t.count <- 0
 
 let select t id =
+  if t.selected <> id then Chat_search.clear t.chat_search;
   t.selected <- id;
   t.scroll <- 0;
   t.board_scroll <- 0
@@ -258,6 +265,20 @@ let act t action =
       t.repository <- next options;
       t.board_scroll <- 0;
       t.focus <- Board
+  | Begin_chat_search -> (
+      match selected t with
+      | None -> ()
+      | Some _ ->
+          t.input <- Chat_search;
+          t.focus <- Conversation;
+          t.editor <- Text_edit.create (Chat_search.query t.chat_search))
+  | Next_chat_match | Previous_chat_match ->
+      Option.iter
+        (fun (task : task) -> Chat_search.sync t.chat_search task.messages)
+        (selected t);
+      Chat_search.move t.chat_search ~backwards:(action = Previous_chat_match);
+      t.focus <- Conversation
+  | Clear_chat_search -> Chat_search.clear t.chat_search
   | Begin_search ->
       t.input <- Search;
       t.editor <- Text_edit.create t.query
@@ -465,13 +486,20 @@ let remove_last text =
   String.sub text 0 !last
 
 let set_input t text =
-  if String.length text <= 65536 then (
+  if t.input = Chat_search && String.length text > 256 then
+    t.status <- "Chat search is limited to 256 bytes."
+  else if String.length text <= 65536 then (
     t.editor <- Text_edit.create text;
     match t.input with
     | Search ->
         t.query <- text;
         t.board_scroll <- 0;
         repair_selection t
+    | Chat_search ->
+        Chat_search.set_query t.chat_search text;
+        Option.iter
+          (fun (task : task) -> Chat_search.sync t.chat_search task.messages)
+          (selected t)
     | Compose -> set_draft t text
     | Edit_model -> t.model_text <- text
     | New_task -> t.new_title <- text
@@ -479,8 +507,12 @@ let set_input t text =
 
 let edit t fn =
   let editor = fn t.editor in
-  set_input t (Text_edit.text editor);
-  t.editor <- editor
+  let text = Text_edit.text editor in
+  if t.input = Chat_search && String.length text > 256 then
+    t.status <- "Chat search is limited to 256 bytes."
+  else (
+    set_input t text;
+    t.editor <- editor)
 
 let insert_text t value =
   if t.input <> Normal then
@@ -505,7 +537,7 @@ let paste_key t (key, mods) =
 
 let submit t =
   match t.input with
-  | Normal | Search -> t.input <- Normal
+  | Normal | Search | Chat_search -> t.input <- Normal
   | Compose -> (
       match selected t with
       | None -> t.input <- Normal
@@ -690,14 +722,23 @@ let normal_key t (key, mods) =
     | `ASCII 'e' | `Enter -> command (fun () -> act t Zoom)
     | `Escape ->
         command (fun () ->
-            if t.zoom then (
+            if Chat_search.query t.chat_search <> "" && (t.focus = Conversation || t.zoom)
+            then Chat_search.clear t.chat_search
+            else if t.zoom then (
               t.zoom <- false;
               t.focus <- Board;
               t.scroll <- 0)
             else (
               t.query <- "";
               repair_selection t))
-    | `ASCII '/' -> command (fun () -> act t Begin_search)
+    | `ASCII '/' ->
+        command (fun () ->
+            act t
+              (if t.focus = Conversation || t.zoom then Begin_chat_search
+               else Begin_search))
+    | `ASCII 'S' -> command (fun () -> act t Begin_chat_search)
+    | `ASCII 'N' when Chat_search.query t.chat_search <> "" ->
+        command (fun () -> act t Previous_chat_match)
     | `ASCII 'i' -> command (fun () -> act t Begin_compose)
     | `ASCII 'R' -> command (fun () -> act t Next_repository)
     | `ASCII 'b' -> command (fun () -> act t Session_board)
@@ -706,6 +747,9 @@ let normal_key t (key, mods) =
     | `ASCII 'H' -> command (fun () -> act t Next_harness)
     | `ASCII 'v' -> command (fun () -> act t Open_review)
     | `ASCII 'W' -> command (fun () -> act t Begin_workspace)
+    | `ASCII 'n'
+      when Chat_search.query t.chat_search <> "" && (t.focus = Conversation || t.zoom) ->
+        command (fun () -> act t Next_chat_match)
     | `ASCII 'n' -> command (fun () -> act t Begin_new)
     | `ASCII 's' | `Function 5 -> command (fun () -> act t Start)
     | `ASCII 'x' | `Function 6 -> command (fun () -> act t Stop)
@@ -777,6 +821,9 @@ let key t (key, mods) =
   else if t.input <> Normal then (
     reset_keys t;
     match key with
+    | `Escape when t.input = Chat_search ->
+        Chat_search.clear t.chat_search;
+        t.input <- Normal
     | `Escape -> t.input <- Normal
     | `Enter when t.input = Compose && List.mem `Meta mods -> insert_text t "\n"
     | `ASCII 'l' when t.input = Compose && List.mem `Ctrl mods -> insert_text t "\n"
