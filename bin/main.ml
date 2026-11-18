@@ -8,6 +8,7 @@ let () =
   and config = ref None
   and no_config = ref false
   and fake_harness = ref false
+  and check_config = ref None
   and check_gateway = ref None
   and dry_run = ref false
   and run_codex = ref false
@@ -53,6 +54,9 @@ let () =
       ( "--gateway",
         Arg.String (fun value -> gateway_file := Some value),
         "PATH Non-secret gateway config for explicit execution or preview" );
+      ( "--check-config",
+        Arg.String (fun path -> check_config := Some path),
+        "PATH Validate TOML and print resolved settings; no database or process" );
       ( "--check-gateway",
         Arg.String (fun path -> check_gateway := Some path),
         "PATH Validate non-secret gateway config without network or credentials" );
@@ -78,6 +82,26 @@ let () =
     "factory-tui [--config PATH | --no-config] [--database PATH]\n\
      See --help for snapshot, fixture, preview, and explicit live execution modes.";
   try
+    if !check_config <> None then (
+      if
+        !workspace_write || !live_ui || !run_codex || !dry_run || !snapshot
+        || !events <> "" || !config <> None || !no_config || !fake_harness
+        || !check_gateway <> None || !directory <> None || !model <> None
+        || !thread_id <> None || !gateway_file <> None || !executable <> None
+      then
+        invalid_arg
+          "Config checks cannot be combined with execution or other check modes.";
+      let home = Option.value ~default:(Sys.getcwd ()) (Sys.getenv_opt "HOME") in
+      match
+        Config.resolve_settings ~home ~xdg:None ~config:!check_config ~no_config:false
+          ~database:!database
+      with
+      | Error error ->
+          prerr_endline error;
+          exit 2
+      | Ok settings ->
+          print_endline (Yojson.Basic.pretty_to_string (Config_preview.describe settings));
+          exit 0);
     if !workspace_write && not !live_ui then
       invalid_arg
         "--workspace-write requires --live-ui; headless execution stays read-only.";

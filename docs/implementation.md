@@ -913,3 +913,13 @@ reports are rejected without a speedup claim. Executable hashes can differ for a
 candidate build. Human and JSON output disclose latency/resource deltas without
 release gates or statistical significance claims. Nine pure validation/CLI tests
 run in check.sh. See docs/performance.md for repeat/candidate comparison commands.
+
+Startup configuration can be inspected with --check-config PATH and an optional
+--database override. Config_preview.ml/.mli describes validated/resolved defaults
+as JSON without opening SQLite, checking path existence, running jj or starting
+agents. Conflicting execution/check modes are refused before resource access;
+invalid source is not echoed. Pure preview tests and temporary CLI checks cover
+relative/home paths, layout/workspace defaults, override, malformed/missing config,
+mode isolation and unchanged invalid database/sentinel executable. Commands and
+limits are in docs/configuration.md. This is setup validation, not provider or
+workspace compatibility verification.

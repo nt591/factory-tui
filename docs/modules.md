@@ -31,6 +31,8 @@ is coupled; moving directories alone does not remove that coupling.
 Each library module has an explicit interface. The compiler checks implementations
 against these interfaces during the normal Dune build.
 
+- `Config_preview`: pure JSON description of validated startup settings. It
+  reports resolved defaults without opening storage or checking external resources.
 - `Input_controls`: pure editor button labels and keyboard-action mapping. UI
   targets retain their editor mode and reject modal or stale different-mode clicks.
 - `Shortcut_guidance`: pure current-mode/pane shortcut copy with terminal-width

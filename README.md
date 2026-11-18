@@ -9,6 +9,17 @@ Session rules are adapted from Factory's Rust session and event reducers, not
 linked through FFI. The TUI remains a simulated interaction prototype; explicit headless Codex
 execution is available separately and requires deliberate invocation.
 
+## Check startup configuration
+
+```sh
+factory-tui --check-config ~/.config/factory-tui/config.toml
+```
+
+This validates TOML and prints resolved storage, workspace and layout settings as
+JSON without opening SQLite, creating workspaces or starting an agent. An optional
+`--database PATH` previews the CLI override. It does not test path existence or
+gateway compatibility. See `docs/configuration.md` for the setup workflow.
+
 ## End-to-end performance
 
 Use `scripts/bench-e2e.py` for a fixture-only PTY baseline of input-to-screen,

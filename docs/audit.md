@@ -360,3 +360,11 @@ the different 1,000-task report was refused. Repeat and comparison evidence:
 `/tmp/factory-e2e-perf-repeat-20261118.json` and
 `/tmp/factory-e2e-perf-comparison-20261118.json`. No runtime optimization or timing
 gate is introduced; profiling and performance cleanup remain follow-up work.
+
+Startup config preview verification on 2026-11-18 passed format/build/unit gates,
+10 pure preview checks and 34 temporary CLI setup checks. Existing invocation (20)
+and fake execution (19) checks passed. The packaged command is checked with the
+bundled example TOML and must create no SQLite file; configuration instructions
+are included. No interactive render or process-runner behavior changes in this
+increment. Config validity remains separate from resource/provider compatibility.
+Temporary package smoke passed all 16 checks, including standalone config preview.

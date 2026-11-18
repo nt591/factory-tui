@@ -417,3 +417,8 @@
  (name test_input_controls)
  (modules test_input_controls)
  (libraries factory_tui notty))
+
+(test
+ (name test_config_preview)
+ (modules test_config_preview)
+ (libraries factory_tui yojson))

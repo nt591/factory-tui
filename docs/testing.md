@@ -817,3 +817,13 @@ comparison, zero baselines, metadata mismatches, incomplete/invalid samples,
 resource uniqueness and CLI refusal. The comparison command rejects the two
 checked-in scale workloads as incompatible rather than treating scale as a
 candidate regression. It runs no executable or external service.
+
+## Startup config preview
+
+`python3 scripts/smoke-config.py` checks the --check-config CLI using temporary
+HOME/config/storage paths, a deliberately invalid untouched database and a must-
+not-run executable. It covers path resolution, defaults/override, invalid configs
+and conflict rejection without requiring a terminal. Pure Config_preview checks
+run with dune runtest. Package smoke checks the standalone preview command and
+included configuration instructions. Setup checks establish syntax/resolution,
+not that a path, revision, database or model is usable.

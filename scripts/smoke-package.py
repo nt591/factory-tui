@@ -57,6 +57,13 @@ with tempfile.TemporaryDirectory(prefix="factory-package-") as temporary:
     result = invoke([str(binary), "--snapshot", "--size", "80x24"], env=env)
     check("packaged snapshot renders", result.returncode == 0 and "FACTORY / terminal" in result.stdout)
     check("snapshot creates no default config", not (temporary / ".config").exists())
+    check("package includes startup validation instructions", (package / "docs/configuration.md").is_file())
+    result = invoke([str(binary), "--check-config", str(package / "examples/config.toml")], env=env)
+    preview = json.loads(result.stdout) if result.returncode == 0 else {}
+    check("packaged config preview resolves without opening SQLite", result.returncode == 0
+          and preview["storage"]["database"] == str(package.resolve() / "examples/board.sqlite")
+          and not (package / "examples/board.sqlite").exists())
+
     result = invoke(["python3", "scripts/package.py", "--output", str(archive)])
     check("existing archive refused", result.returncode != 0)
     prefix = temporary / "install"
