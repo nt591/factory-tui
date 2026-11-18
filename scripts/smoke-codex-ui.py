@@ -291,6 +291,22 @@ def main():
                     and all(not m["queued"] for m in task["messages"])
                     and UiGateway.requests > previous_requests,
                 )
+                tui.send(b"\x17le")
+                tui.wait(
+                    "expanded run history",
+                    lambda: "RUN HISTORY / newest first" in tui.text(),
+                )
+                displayed_runs = [
+                    row.strip() for row in tui.screen.display if "run live-run-" in row
+                ]
+                tui.check(
+                    "latest installed-agent attempt is first in Activity",
+                    len(displayed_runs) == 2
+                    and task["runs"][-1]["id"] in displayed_runs[0]
+                    and task["runs"][0]["id"] in displayed_runs[1],
+                )
+                if args.preview:
+                    tui.preview(args.preview.with_stem(args.preview.stem + "-history"))
                 tui.send(b"\x1b")
                 tui.send(b"a")
                 tui.send(b"d")

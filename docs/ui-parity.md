@@ -341,3 +341,10 @@ nearby context. Shared `Text_layout.cursor_window` preserves whole graphemes;
 `Review` exposes text parts without exposing its editor handle. The footer shows
 editing-specific instructions. Pure and PTY checks verify long-path navigation,
 full stored values, paste isolation, and inactive paging while editing.
+
+Run history in Activity is labeled `newest first`, so the latest attempt appears
+before earlier attempts. This is display order only: tasks and snapshots retain
+their chronological run lists. Each row still shows captured harness/model,
+simulation/live origin, policy, outcome, and age/duration. No section is shown
+for a task with no runs. Unit ordering/codec checks and installed-agent loopback
+resume/inspection checks verify recent history without modifying records.

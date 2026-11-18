@@ -42,5 +42,8 @@ let lines ~now ~expanded ~raw ~waiting = function
              (if raw then "raw" else "readable")
            :: List.concat_map (tool_lines ~raw) task.tools
          else [ Printf.sprintf "▸ %d tool items / t expands" (List.length task.tools) ])
-      @ [ "" ]
-      @ List.map (run_line ~now) task.runs
+      @
+      if task.runs = [] then []
+      else
+        [ ""; "RUN HISTORY / newest first" ]
+        @ List.map (run_line ~now) (List.rev task.runs)

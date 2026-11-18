@@ -347,3 +347,9 @@ workspace fields. Home/End reveals the beginning/end of long paths; editing does
 not truncate the stored executable or start a refresh. Editing instructions stay
 in the footer while the entire path row is available for cursor context. Pure
 review-editor and actual PTY long-path/Home/End/paste tests verify behavior.
+
+Activity run history displays newest attempts first under an explicit ordering
+label. Captured model, harness, outcome, policy, and duration stay attached to each
+record. The underlying task/snapshot retains chronological order; rendering never
+sorts or rewrites saved history. Pure ordering/codec checks and the installed-agent
+loopback UI test verify two attempts in the view after same-thread resume.

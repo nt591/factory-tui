@@ -79,10 +79,65 @@ let () =
     }
   in
   check "active history reports run age" (contains (lines (Some running)) "run age 10s");
+  let earlier =
+    {
+      (List.hd task.runs) with
+      run_id = "earlier";
+      harness = Claude;
+      model = "old-model";
+      policy = Read_only;
+      simulated = true;
+      ended_at = Some 2.;
+    }
+  in
+  let latest =
+    {
+      (List.hd task.runs) with
+      run_id = "latest";
+      model = "latest-model";
+      started_at = 5.;
+      ended_at = Some 7.;
+    }
+  in
+  let history = { task with runs = [ earlier; latest ] } in
+  let history_rows = lines ~expanded:false (Some history) in
+  let rendered_runs = List.filter (String.starts_with ~prefix:"run ") history_rows in
+  check "history view names reverse chronology"
+    (List.mem "RUN HISTORY / newest first" history_rows);
+  check "latest record appears before previous attempts"
+    (String.starts_with ~prefix:"run latest: Codex / latest-model" (List.hd rendered_runs)
+    && String.starts_with ~prefix:"run earlier: Claude / old-model"
+         (List.nth rendered_runs 1));
+  check "latest duration and old policy remain captured"
+    (contains [ List.hd rendered_runs ] "workspace-write / recorded duration 2s"
+    && contains
+         [ List.nth rendered_runs 1 ]
+         "simulated / read-only / recorded duration 2s");
+  check "display ordering leaves chronological records unchanged"
+    (List.map (fun (run : run_record) -> run.run_id) history.runs
+    = [ "earlier"; "latest" ]);
+  let active_history =
+    { history with runs = [ earlier; { latest with status = Running; ended_at = None } ] }
+  in
+  let active_rows =
+    lines ~expanded:false (Some active_history)
+    |> List.filter (String.starts_with ~prefix:"run ")
+  in
+  check "active latest attempt is shown first with age"
+    (contains [ List.hd active_rows ] "running / live / workspace-write / run age 5s");
+  let saved_history =
+    { Snapshot.tasks = [ history ]; drafts = []; selected = history.id; serial = 1 }
+  in
+  let decoded = Result.get_ok (Snapshot.decode (Snapshot.encode saved_history)) in
+  check "serialized run ordering is not reversed by Activity"
+    (List.map (fun (run : run_record) -> run.run_id) (List.hd decoded.tasks).runs
+    = [ "earlier"; "latest" ]);
   let plain = { task with workspace = None; tools = []; runs = [] } in
   check "unattached task does not invent workspace or tools"
     (contains (lines (Some plain)) "workspace: not attached"
     && contains (lines (Some plain)) "No tool activity yet.");
+  check "task without runs has no empty run-history section"
+    (not (contains (lines (Some plain)) "RUN HISTORY"));
   List.iter
     (fun width ->
       let rows = List.concat_map (Ui.wrap width) content in
