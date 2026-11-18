@@ -973,3 +973,12 @@ separate from Controller/UI. Drafts and captured run settings remain unchanged.
 The 19th fixture UI case verifies loopback request hold/close/reopen, caching,
 auth error/retry and model application with no executable invocation. A first-task
 workspace-form picker and real-provider protocol compatibility remain pending.
+
+Workspace creation can use the gateway catalogue before a task exists. The
+Models button or Ctrl-G opens the same explicit-fetch picker above the form.
+A choice fills only the exact retained form's model field and returns to it;
+source, parent, revision and instruction remain unchanged. Busy creation rejects
+picker opening, and replacing/cancelling the form prevents stale choices from
+changing a different form. No task/workspace/process starts from model selection.
+Manual field editing and cached/request-free catalogue opening remain available.
+Pure and loopback tests verify form selection and continued creation isolation.

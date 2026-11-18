@@ -873,3 +873,8 @@ request, pending discovery can close/reopen, filter/apply changes only the next
 model, and explicit auth retry restores the catalogue. Pure worker/view tests
 cover asynchronous ownership, duplicate suppression, literal filtering, bounds,
 modal isolation, stale different-task selection and accepted read-only state.
+
+The model-picker fixture additionally opens the workspace form, clicks Models,
+filters the cached catalogue and applies a model to that form without creating
+a task. Pure tests cover the Ctrl-G path, exact-form identity, unchanged other
+fields/history, blocked Ctrl-S under the picker and stale replacement rejection.

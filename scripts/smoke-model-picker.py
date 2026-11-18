@@ -181,6 +181,37 @@ def main():
                     tui.send(b"\x12")
                     tui.wait("retry recovers", lambda: "fixture-model-00" in tui.text())
                     tui.send(b"\x1b")
+                    tui.send(b"W")
+                    tui.wait(
+                        "workspace form", lambda: "Source repository" in tui.text()
+                    )
+                    row = next(
+                        i
+                        for i, text in enumerate(tui.screen.display)
+                        if "[Models / Ctrl-G]" in text
+                    )
+                    column = tui.screen.display[row].index("[Models / Ctrl-G]")
+                    tui.send(
+                        f"\x1b[<0;{column + 1};{row + 1}M\x1b[<0;{column + 1};{row + 1}m".encode()
+                    )
+                    tui.wait(
+                        "form catalogue",
+                        lambda: "Gateway models / workspace form" in tui.text(),
+                    )
+                    tui.send(b"\x1b[200~model-07\x1b[201~\r")
+                    tui.wait(
+                        "model returned to form",
+                        lambda: (
+                            "Model selected for this form" in tui.text()
+                            and "fixture-model-07" in tui.text()
+                        ),
+                    )
+                    tui.check(
+                        "form selection starts no task or agent", not marker.exists()
+                    )
+                    if args.preview:
+                        tui.preview(args.preview.with_stem(args.preview.stem + "-form"))
+                    tui.send(b"\x1b")
                     tui.send(b"q")
                     tui.wait_exit()
                 current = read(database)

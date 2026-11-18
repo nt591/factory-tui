@@ -1,0 +1,120 @@
+{
+  "scope": "One real Codex TUI smoke through local timing proxy. No raw prompts, response content, authorization or gateway address retained. Timings include proxy overhead.",
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/analytics/codex/turn-costs",
+      "proxy_request_ms": 2014.150041854009,
+      "status": "passed",
+      "request": {
+        "body_bytes": 53,
+        "tools_count": 0,
+        "input_items": null
+      },
+      "http_status": 404,
+      "headers_ms": 864.3465829081833,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "events": [],
+      "first_bytes_ms": 864.6420000586659,
+      "response_bytes": 22,
+      "total_ms": 864.6725830622017
+    },
+    {
+      "method": "POST",
+      "path": "/responses",
+      "proxy_request_ms": 2037.8102918621153,
+      "status": "passed",
+      "request": {
+        "model": "azure_ai/gpt-6.1-sol",
+        "stream": true,
+        "reasoning": {
+          "effort": "low",
+          "context": "all_turns"
+        },
+        "body_bytes": 56069,
+        "tools_count": 0,
+        "input_items": 7
+      },
+      "http_status": 200,
+      "headers_ms": 2943.395874928683,
+      "headers": {
+        "Content-Type": "text/event-stream; charset=utf-8",
+        "x-litellm-response-duration-ms": "1315.3841495513916",
+        "x-litellm-overhead-duration-ms": "78.2402"
+      },
+      "events": [
+        {
+          "type": "response.created",
+          "ms": 3064.4839578308165
+        },
+        {
+          "type": "response.in_progress",
+          "ms": 3184.181374963373
+        },
+        {
+          "type": "response.output_item.added",
+          "ms": 3184.181374963373
+        },
+        {
+          "type": "response.content_part.added",
+          "ms": 3184.181374963373
+        },
+        {
+          "type": "response.output_text.delta",
+          "ms": 3184.181374963373
+        },
+        {
+          "type": "response.output_text.done",
+          "ms": 3184.181374963373
+        },
+        {
+          "type": "response.content_part.done",
+          "ms": 3184.181374963373
+        },
+        {
+          "type": "response.output_item.done",
+          "ms": 3184.181374963373
+        },
+        {
+          "type": "response.completed",
+          "ms": 3309.149333043024
+        }
+      ],
+      "first_bytes_ms": 2943.5873329639435,
+      "first_text_delta_ms": 3184.181374963373,
+      "usage": {
+        "input_tokens": 10869,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 10866,
+          "cache_write_tokens_details": {
+            "ttl_30m_tokens": 10866,
+            "ttl_12h_tokens": 0
+          }
+        },
+        "output_tokens": 5,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 10874,
+        "cost": 0.027221000000000002
+      },
+      "done_ms": 3309.5318749547005,
+      "response_bytes": 82111,
+      "total_ms": 3309.657874982804
+    }
+  ],
+  "date": "2026-11-18",
+  "model": "azure_ai/gpt-6.1-sol",
+  "reasoning_effort": "low",
+  "ui_confirmation_to_terminal_seconds": 4.293770124902949,
+  "limitations": [
+    "Single observed request, not a benchmark distribution.",
+    "Proxy creates an upstream connection; timings include DNS/TLS/network/proxy buffering.",
+    "LiteLLM duration headers are reported values; their scope has not been independently verified.",
+    "Transport status passed denotes forwarding completion, not successful HTTP status.",
+    "No real tools, write or resume compatibility established."
+  ]
+}

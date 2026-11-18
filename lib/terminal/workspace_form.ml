@@ -70,6 +70,14 @@ let change t fn =
     | _ -> ());
   t.values <- (t.current, updated) :: List.remove_assoc t.current t.values
 
+let set_model t value =
+  match Model.set_model (Model.make ~id:"validation" ~title:"" ~repository:"") value with
+  | Error error -> Error error
+  | Ok model ->
+      t.current <- Model;
+      change t (fun _ -> Text_edit.create model.model);
+      Ok ()
+
 let cycle t backwards =
   let order = if backwards then List.rev fields else fields in
   let rec next = function

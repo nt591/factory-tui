@@ -4,6 +4,7 @@ type focus = Board | Conversation | Activity
 type input = Normal | Search | Chat_search | Compose | New_task | Edit_model
 type menu_tab = Help_tab | Settings_tab
 type prefix = No_prefix | Go | Window
+type model_target = Task_model of string | Workspace_model of Workspace_form.t
 
 type action =
   | Select of string
@@ -54,7 +55,7 @@ type action =
 
 type t = {
   model_picker : Model_picker.t;
-  mutable model_target : string option;
+  mutable model_target : model_target option;
   mutable live_config : Live_runner.config option;
   mutable live_confirmation : string option;
   mutable live_waiting_tasks : string list;

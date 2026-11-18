@@ -55,7 +55,7 @@ let () =
           check "modal blocks background actions"
             (match hit.action with
             | Controller.Workspace_field _ | Controller.Submit_workspace
-            | Controller.Cancel_workspace ->
+            | Controller.Cancel_workspace | Controller.Open_models ->
                 true
             | _ -> false))
         frame.hits)

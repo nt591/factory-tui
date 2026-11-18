@@ -22,3 +22,4 @@ val key : t -> Notty.Unescape.key -> unit
 val paste_key : t -> Notty.Unescape.key -> unit
 val validate : t -> (unit, string) result
 val validate_submission : t -> (unit, string) result
+val set_model : t -> string -> (unit, string) result

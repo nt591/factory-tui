@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-18",
+  "status": "passed",
+  "scope": "One user-authorized real LiteLLM/Codex TUI arithmetic smoke; not tools, write, resume or general model compatibility verification.",
+  "codex_version": "0.166.0",
+  "model": "azure_ai/gpt-6.1-sol",
+  "reasoning_effort": "low",
+  "reasoning_evidence": "Codex turn_context recorded model azure_ai/gpt-6.1-sol and effort low. A temporary wrapper supplied model_reasoning_effort=low; the TUI does not yet expose a reasoning selector.",
+  "policy": "read-only",
+  "question": "What is 2 + 2? Reply with just the number. Do not use tools or change files.",
+  "answer": "4",
+  "run_wall_seconds": 4.931287084007636,
+  "timing_scope": "Confirmation to observed terminal task state; includes checkpoint, Codex startup, gateway/model, process exit and PTY observation. Not inference-only or first-token latency.",
+  "state": "ready",
+  "run_status": "completed",
+  "simulated": false,
+  "ui_exit_code": 0,
+  "source_unchanged": true,
+  "workspace_files": ["README.md"],
+  "authentication": "User-authorized exported LITELLM_API_KEY; value and gateway address intentionally omitted.",
+  "isolation": "Disposable jj source/workspace, SQLite, HOME and CODEX_HOME. No real repository mutation.",
+  "local_evidence_directory": "/private/var/folders/rf/7pk3vr0x2szff6wpjc2jv9k00000gn/T/factory-real-sol-low-ac82cdq9"
+}

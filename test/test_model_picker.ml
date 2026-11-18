@@ -50,7 +50,7 @@ let () =
   wait picker;
   check "worker exceptions do not expose details"
     (Model_picker.state picker = Error "Model discovery failed. Diagnostics withheld.");
-  let controller = Controller.create ~external_events:true () in
+  let controller = Controller.create () in
   Controller.act controller Open_models;
   let selected = controller.selected in
   let saved = Controller.snapshot controller in
@@ -85,7 +85,8 @@ let () =
     && Controller.snapshot controller = saved);
   Model_picker.reset controller.model_picker;
   Controller.paste_key controller (`Enter, []);
-  check "pasted Enter cannot choose model" (controller.model_target = Some selected);
+  check "pasted Enter cannot choose model"
+    (controller.model_target = Some (Task_model selected));
   Controller.key controller (`Enter, []);
   check "Enter applies chosen next-run model only"
     (controller.model_target = None
@@ -111,6 +112,46 @@ let () =
       controller.tasks;
   Controller.act controller Open_models;
   check "accepted task cannot open editor catalogue" (controller.model_target = None);
+  controller.database_path <- Some "/fixture/not-opened.sqlite";
+  Controller.act controller Begin_workspace;
+  let form = Option.get controller.workspace_form in
+  let fields =
+    List.map (fun field -> (field, Workspace_form.value form field)) Workspace_form.fields
+  in
+  Controller.key controller (`ASCII 'g', [ `Ctrl ]);
+  check "form shortcut targets the exact form not selected accepted task"
+    (match controller.model_target with
+    | Some (Workspace_model current) -> current == form
+    | _ -> false);
+  let saved = Controller.snapshot controller in
+  Controller.act controller (Choose_model "other-model");
+  check "form model choice returns to same form and changes only model field"
+    (controller.model_target = None
+    && Option.get controller.workspace_form == form
+    && Workspace_form.value form Model = "other-model"
+    && List.for_all
+         (fun (field, value) ->
+           field = Workspace_form.Model || Workspace_form.value form field = value)
+         fields
+    && Controller.snapshot controller = saved
+    && controller.creation_request = None
+    && controller.creation_job = None);
+  let frame = render 120 36 in
+  let button = List.find (fun (hit : Ui.hit) -> hit.action = Open_models) frame.hits in
+  Ui.mouse controller frame ~now:1. (`Press `Left, (button.rect.x, button.rect.y), []);
+  check "form mouse button opens catalogue without creating task"
+    (controller.model_target <> None && Controller.snapshot controller = saved);
+  Controller.key controller (`ASCII 's', [ `Ctrl ]);
+  check "create shortcut is inert while form catalogue is open"
+    (controller.creation_request = None && controller.creation_job = None);
+  Controller.act controller Cancel_workspace;
+  Controller.act controller Begin_workspace;
+  let replacement = Option.get controller.workspace_form in
+  Controller.act controller (Choose_model "fixture-model");
+  check "replaced form rejects stale model choice"
+    (Workspace_form.value replacement Model <> "fixture-model");
+  Controller.act controller Close_models;
+  Controller.act controller Cancel_workspace;
   Model_picker.close controller.model_picker;
   Model_picker.close picker;
   Printf.printf

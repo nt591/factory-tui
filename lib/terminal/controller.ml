@@ -4,6 +4,7 @@ type focus = Board | Conversation | Activity
 type input = Normal | Search | Chat_search | Compose | New_task | Edit_model
 type menu_tab = Help_tab | Settings_tab
 type prefix = No_prefix | Go | Window
+type model_target = Task_model of string | Workspace_model of Workspace_form.t
 
 type action =
   | Select of string
@@ -54,7 +55,7 @@ type action =
 
 type t = {
   model_picker : Model_picker.t;
-  mutable model_target : string option;
+  mutable model_target : model_target option;
   mutable live_config : Live_runner.config option;
   mutable live_confirmation : string option;
   mutable live_waiting_tasks : string list;
@@ -476,17 +477,21 @@ let rec act t action =
           t.model_text <- task.model;
           t.input <- Edit_model;
           t.editor <- Text_edit.create task.model)
-  | Open_models
-    when t.live_confirmation <> None || t.review <> None || t.workspace_form <> None ->
-      ()
+  | Open_models when t.live_confirmation <> None || t.review <> None -> ()
   | Open_models -> (
-      match selected t with
-      | Some task when task.state <> Done ->
-          t.help <- false;
-          t.input <- Normal;
-          t.model_target <- Some task.id;
+      match t.workspace_form with
+      | Some form when t.creation_job = None && t.creation_request = None ->
+          t.model_target <- Some (Workspace_model form);
           Model_picker.reset t.model_picker
-      | _ -> ())
+      | Some _ -> ()
+      | None -> (
+          match selected t with
+          | Some task when task.state <> Done ->
+              t.help <- false;
+              t.input <- Normal;
+              t.model_target <- Some (Task_model task.id);
+              Model_picker.reset t.model_picker
+          | _ -> ()))
   | Close_models -> t.model_target <- None
   | Refresh_models when t.model_target = None -> ()
   | Refresh_models ->
@@ -506,7 +511,19 @@ let rec act t action =
       Model_picker.refresh t.model_picker fetch
   | Choose_model model -> (
       match t.model_target with
-      | Some id
+      | Some (Workspace_model form)
+        when Option.fold ~none:false
+               ~some:(fun current -> current == form)
+               t.workspace_form
+             && t.creation_job = None && t.creation_request = None
+             && List.mem model (Model_picker.visible t.model_picker) -> (
+          match Workspace_form.set_model form model with
+          | Ok () ->
+              t.model_target <- None;
+              Workspace_form.report form
+                "Model selected for this form. Ctrl-S creates; no run starts."
+          | Error error -> Workspace_form.report form error)
+      | Some (Task_model id)
         when id = t.selected && List.mem model (Model_picker.visible t.model_picker) -> (
           match selected t with
           | Some task -> (
@@ -1073,6 +1090,7 @@ let key t (key, mods) =
     else
       match key with
       | `Escape -> act t Cancel_workspace
+      | `ASCII 'g' when List.mem `Ctrl mods -> act t Open_models
       | `ASCII 's' when List.mem `Ctrl mods -> act t Submit_workspace
       | _ -> Workspace_form.key (Option.get t.workspace_form) (key, mods))
   else if t.help then (

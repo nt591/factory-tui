@@ -728,6 +728,7 @@ let render t ~width:cols ~height:rows =
             | Workspace_dialog.Field field -> Workspace_field field
             | Workspace_dialog.Create -> Submit_workspace
             | Workspace_dialog.Cancel -> Cancel_workspace
+            | Workspace_dialog.Models -> Open_models
           in
           hit (x + item.x) (y + item.y) item.width 1 action)
         dialog.hits);
@@ -798,9 +799,12 @@ let render t ~width:cols ~height:rows =
     let content =
       I.vcat (List.map (line (max 0 (w - 4)) (attr text)) view.rows) |> I.hpad 1 1
     in
-    paint x y
-      (border w h ~title:"Gateway models / next run" ~footer:view.footer ~color:accent
-         ~focused:true content);
+    let title =
+      match t.model_target with
+      | Some (Workspace_model _) -> "Gateway models / workspace form"
+      | _ -> "Gateway models / next run"
+    in
+    paint x y (border w h ~title ~footer:view.footer ~color:accent ~focused:true content);
     hits := [];
     input_controls := [];
     modal_scroll := Some { x; y; w; h };

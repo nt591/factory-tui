@@ -119,11 +119,42 @@ Type a literal filter, use arrows/Page Up/Down or the modal wheel to select, and
 press Enter or click a row to apply the model to the selected task's next run.
 No agent starts. Existing run records and drafts are unchanged; accepted tasks
 remain read-only. Escape closes without applying. `m` still offers manual entry
-when the picker is closed. For a first task, enter a model in the workspace form;
-a form-integrated picker is not implemented yet. Models require an explicit
+when the picker is closed. For a first task, open the workspace form and use its Models button or Ctrl-G.
+Selecting returns to the form and fills only the model field; Ctrl-S remains the
+separate creation action. Models require an explicit
 gateway in live mode; missing configuration/auth errors stay in the modal.
 
 The fixture `model-picker` UI case uses a loopback server and dummy key. It holds
 a request to test closing/reopening, filters a 40-model catalogue, applies a model,
 checks caching/auth error/retry, and preserves exact drafts/messages/run records.
 It is not a real model or gateway compatibility test.
+
+## Real smoke evidence
+
+On November 18, 2026, a user-authorized TUI call through the user's LiteLLM gateway
+and Codex 0.166.0 used `azure_ai/gpt-6.1-sol` with recorded low reasoning effort.
+The basic arithmetic answer was `4`; the run completed and the card became Ready.
+It used disposable jj/storage/HOME/CODEX_HOME and read-only policy; source was
+unchanged and the workspace retained only its original README. The safe report is
+`docs/verification/live-sol-low-20261118.json`. No key or gateway address is recorded.
+This establishes one no-tools completion, not tools/write/resume compatibility.
+The 4.93-second confirmation-to-terminal-state observation is not inference time
+or first-token latency. Low effort used a temporary executable wrapper; a native
+reasoning setting is not implemented yet.
+
+A second user-authorized arithmetic smoke used a local forwarding recorder that
+retained only request shape, HTTP/event timing and usage, not raw prompts, response
+content, authorization or gateway address. Evidence:
+`docs/verification/live-sol-network-20261118.json`. The Responses request had a
+56,069-byte body, seven input items and no tools; usage reported 10,869 input and
+five output tokens, with zero reasoning tokens. Codex supplied its own base,
+skills and multi-agent instructions in addition to the short question.
+
+The proxy observed HTTP headers at 2.94 seconds, first text delta at 3.18 seconds,
+and stream completion at 3.31 seconds from its request handler start. Overall TUI
+confirmation-to-terminal-state was 4.29 seconds. LiteLLM reported response duration
+1,315 ms and overhead 78 ms; those header scopes were not independently verified.
+An additional `/analytics/codex/turn-costs` POST returned 404; it overlapped the
+Responses call, so its latency must not be added to the completion latency.
+These are single-call observations with extra proxy/network overhead, not pure
+inference or stable percentile measurements. No further paid calls were needed.

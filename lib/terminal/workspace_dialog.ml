@@ -1,6 +1,6 @@
 open Notty
 
-type action = Field of Workspace_form.field | Create | Cancel
+type action = Field of Workspace_form.field | Create | Cancel | Models
 type hit = { x : int; y : int; width : int; action : action }
 type t = { image : Notty.image; hits : hit list }
 
@@ -63,13 +63,15 @@ let render_body form ~busy ~status ~width:cols ~height:rows =
   let fields = I.(vcat images |> vsnap ~align:`Top capacity) in
   let buttons =
     if busy then " Creating workspace… please wait. No agent starts."
-    else " [Create queued / Ctrl-S]   [Cancel / Esc]"
+    else " [Create queued / Ctrl-S]   [Cancel / Esc]  [Models / Ctrl-G]"
   in
   if (not busy) && rows >= 7 && cols > 2 then (
     hits := { x = 1; y = rows - 2; width = min 25 (cols - 1); action = Create } :: !hits;
     if cols > 28 then
       hits :=
-        { x = 28; y = rows - 2; width = min 16 (cols - 28); action = Cancel } :: !hits);
+        { x = 28; y = rows - 2; width = min 16 (cols - 28); action = Cancel } :: !hits;
+    if cols >= 61 then
+      hits := { x = 44; y = rows - 2; width = 17; action = Models } :: !hits);
   let image =
     I.vcat
       [

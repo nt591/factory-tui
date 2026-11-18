@@ -422,3 +422,22 @@ package (17) checks passed. The user's key/gateway were not accessed. Requests
 remain explicit and bounded; closing the view does not cancel the owned request,
 and quitting can wait for its transport bound. First-task form catalogue selection
 and real-provider protocol compatibility remain unverified/pending.
+
+Workspace-form picker verification on 2026-11-18 passed 30 pure picker checks and
+format/build/unit gates, plus all 19 fixture UI cases with 66 previews. Evidence:
+`/tmp/factory-workspace-model-picker-ui-20261118/report.json`. The loopback picker
+selects a cached model into the exact retained workspace form without creating
+workspaces/tasks or starting an agent. Other form fields and task history stay
+unchanged; stale replacement choices are refused. Ctrl-G and Models are explicit
+form controls; Fetch remains the separate credential/network action.
+
+Two user-authorized real read-only arithmetic calls through Codex/LiteLLM returned
+4 and reached Ready. Safe smoke and network reports are retained under
+`docs/verification/live-sol-*-20261118.json`. Codex recorded the requested low
+reasoning effort. The network trace explains the large harness input and distinct
+HTTP/stream boundary observations but does not establish an inference bottleneck.
+No tools, writes or real-provider resume were exercised; no secret/header/body or
+gateway address is retained in the reports. These narrow real-call results do not
+replace the fixture suite or general provider/security verification.
+The form-picker preview was inspected. Separate model-discovery CLI (31), setup
+CLI (35), invocation (21), fake execution (19) and package (17) checks passed.
