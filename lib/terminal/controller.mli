@@ -86,6 +86,7 @@ type t = {
   mutable scroll : int;
   mutable board_scroll : int;
   mutable board_list : bool;
+  column_scroll : Column_scroll.t;
   mutable status : string;
   mutable quit : bool;
   mutable serial : int;

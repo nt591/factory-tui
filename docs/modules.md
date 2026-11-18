@@ -89,6 +89,9 @@ against these interfaces during the normal Dune build.
 - `Sidebar_window`: pinned navigation and bounded repository rows with a reserved
   overflow cue. The frame supplies the visible repository scroll region; hidden
   entries create no click targets. Filter changes restore selection-follow mode.
+- `Column_scroll`: abstract per-state manual board positions. Task selection and
+  state movement restore following in the destination column; positions never
+  become snapshot fields. The frame holds visible column geometry for wheel input.
 - `Board_window`: pure visible-item selection, selection/manual-scroll offsets,
   and card/list range cues. The renderer uses one window definition for content
   and overflow labels; the helper changes no task or viewport state.

@@ -8,12 +8,12 @@ type 'a t = {
   below : bool;
 }
 
-let make ~capacity ~selected ~scroll items =
+let make ?(manual = false) ~capacity ~selected ~scroll items =
   let capacity = max 0 capacity in
   let total = List.length items in
   let maximum = max 0 (total - max 1 capacity) in
   let offset =
-    if scroll > 0 then min scroll maximum
+    if manual || scroll > 0 then max 0 (min scroll maximum)
     else min maximum (max 0 (selected - capacity + 1))
   in
   let items =

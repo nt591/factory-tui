@@ -182,3 +182,8 @@
  (name test_sidebar)
  (modules test_sidebar)
  (libraries factory_tui notty))
+
+(test
+ (name test_column_scroll)
+ (modules test_column_scroll)
+ (libraries factory_tui notty))

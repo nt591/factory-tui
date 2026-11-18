@@ -328,10 +328,14 @@ let () =
       let board_frame = Ui.render controller ~width:120 ~height:36 in
       controller.focus <- Controller.Board;
       Ui.mouse controller board_frame ~now:8. (`Press (`Scroll `Down), (10, 10), []);
-      check "plain wheel still scrolls board" (controller.board_scroll = 1);
+      check "plain wheel scrolls only the queued column"
+        (Column_scroll.offset controller.column_scroll Model.Queued = 0
+        && controller.board_scroll = 0);
       controller.live_confirmation <- Some task.id;
       Ui.mouse controller board_frame ~now:9. (`Press (`Scroll `Down), (10, 10), []);
-      check "confirmation blocks wheel behind modal" (controller.board_scroll = 1);
+      check "confirmation blocks wheel behind modal"
+        (Column_scroll.offset controller.column_scroll Model.Queued = 0
+        && controller.board_scroll = 0);
       controller.live_confirmation <- None;
       let review = ok (Review.create task ~jj:"/absent/jj") in
       Review.refresh review;

@@ -86,6 +86,7 @@ type t = {
   mutable scroll : int;
   mutable board_scroll : int;
   mutable board_list : bool;
+  column_scroll : Column_scroll.t;
   mutable status : string;
   mutable quit : bool;
   mutable serial : int;
@@ -146,6 +147,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     scroll = 0;
     board_scroll = 0;
     board_list = false;
+    column_scroll = Column_scroll.create ();
     status = "Simulation only. No agent, credentials, or workspace access.";
     quit = false;
     serial = 200;
@@ -197,6 +199,11 @@ let next_id t prefix =
   Printf.sprintf "%s-%d" prefix t.serial
 
 let replace t (task : task) =
+  (if task.id = t.selected then
+     match List.find_opt (fun (old : task) -> old.id = task.id) t.tasks with
+     | Some old when old.state <> task.state ->
+         Column_scroll.follow t.column_scroll task.state
+     | _ -> ());
   t.tasks <- List.map (fun (old : task) -> if old.id = task.id then task else old) t.tasks
 
 let reset_keys t =
@@ -206,6 +213,9 @@ let reset_keys t =
 let select t id =
   if t.selected <> id then Chat_search.clear t.chat_search;
   t.selected <- id;
+  Option.iter
+    (fun (task : task) -> Column_scroll.follow t.column_scroll task.state)
+    (selected t);
   Chat_viewport.reset t.chat_viewport;
   t.scroll <- 0;
   t.board_scroll <- 0
@@ -215,10 +225,16 @@ let repair_selection t =
     match visible t with task :: _ -> select t task.id | [] -> t.selected <- ""
 
 let receive t event =
+  let previous_state = Option.map (fun (task : task) -> task.state) (selected t) in
   let tasks = reduce t.tasks event in
   let changed = tasks <> t.tasks in
   if changed && t.retain_events then t.storage_events <- t.storage_events @ [ event ];
   t.tasks <- tasks;
+  Option.iter
+    (fun (task : task) ->
+      if changed && previous_state <> Some task.state then
+        Column_scroll.follow t.column_scroll task.state)
+    (selected t);
   if changed && event.task_id = t.selected then
     match (event.event, selected t) with
     | Turn_started, Some _ ->
@@ -298,6 +314,7 @@ let rec act t action =
       t.repository <- repository;
       t.sidebar_scroll <- None;
       t.board_scroll <- 0;
+      Column_scroll.clear t.column_scroll;
       focus_pane t Board
   | Archive_view ->
       t.archive <- true;
@@ -310,6 +327,7 @@ let rec act t action =
       t.archive <- false;
       t.repository <- None;
       t.board_scroll <- 0;
+      Column_scroll.clear t.column_scroll;
       focus_pane t Board
   | Next_repository ->
       let options =
@@ -323,6 +341,7 @@ let rec act t action =
       t.repository <- next options;
       t.sidebar_scroll <- None;
       t.board_scroll <- 0;
+      Column_scroll.clear t.column_scroll;
       focus_pane t Board
   | Begin_chat_search -> (
       match selected t with

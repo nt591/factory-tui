@@ -189,3 +189,16 @@ real workspaces. It checks wheel scrolling, visible click targets, filtered card
 and reset to the top. Unit tests also cover clipped hitboxes, resize, following a
 selected repository, and modal wheel ownership. The fixture preserves selected
 chat when filtering, as the product contract requires.
+
+Independent Kanban scrolling has a temporary-board terminal check:
+
+```sh
+uv run --with pyte --with pillow python scripts/smoke-columns.py \
+  --preview /tmp/factory-columns.png
+```
+
+It creates a SQLite fixture with ten Queued and ten Ready tasks, then verifies
+column-specific scrolling, retained chat selection, keyboard-following, manual
+top positioning, and unchanged saved task content. It starts no agent and touches
+no real workspace. Unit tests additionally verify selected state movement,
+Start-following, unrelated stream updates, modal blocking, and compact-list input.

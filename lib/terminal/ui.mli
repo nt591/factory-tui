@@ -1,6 +1,12 @@
 type rect = { x : int; y : int; w : int; h : int }
 type hit = { rect : rect; action : Controller.action }
-type frame = { image : Notty.image; hits : hit list; sidebar : (rect * int) option }
+
+type frame = {
+  image : Notty.image;
+  hits : hit list;
+  sidebar : (rect * int) option;
+  columns : (rect * Model.state * int * int) list;
+}
 
 val wrap : int -> string -> string list
 val wrap_title : int -> string -> string list

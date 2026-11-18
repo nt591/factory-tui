@@ -149,6 +149,11 @@ Acceptance does not merge, push, or delete a workspace.
    a separate wheel scroll region, overflow cues, and selection-follow on filter
    changes. Hidden entries create no hitboxes over the footer. Pure/terminal tests
    verify large repository lists, clipping, resize, and modal input isolation.
+   Kanban wheel positions are independent per column; compact-list scrolling stays
+   separate. Frame geometry routes input to the column under the pointer. Explicit
+   top positions differ from selection-following, and keyboard/state transitions
+   restore following only in the target column. Unit and dedicated PTY fixtures
+   verify independence, clamping, selection/movement, and snapshot isolation.
    UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,

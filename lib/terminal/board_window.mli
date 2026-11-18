@@ -8,5 +8,5 @@ type 'a t = {
   below : bool;
 }
 
-val make : capacity:int -> selected:int -> scroll:int -> 'a list -> 'a t
+val make : ?manual:bool -> capacity:int -> selected:int -> scroll:int -> 'a list -> 'a t
 val cue : 'a t -> string

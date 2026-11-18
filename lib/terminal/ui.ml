@@ -4,7 +4,13 @@ open Controller
 
 type rect = { x : int; y : int; w : int; h : int }
 type hit = { rect : rect; action : action }
-type frame = { image : image; hits : hit list; sidebar : (rect * int) option }
+
+type frame = {
+  image : image;
+  hits : hit list;
+  sidebar : (rect * int) option;
+  columns : (rect * Model.state * int * int) list;
+}
 
 let color_rgb r g b = A.rgb_888 ~r ~g ~b
 let background = color_rgb 19 23 32
@@ -70,7 +76,7 @@ let render t ~width:cols ~height:rows =
     if x >= 0 && y >= 0 && w > 0 && h > 0 then
       hits := { rect = { x; y; w; h }; action } :: !hits
   in
-  let sidebar = ref None in
+  let sidebar = ref None and column_regions = ref [] in
   let header =
     Printf.sprintf " FACTORY / terminal     %s  %s"
       (if t.live_config <> None then
@@ -378,9 +384,17 @@ let render t ~width:cols ~height:rows =
             find 0 items
           in
           let window =
-            Board_window.make ~capacity ~selected:selected_index ~scroll:t.board_scroll
+            Board_window.make ~capacity ~selected:selected_index
+              ~manual:(Column_scroll.position t.column_scroll state <> None)
+              ~scroll:(Column_scroll.offset t.column_scroll state)
               items
           in
+          column_regions :=
+            ( { x; y = r.y; w; h = r.h },
+              state,
+              window.offset,
+              max 0 (List.length items - max 1 capacity) )
+            :: !column_regions;
           let shown = window.items in
           let cards =
             List.mapi
@@ -741,7 +755,12 @@ let render t ~width:cols ~height:rows =
             | Live_confirmation.Cancel -> Cancel_live))
         view.hits);
 
-  { image = fit cols rows !canvas; hits = !hits; sidebar = !sidebar }
+  {
+    image = fit cols rows !canvas;
+    hits = !hits;
+    sidebar = !sidebar;
+    columns = !column_regions;
+  }
 
 let mouse t frame ~now = function
   | `Press `Left, (x, y), _ ->
@@ -791,7 +810,16 @@ let mouse t frame ~now = function
               Some offset
           | _ -> None
         in
-        if sidebar_offset <> None then
+        let column =
+          List.find_opt
+            (fun (r, _, _, _) -> x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h)
+            frame.columns
+        in
+        if column <> None then (
+          let _, state, offset, maximum = Option.get column in
+          act t (Focus Board);
+          Column_scroll.set t.column_scroll state (min maximum (max 0 (offset + delta))))
+        else if sidebar_offset <> None then
           t.sidebar_scroll <- Some (max 0 (Option.get sidebar_offset + (delta * 3)))
         else if t.focus = Board && not t.zoom then
           t.board_scroll <- max 0 (t.board_scroll + delta)

@@ -202,3 +202,12 @@ moves only that window, not the board/chat. Long labels use a display ellipsis.
 `Sidebar_window.ml/.mli` owns row selection, and the frame records actual visible
 scroll geometry. Pure tests cover clipping/resize/modal isolation; the dedicated
 PTY smoke verifies scrolling, clicking, filtering, and reset with forty repositories.
+
+Wheel scrolling over a Kanban column changes only that column's card window, using
+its rendered geometry and clamped visible offset. Compact lists keep their separate
+scroll position, and the repository sidebar still owns its own wheel region.
+Keyboard/click selection restores following in the selected column; a selected
+task moving to another state restores following in that destination. Explicit
+manual top positions do not snap back to an offscreen selected card. `Column_scroll`
+keeps this state abstract and transient. Unit and dedicated terminal tests cover
+independence, boundary scrolling, state movement, modal isolation, and persistence.
