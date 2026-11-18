@@ -16,7 +16,7 @@ accessible help/settings. The staged native-app implementation remains the guide
 | Vim navigation | hjkl, gg/G, counts, Ctrl-W pane selection, half/full-page keys, and mode-specific editing. Tests include actual terminal-decoded control bytes. | Implemented |
 | Mouse and resizing | Card selection, expansion, buttons, modal hitboxes, wheel; exact frame/hit bounds from 1x1 through 180x50. Live authorization blocked below 64x13. PTY checks actual escape/input sequences. | Implemented |
 | Compose and queue instructions | Abstract Text_edit cursor state, multiline draft, Ctrl-L/Alt-Enter newline, safe bracketed paste, captured submitted messages acknowledged only at turn start. Drafts/queued replies survive persistence. | Implemented; codepoint, not grapheme-cluster editing |
-| Settings/history | Next-run model/harness settings do not rewrite captured run records. Live Codex-only preflight and active model-capture tests. | Implemented; Claude is simulation only |
+| Settings/history | Next-run model/harness settings do not rewrite captured run records. Requested read/write policy is captured per run and legacy snapshots default read-only. Live Codex-only preflight and active model-capture tests. | Implemented; Claude is simulation only |
 | SQLite and restart | Versioned snapshots, separate run rows, ordered events, transaction rollback, exclusive ownership, coalesced bounded writes, shutdown flush, Working recovery. Storage and PTY save/reopen cover real temporary databases. | Implemented |
 | Low-effort configuration | Optional default/XDG TOML, explicit file, CLI override/no-config, capped reads and rejected unknown fields. Argument-free startup discovery is in the PTY smoke. | Implemented |
 | Supervision | Bounded stdout/stderr/lines/events, monotonic timeout, cancellation/process-group cleanup, checkpoint-before-spawn, bounded queue/separate outcome. Fake-process tests plus confirmed live-mode PTY path. | Implemented within documented process-group limits |
@@ -33,12 +33,13 @@ accessible help/settings. The staged native-app implementation remains the guide
 
 ## Remaining work, not claimed complete
 
-1. **Code-writing execution and approvals.** The adapter requests read-only
-   sandboxing and never approvals. It can inspect a workspace and return output,
-   but it is not yet an approved code-writing factory workflow. Add an explicit
-   workspace-write policy with appropriate disclosure, testing, and review gates;
-   do not silently broaden permissions. Interactive approval/steering needs a
-   suitable harness protocol rather than pretending exec JSONL provides one.
+1. **Code-writing sandbox validation and approvals.** Live UI can explicitly
+   request workspace-write for isolated tasks, with per-run confirmation, recorded
+   policy, and no automatic escalation. Fake-process tests verify editing and a
+   real reviewable diff without modifying source. Real Codex OS-sandbox enforcement
+   and tool permissions are not proven by those tests. The adapter still uses
+   never approvals; interactive approval/steering needs a suitable harness protocol
+   rather than pretending exec JSONL provides one.
 2. **Real provider compatibility.** Loopback fixtures prove protocol plumbing,
    not a model's tools, reasoning, credentials, billing, or provider behavior.
    Real gateway checks need user-selected configuration and explicit approval;
@@ -47,9 +48,10 @@ accessible help/settings. The staged native-app implementation remains the guide
    against the existing switch; a completely new switch reconstruction, cross-OS
    support, signing, and notarization are not verified. The local archive is not
    represented as a public production release.
-4. **Additional usability refinements.** Grapheme-aware editing, configurable panes, transcript search,
-   and fully abstract controller view state remain candidates. They do not justify claiming current rendering
-   or interaction quality from unit tests alone; keep inspecting PTY captures.
+4. **Additional usability refinements.** Grapheme-aware editing, configurable
+   panes, transcript search, and fully abstract controller view state remain
+   candidates. They do not justify claiming current rendering or interaction
+   quality from unit tests alone; keep inspecting PTY captures.
 5. **Operational limits.** Group cancellation does not contain descendants that
    deliberately escape their group. Abrupt application termination can lose
    writes since the last checkpoint and leave an unassociated created workspace.
@@ -57,7 +59,7 @@ accessible help/settings. The staged native-app implementation remains the guide
 
 The active goal is not marked complete by this audit. The UI and local execution
 foundation are verified, but the full software-factory implementation still has
-execution-policy and provider/release boundaries that must not be replaced with
+sandbox-validation and provider/release boundaries that must not be replaced with
 narrow fixture success claims.
 
 ## Repeat the verification

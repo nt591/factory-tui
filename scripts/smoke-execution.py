@@ -35,7 +35,7 @@ printf '%s\\n' '{"type":"turn.completed"}'
     base = [str(binary), "--run-codex", "--codex-executable", str(executable),
             "--workspace", str(directory), "--model", "fixture-model",
             "--database", str(database)]
-    for extra in [["--dry-run-codex"], ["--snapshot"], ["--fake-harness"], ["--live-ui"],
+    for extra in [["--workspace-write"], ["--dry-run-codex"], ["--snapshot"], ["--fake-harness"], ["--live-ui"],
                   ["--config", str(directory / "missing.toml")]]:
         result = subprocess.run(base + extra, input="task", capture_output=True, text=True, timeout=3)
         check("execution conflicts rejected", result.returncode != 0)

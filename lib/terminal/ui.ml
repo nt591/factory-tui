@@ -112,7 +112,13 @@ let render t ~width:cols ~height:rows =
   in
   let header =
     Printf.sprintf " FACTORY / terminal     %s  %s"
-      (if t.live_config <> None then "LIVE ENABLED / CONFIRMED CALLS"
+      (if t.live_config <> None then
+         if
+           Option.fold ~none:false
+             ~some:(fun config -> Live_runner.policy config = Model.Workspace_write)
+             t.live_config
+         then "LIVE WRITE / CONFIRMED CALLS"
+         else "LIVE ENABLED / CONFIRMED CALLS"
        else if t.fake_harness then "FAKE HARNESS / NO MODEL CALLS"
        else if t.external_events then "FIXTURE REPLAY"
        else "SIMULATION")
@@ -272,7 +278,11 @@ let render t ~width:cols ~height:rows =
                 wrap inner
                   ("run " ^ record.run_id ^ ": " ^ harness_label record.harness ^ " / "
                  ^ record.model ^ " / " ^ status
-                  ^ if record.simulated then " / simulated" else " / live"))
+                  ^ (if record.simulated then " / simulated" else " / live")
+                  ^
+                  match record.policy with
+                  | Model.Read_only -> " / read-only"
+                  | Model.Workspace_write -> " / workspace-write"))
               task.runs
           @ [ "" ]
           @
@@ -542,7 +552,7 @@ let render t ~width:cols ~height:rows =
         "Arrows edit; Home/End move within a line; Escape keeps the draft.";
         "n creates a demo task. W opens workspace task creation (SQLite).";
         "m edits next-run model. H cycles Codex / Claude.";
-        "s starts a simulated run; x interrupts; a accepts Ready work.";
+        "s starts a demo or asks for live confirmation; x stops; a accepts.";
         "b returns to all tasks. R cycles repositories. d opens Archive.";
         "v opens real workspace changes; r refreshes; Escape returns.";
         "t expands/collapses tools. f pauses/resumes demo events.";
@@ -551,7 +561,7 @@ let render t ~width:cols ~height:rows =
         "Cards move from events; selected chat stays attached to its task.";
         "Process exit alone never marks a task Ready.";
         "Acceptance does not merge, push, or delete a workspace.";
-        "No live agent, gateway credentials, or workspace writes.";
+        "Startup starts no agent. Live mode and writes require explicit opt-in.";
         "Configured SQLite storage retains chats and drafts.";
         "";
         "Menu: Tab/h/l switches tabs; j/k scrolls; ? or Escape closes.";
@@ -664,7 +674,14 @@ let render t ~width:cols ~height:rows =
       let width = min 88 cols and height = min 13 rows in
       let x = (cols - width) / 2 and y = (rows - height) / 2 in
       let task = List.find_opt (fun (task : task) -> task.id = id) t.tasks in
-      let view = Live_confirmation.render task ~width ~height in
+      let view =
+        Live_confirmation.render
+          ~policy:
+            (match t.live_config with
+            | None -> Model.Read_only
+            | Some config -> Live_runner.policy config)
+          task ~width ~height
+      in
       t.confirmation_readable <- view.readable;
       paint x y view.image;
       hits := [];

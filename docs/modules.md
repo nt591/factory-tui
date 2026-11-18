@@ -40,6 +40,7 @@ against these interfaces during the normal Dune build.
 - `Live_runner`: abstract validated executable/provider config and background live
   handle ownership. Preflight restricts execution to workspace-backed Codex tasks;
   a callback context keeps it independent of controller/rendering internals.
+  Its explicit policy is captured on each run; configuration defaults to read-only.
 - `Live_confirmation`: task-specific usage/auth disclosure rendering and hitboxes;
   small terminals cannot authorize a hidden confirmation.
 - `Changes`: abstract background diff ownership for one task/workspace, with

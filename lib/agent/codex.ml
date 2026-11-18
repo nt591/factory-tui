@@ -58,3 +58,21 @@ let with_gateway config gateway =
     | rest -> overrides @ rest
   in
   { config with arguments }
+
+let with_policy config policy =
+  let value =
+    match policy with
+    | Model.Read_only -> {|sandbox_mode="read-only"|}
+    | Model.Workspace_write -> {|sandbox_mode="workspace-write"|}
+  in
+  {
+    config with
+    Process.arguments =
+      List.map
+        (fun arg ->
+          if
+            arg = {|sandbox_mode="read-only"|} || arg = {|sandbox_mode="workspace-write"|}
+          then value
+          else arg)
+        config.Process.arguments;
+  }

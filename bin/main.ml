@@ -12,6 +12,7 @@ let () =
   and dry_run = ref false
   and run_codex = ref false
   and live_ui = ref false
+  and workspace_write = ref false
   and executable = ref None
   and directory = ref None
   and model = ref None
@@ -19,6 +20,9 @@ let () =
   and gateway_file = ref None in
   Arg.parse
     [
+      ( "--workspace-write",
+        Arg.Set workspace_write,
+        " Explicit write access in live UI task workspaces; confirmation required" );
       ( "--version",
         Arg.Unit
           (fun () ->
@@ -74,6 +78,9 @@ let () =
     "factory-tui [--config PATH | --no-config] [--database PATH]\n\
      See --help for snapshot, fixture, preview, and explicit live execution modes.";
   try
+    if !workspace_write && not !live_ui then
+      invalid_arg
+        "--workspace-write requires --live-ui; headless execution stays read-only.";
     if !run_codex then (
       if
         !live_ui || !dry_run || !snapshot || !events <> "" || !config <> None
@@ -157,7 +164,9 @@ let () =
       in
       let live =
         match Live_runner.configure ~executable ~gateway_file:!gateway_file with
-        | Ok config -> config
+        | Ok config ->
+            Live_runner.with_policy config
+              (if !workspace_write then Model.Workspace_write else Model.Read_only)
         | Error error -> invalid_arg error
       in
       match App.interactive ~live ~events:"" ~database () with

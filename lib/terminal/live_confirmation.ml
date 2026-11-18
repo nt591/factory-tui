@@ -4,7 +4,7 @@ type action = Run | Cancel
 type hit = { x : int; y : int; width : int; action : action }
 type view = { image : Notty.image; hits : hit list; readable : bool }
 
-let render task ~width:cols ~height:rows =
+let render ?(policy = Model.Read_only) task ~width:cols ~height:rows =
   let cols = max 1 cols and rows = max 1 rows in
   let readable = cols >= 64 && rows >= 13 && task <> None in
   let background = A.rgb_888 ~r:25 ~g:31 ~b:42 in
@@ -33,7 +33,10 @@ let render task ~width:cols ~height:rows =
       [
         "Real Codex process / may incur model usage.";
         "Configured credentials or existing Codex auth may be used.";
-        "Read-only sandbox requested / no interactive approvals.";
+        (match policy with
+        | Model.Read_only -> "Read-only sandbox requested / no interactive approvals."
+        | Model.Workspace_write ->
+            "WRITE ACCESS: task workspace / no interactive approvals.");
         "";
       ]
       @ details

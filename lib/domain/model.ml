@@ -14,6 +14,7 @@ type harness = Codex | Claude
 
 let harness_label = function Codex -> "Codex" | Claude -> "Claude"
 
+type execution_policy = Read_only | Workspace_write
 type run_status = Running | Completed | Run_failed | Stopped | Awaiting_input
 
 type run_record = {
@@ -24,6 +25,7 @@ type run_record = {
   ended_at : float option;
   status : run_status;
   simulated : bool;
+  policy : execution_policy;
 }
 
 type run = {
@@ -148,9 +150,15 @@ let set_harness task harness =
   if task.state = Done then Error "Accepted tasks are read-only."
   else Ok { task with harness; revision = task.revision + 1 }
 
-let start ?(simulated = true) task run_id =
+let start ?(simulated = true) ?(policy = Read_only) task run_id =
   if List.exists (fun (run : run_record) -> run.run_id = run_id) task.runs then
     Error "Run ID is already recorded."
+  else if
+    policy = Workspace_write
+    && (simulated || task.workspace = None || task.harness <> Codex)
+  then
+    Error
+      "Workspace-write requires a non-simulated Codex run in an isolated task workspace."
   else if task.state = Working || task.state = Done then
     Error "Task cannot start in this state."
   else if not (List.exists (fun (m : message) -> m.queued) task.messages) then
@@ -177,6 +185,7 @@ let start ?(simulated = true) task run_id =
                 ended_at = None;
                 status = Running;
                 simulated;
+                policy;
               };
             ];
         active =

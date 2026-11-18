@@ -54,7 +54,9 @@ Acceptance does not merge, push, or delete a workspace.
    resume identity, cancellation, malformed output, and checkpoint refusal.
    Installed Codex 0.166.0 execution and resume pass an isolated loopback fixture.
    Confirmed live UI integration passes fake-process tests and the PTY smoke.
-   Real gateway UI behavior and sandbox enforcement remain unverified.
+   `--live-ui --workspace-write` explicitly selects task-directory write policy,
+   shown in confirmation and captured per run. Fixture editing/review is tested.
+   Real gateway UI behavior, sandbox enforcement, and approvals remain unverified.
 6. **Gateway setup — validation and provider builder complete; integration pending.**
    `Gateway` validates a capped non-secret TOML file, HTTPS/loopback endpoints, and
    environment-key references without reading secrets or contacting the network.

@@ -41,6 +41,11 @@ let run_record (run : run_record) =
       ("ended", option (fun n -> `Float n) run.ended_at);
       ("status", string (status run.status));
       ("simulated", boolean run.simulated);
+      ( "policy",
+        string
+          (match run.policy with
+          | Read_only -> "read-only"
+          | Workspace_write -> "workspace-write") );
     ]
 
 let task (task : task) =
@@ -167,6 +172,14 @@ let decode_record json =
       started_at = time (field "started" json);
       ended_at = opt time (field "ended" json);
       status = decode_status (text (field "status" json));
+      policy =
+        (match json with
+        | `Assoc fields -> (
+            match List.assoc_opt "policy" fields with
+            | None | Some (`String "read-only") -> Read_only
+            | Some (`String "workspace-write") -> Workspace_write
+            | _ -> invalid ())
+        | _ -> invalid ());
       simulated =
         (match json with
         | `Assoc fields -> (
@@ -176,6 +189,8 @@ let decode_record json =
         | _ -> invalid ());
     }
   in
+  if run.policy = Workspace_write && (run.simulated || run.harness <> Codex) then
+    invalid ();
   if run.status = Running <> (run.ended_at = None) then invalid ();
   Option.iter (fun ended -> if ended < run.started_at then invalid ()) run.ended_at;
   run
@@ -239,6 +254,10 @@ let decode_task json =
     (fun workspace -> if workspace.source <> task.repository then invalid ())
     task.workspace;
   unique (List.map (fun (m : message) -> m.id) task.messages);
+  if
+    List.exists (fun (r : run_record) -> r.policy = Workspace_write) task.runs
+    && task.workspace = None
+  then invalid ();
   unique (List.map (fun (r : run_record) -> r.run_id) task.runs);
   unique (List.map fst task.tools);
   let running = List.filter (fun (r : run_record) -> r.status = Running) task.runs in

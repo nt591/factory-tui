@@ -1,6 +1,7 @@
 type state = Queued | Working | Needs_you | Ready | Done
 type message = { id : string; author : string; text : string; queued : bool }
 type harness = Codex | Claude
+type execution_policy = Read_only | Workspace_write
 type run_status = Running | Completed | Run_failed | Stopped | Awaiting_input
 
 type run_record = {
@@ -11,6 +12,7 @@ type run_record = {
   ended_at : float option;
   status : run_status;
   simulated : bool;
+  policy : execution_policy;
 }
 
 type run = {
@@ -59,7 +61,10 @@ val make : id:string -> title:string -> repository:string -> task
 val system : task -> string -> task
 val set_model : task -> string -> (task, string) result
 val set_harness : task -> harness -> (task, string) result
-val start : ?simulated:bool -> task -> string -> (task, string) result
+
+val start :
+  ?simulated:bool -> ?policy:execution_policy -> task -> string -> (task, string) result
+
 val send : task -> id:string -> string -> (task, string) result
 val accept : task -> (task, string) result
 val apply : task -> envelope -> task option

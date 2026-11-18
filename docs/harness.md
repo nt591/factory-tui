@@ -96,7 +96,8 @@ increments; fake tests do not prove live compatibility.
 
 `Codex.invocation` builds a process configuration only. It does not spawn Codex,
 read credentials, or open a database. It requests JSONL, ignores user config,
-sets read-only sandboxing and never approvals, and passes the prompt through stdin.
+defaults to read-only sandboxing and never approvals, and passes the prompt
+through stdin. Explicit live-UI write policy is described below.
 An explicit thread ID selects `exec resume`; no `--last` or implicit session lookup
 is used. The working directory is set by the supervisor for both new and resumed
 runs. Model/thread IDs reject option-like and control-character values.
@@ -218,8 +219,8 @@ simulated, and there is no live-setting auto-enable field in the startup TOML.
 
 Only workspace-backed Codex tasks can run. `W` creates such a task; `i` adds queued
 instructions and `m` edits the next-run model. `s` asks for confirmation, showing
-model, workspace, new/resumed thread, usage/auth disclosure, and requested read-only
-sandbox. Enter/`y` confirms; Escape/`n` cancels. Pasted text cannot authorize a run.
+model, workspace, new/resumed thread, usage/auth disclosure, and requested
+sandbox policy (read-only by default). Enter/`y` confirms; Escape/`n` cancels. Pasted text cannot authorize a run.
 At less than 64 columns or 13 rows confirmation is blocked; resize or cancel.
 
 Confirmation creates a non-simulated run record. The runner captures that run's
@@ -240,8 +241,8 @@ exit, not from a claim that every asynchronous update is already on disk.
 The UI displays LIVE ENABLED / CONFIRMED CALLS throughout. Demo seed cards may
 remain visible, but tasks without isolated workspaces cannot run in live mode.
 Acceptance still changes only task state; it never merges, pushes, or deletes.
-The exec adapter requests read-only sandboxing and provides no interactive approval
-channel. This is not a verified code-writing workflow or proof of platform sandbox
+The exec adapter defaults to read-only sandboxing and provides no interactive
+approval channel. An explicit workspace-write option is described below. This is not a verified code-writing workflow or proof of platform sandbox
 containment. Real gateway compatibility still requires explicit user-approved checks.
 
 `test_live_runner` and the PTY smoke verify this UI path with temporary jj workspaces
@@ -250,3 +251,44 @@ small-terminal gating, streaming, captured model selection, resume mismatch, lat
 queued messages, checkpoint refusal, and stop/shutdown. The installed-Codex loopback
 check verifies the headless path only; live UI behavior against a real model provider
 has not been exercised.
+
+## Explicit workspace-write policy
+
+Read-only remains the default for every launch, including headless execution and
+preview. Enable write access only with an explicit live-UI flag:
+
+```sh
+./scripts/run.sh --live-ui --workspace-write \
+  --codex-executable /absolute/path/to/codex
+```
+
+This selects Codex's requested `workspace-write` sandbox for isolated workspace
+**tasks**, not the source repository. SQLite and per-run confirmation are still
+required. The banner says LIVE WRITE / CONFIRMED CALLS and the confirmation says
+WRITE ACCESS: task workspace. Setup/launch starts no process and paste cannot
+confirm. Demo/unattached tasks cannot obtain write-mode runs. No startup TOML
+setting silently enables writes. `--workspace-write` is rejected outside live UI;
+headless execution and its dry-run continue to use read-only policy.
+
+The policy is captured per run and persisted alongside its model, harness, and
+execution origin. Existing runs are unchanged; snapshots without a policy default
+to read-only. A changed future configuration cannot rewrite the active run's
+requested policy. Simulation cannot record write-mode execution. The runner waits
+for the Working checkpoint before spawning, as in read-only mode.
+
+The adapter still sets `approval_policy="never"`: it does not implement interactive
+approvals. This flag means Codex cannot ask the TUI for permission escalation;
+commands outside the requested sandbox should be denied by the installed harness.
+No automatic review/approval, danger-full-access, writable additional directories,
+or automatic merge/push is added. Review actual changes with `v`; acceptance only
+marks Done. To return to read-only, restart without `--workspace-write`.
+
+The test fixture writes into a temporary task workspace only after observing the
+write-policy argument, then streams completion. Unit/PTY checks verify explicit
+confirmation, output, a real reviewable patch, untouched source checkout, captured
+policy, backward-compatible persistence, and unchanged earlier run records. This
+verifies our policy plumbing and workflow, **not OS sandbox enforcement**. A fake
+executable is not a security sandbox. Real Codex code-editing, network restrictions,
+and privilege-escalation denial still require a separately approved integration
+check. The earlier installed-Codex loopback returns no tool calls and does not
+prove those properties.

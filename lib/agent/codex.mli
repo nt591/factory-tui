@@ -6,3 +6,4 @@ val invocation :
   (Process.config, string) result
 
 val with_gateway : Process.config -> Gateway.t -> Process.config
+val with_policy : Process.config -> Model.execution_policy -> Process.config

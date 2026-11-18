@@ -300,7 +300,10 @@ let act t action =
               match Live_runner.prepare config task with
               | Error error -> t.status <- error
               | Ok _ -> (
-                  match Model.start ~simulated:false task (next_id t "live-run") with
+                  match
+                    Model.start ~simulated:false ~policy:(Live_runner.policy config) task
+                      (next_id t "live-run")
+                  with
                   | Error error -> t.status <- error
                   | Ok task ->
                       replace t task;

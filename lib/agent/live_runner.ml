@@ -1,6 +1,10 @@
 open Model
 
-type config = { executable : string; gateway : Gateway.t option }
+type config = {
+  executable : string;
+  gateway : Gateway.t option;
+  policy : Model.execution_policy;
+}
 
 let configure ~executable ~gateway_file =
   if Filename.is_relative executable || String.contains executable '\000' then
@@ -12,12 +16,20 @@ let configure ~executable ~gateway_file =
         Error "Codex executable must be a regular file."
       else
         match gateway_file with
-        | None -> Ok { executable; gateway = None }
+        | None -> Ok { executable; gateway = None; policy = Read_only }
         | Some file ->
             Result.map
-              (fun gateway -> { executable; gateway = Some gateway })
+              (fun gateway -> { executable; gateway = Some gateway; policy = Read_only })
               (Gateway.load file)
     with Unix.Unix_error _ -> Error "Cannot access live Codex executable."
+
+let with_policy config policy = { config with policy }
+let policy config = config.policy
+
+let policy_label config =
+  match config.policy with
+  | Read_only -> "Read-only"
+  | Workspace_write -> "Workspace-write"
 
 let prepare config (task : task) =
   if task.harness <> Codex then Error "Live mode supports Codex only."
@@ -48,6 +60,7 @@ let prepare config (task : task) =
           with
           | Error error -> Error error
           | Ok invocation ->
+              let invocation = Codex.with_policy invocation config.policy in
               Ok
                 ( (match config.gateway with
                   | None -> invocation
@@ -148,7 +161,7 @@ let poll runner context ~storage =
                 harness = captured.harness;
               }
             in
-            match prepare runner.config inspect with
+            match prepare (with_policy runner.config captured.policy) inspect with
             | Error error ->
                 context.receive
                   { task_id = task.id; run_id = active.id; event = Failed error };

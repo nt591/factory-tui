@@ -67,3 +67,8 @@
  (name test_live_runner)
  (modules test_live_runner)
  (libraries factory_tui notty unix sqlite3))
+
+(test
+ (name test_policy)
+ (modules test_policy)
+ (libraries factory_tui unix notty yojson))

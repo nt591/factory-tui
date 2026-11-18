@@ -473,6 +473,58 @@ printf '%s\\n' '{"type":"turn.completed"}'
         check("live shutdown leaves task interrupted", cancelled_task["active"] is None
               and cancelled_task["state"] == "needs_you" and cancelled_task["runs"][-1]["status"] == "stopped")
 
+        executable.write_text("""#!/bin/sh
+printf '%s\\n' "$@" > write-arguments.txt
+cat >/dev/null
+case "$*" in
+  *sandbox_mode=\\\"workspace-write\\\"*) ;;
+  *) exit 2 ;;
+esac
+printf 'fixture code change\\n' > write-result.txt
+printf '%s\\n' '{"type":"thread.started","thread_id":"ui-fixture-thread"}'
+printf '%s\\n' '{"type":"turn.started"}'
+printf '%s\\n' '{"type":"item.completed","item":{"type":"agent_message","id":"reply","text":"Fixture implementation complete"}}'
+printf '%s\\n' '{"type":"turn.completed"}'
+""")
+        screen.reset()
+        process = subprocess.Popen([str(binary), "--live-ui", "--workspace-write", "--no-config",
+                                   "--database", str(database), "--codex-executable", str(executable)],
+                                   stdin=slave, stdout=slave, stderr=slave, env=env)
+        wait_ready()
+        write_marker = Path(task["workspace"]["directory"]) / "write-result.txt"
+        check("write policy opt-in shown in banner", "LIVE WRITE / CONFIRMED CALLS" in text())
+        check("write mode startup changes no task files", not write_marker.exists())
+        send(b"iImplement fixture\r")
+        send(b"s")
+        check("write confirmation is explicit", "WRITE ACCESS: task workspace" in text() and not write_marker.exists())
+        if args.preview:
+            preview(args.preview.with_stem(args.preview.stem + "-write-confirmation"))
+        send(b"\x1b[200~y\r\x1b[201~")
+        check("paste cannot authorize workspace writes", not write_marker.exists())
+        send(b"y")
+        deadline = time.monotonic() + 5
+        while "Fixture implementation complete" not in text() and time.monotonic() < deadline:
+            pump(0.05)
+        send(b"e")
+        check("confirmed fixture edits task workspace", write_marker.exists() and "Fixture implementation complete" in text())
+        check("write fixture leaves source untouched", not (source / "write-result.txt").exists())
+        send(b"v")
+        send(b"/opt/homebrew/bin/jj\r")
+        deadline = time.monotonic() + 5
+        while "diff --git" not in text() and time.monotonic() < deadline:
+            pump(0.05)
+        send(b"G")
+        check("fixture implementation is reviewable", "+fixture code change" in text())
+        send(b"\x1b")
+        send(b"q")
+        wait_exit(5)
+        check("write fixture UI exits cleanly", process.returncode == 0)
+        with sqlite3.connect(database) as db:
+            saved = json.loads(db.execute("SELECT payload FROM snapshot").fetchone()[0])
+        write_task = next(t for t in saved["tasks"] if t["id"] == task["id"])
+        check("write policy saved per run", write_task["runs"][-1]["policy"] == "workspace-write")
+        check("earlier runs stay read-only", all(run["policy"] == "read-only" for run in write_task["runs"][:-1]))
+
 
 finally:
     if process.poll() is None:

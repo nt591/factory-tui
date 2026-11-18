@@ -43,7 +43,7 @@ with tempfile.TemporaryDirectory(prefix="factory-preview-") as temp:
           and "explicit-thread" in preview["arguments"])
     check("environment reference preserved", 'model_providers.factory_gateway.env_key="FACTORY_UNSET_KEY"'
           in preview["arguments"])
-    for extra in [["--database", str(directory / "forbidden.sqlite")], ["--snapshot"],
+    for extra in [["--workspace-write"], ["--database", str(directory / "forbidden.sqlite")], ["--snapshot"],
                   ["--fake-harness"], ["--live-ui"], ["--config", str(directory / "missing.toml")],
                   ["--resume", "--last"], ["--model", "-bad"]]:
         result = subprocess.run(base + extra, capture_output=True, text=True, timeout=3)

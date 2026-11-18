@@ -51,3 +51,7 @@ The composer supports multiline drafts (Ctrl-L or Alt-Enter), Unicode codepoint
 cursor movement, insertion/deletion, and newline-preserving paste. Further refinements may include
 grapheme-aware cursor movement, configurable layouts, and transcript search.
 Changes review is implemented as a full-screen pane rather than a drawer.
+
+Live workspace-write must be explicit on launch; the banner and confirmation
+disclose it. Run history shows requested policy. Fixture tests demonstrate a
+reviewable file change, not installed Codex sandbox enforcement.
