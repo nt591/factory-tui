@@ -380,3 +380,9 @@ Ctrl-S; cursor movement, no-op deletion, and edits to other fields do not erase
 it. Operational creation/storage reports remain visible while editing. The form
 keeps feedback kinds private behind its existing status API. Unit and PTY checks
 verify stale-error recovery, full resubmission validation, and report retention.
+
+Footer editors for model, new-task, board/chat search, and queued reply show the
+actual cursor through a grapheme-safe horizontal window. Short values retain key
+hints; long values prioritize editable context over hints instead of clipping the
+cursor. `Input_line.ml/.mli` sanitizes display only and changes no values. Unit
+cursor/width/submission checks and PTY long-model/Home/End coverage verify behavior.

@@ -167,9 +167,9 @@ try:
     send(b"i")
     send(b"\x1b[200~" + "aé👍🏽b".encode() + b"\x1b[201~")
     send(b"\x1b[D\x7f")
-    check("terminal backspace removes complete skin-tone emoji", "Reply (queued): aéb" in text())
+    check("terminal backspace removes complete skin-tone emoji", "Reply (queued): aé▏b" in text())
     send(b"\x1b[D\x1b[3~")
-    check("terminal delete removes complete combining accent", "Reply (queued): ab" in text())
+    check("terminal delete removes complete combining accent", "Reply (queued): a▏b" in text())
     send(b"\r")
     send(b"iFirst line")
     send(b"\x0c")
@@ -904,6 +904,21 @@ printf '%s\\n' '{"type":"turn.completed"}'
     check("long card opens the complete instruction", "CARD_END" in text())
     if args.preview:
         preview(args.preview.with_stem(args.preview.stem + "-long-card-chat"))
+    send(b"m")
+    long_model = "BEGIN-" + "x" * 140 + "-END"
+    send(b"\x1b[H")
+    send(b"\x1b[200~" + long_model.encode() + b"\x1b[201~")
+    deadline = time.monotonic() + 5
+    while "-END▏" not in screen.display[-3] and time.monotonic() < deadline:
+        pump(0.05)
+    check("long model footer keeps actual cursor visible", "-END▏" in screen.display[-3])
+    send(b"\x1b[H")
+    check("model Home reveals beginning in footer", "▏BEGIN-" in screen.display[-3])
+    send(b"\x1b[F")
+    check("model End reveals complete tail in footer", "coding-large▏" in screen.display[-3])
+    if args.preview:
+        preview(args.preview.with_stem(args.preview.stem + "-model-footer"))
+    send(b"\x1b")
     send(b"q")
     wait_exit(5)
     check("long-card preview exits cleanly", process.returncode == 0)

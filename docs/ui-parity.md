@@ -376,3 +376,10 @@ Ctrl-S; cursor movement, no-op deletion, and edits to other fields do not erase
 it. Operational creation/storage reports remain visible while editing. The form
 keeps feedback kinds private behind its existing status API. Unit and PTY checks
 verify stale-error recovery, full resubmission validation, and report retention.
+
+The footer editor follows its real cursor for model IDs, new-task titles, searches,
+and reply drafts. Home/End and middle edits show the text being edited; short
+values retain shortcut hints, while long ones use the row for cursor context.
+`Input_line` shares the whole-grapheme window helper and flattens controls/newlines
+only for display. The complete editor value is unchanged for submission. Pure
+layout and PTY long-model checks cover width limits, cursor placement, and editing.

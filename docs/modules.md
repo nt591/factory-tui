@@ -154,6 +154,9 @@ against these interfaces during the normal Dune build.
   anchoring remains in Chat_viewport and no position is persisted.
 - `Pane_layout`: pure board/detail split selection from body size and focus.
   It has no controller, persistence, terminal, or process dependency.
+- `Input_line`: pure footer editor layout from label, hint, and Text_edit value.
+  Long inputs prioritize cursor context over hints; it sanitizes a single-line
+  display without changing the editable/submitted value.
 - `Text_layout`: grapheme-preserving terminal-cell and word wrapping for sanitized
   text. It has no controller or resource state; Ui sanitizes text before wrapping.
   A cluster wider than the pane stays whole and is cropped by rendering.

@@ -626,6 +626,10 @@ scroll as needed. Overflowing Activity shows the visible wrapped-row range and
 above/below arrows in its border without consuming an output row. Inspection does
 not change the task or its workspace.
 
+Model, task-title, and search footer editors follow their cursor when values are
+long. Home/End reveals the prefix/suffix; display clipping does not shorten the
+submitted text. Short values retain key hints beside the input.
+
 Selecting a card also refreshes the footer with its task ID and next-step guidance,
 without clearing storage errors or starting a run.
 

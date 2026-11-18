@@ -587,13 +587,20 @@ let render t ~width:cols ~height:rows =
         ^ (if pending_keys = "" then "" else "[" ^ pending_keys ^ "] ")
         ^ t.status
     | Chat_search ->
-        " Chat search: "
-        ^ Chat_search.query t.chat_search
-        ^ "▏ [Enter finish / Esc close]"
-    | Search -> " Search: " ^ t.query ^ "▏  [Enter finish / Esc close]"
-    | Compose -> " Reply (queued): " ^ draft t ^ "▏  [Enter send / Esc keep draft]"
-    | Edit_model -> " Model (next run): " ^ t.model_text ^ "▏ [Enter apply / Esc cancel]"
-    | New_task -> " New task: " ^ t.new_title ^ "▏  [Enter create / Esc cancel]"
+        Input_line.render ~width:cols ~label:" Chat search: "
+          ~hint:" [Enter finish / Esc close]" t.editor
+    | Search ->
+        Input_line.render ~width:cols ~label:" Search: "
+          ~hint:"  [Enter finish / Esc close]" t.editor
+    | Compose ->
+        Input_line.render ~width:cols ~label:" Reply (queued): "
+          ~hint:"  [Enter send / Esc keep draft]" t.editor
+    | Edit_model ->
+        Input_line.render ~width:cols ~label:" Model (next run): "
+          ~hint:" [Enter apply / Esc cancel]" t.editor
+    | New_task ->
+        Input_line.render ~width:cols ~label:" New task: "
+          ~hint:"  [Enter create / Esc cancel]" t.editor
   in
   if rows >= 3 then
     paint 0 (rows - 3)
