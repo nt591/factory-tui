@@ -15,6 +15,7 @@ let help ~mode =
     "Split preferences last for this launch; zoom keeps them unchanged.";
     "Ctrl-U/D: half-page. Ctrl-B/F: full-page. Tab/Shift-Tab: cycle.";
     "Mouse wheel and Page Up/Down scroll. Home/End: first/last.";
+    "Paused chat: click Latest on its border, or End, to follow output.";
     "i composes a reply. Enter queues; Ctrl-L/Alt-Enter adds a line.";
     "Arrows edit; Home/End move within a line; Escape keeps the draft.";
     (match mode with

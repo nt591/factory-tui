@@ -282,3 +282,8 @@
  (name test_pane_layout)
  (modules test_pane_layout)
  (libraries factory_tui notty))
+
+(test
+ (name test_chat_position)
+ (modules test_chat_position)
+ (libraries factory_tui notty))

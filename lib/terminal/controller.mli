@@ -30,6 +30,7 @@ type action =
   | Next_chat_match
   | Previous_chat_match
   | Clear_chat_search
+  | Follow_chat
   | Begin_search
   | Begin_compose
   | Confirm_live

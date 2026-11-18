@@ -244,3 +244,11 @@ that layout. Run/Cancel and a visible row range stay below the scrollable body;
 terminals below 64x13 remain non-authorizing. `Controller` dispatches keys and
 `Ui` routes wheel input only to the reported body. The module starts no process
 and performs no workspace operation.
+
+
+`Chat_position` produces lower-border wrapped-row ranges and an optional complete
+Latest-button span. It uses the already-computed `Chat_viewport.view`, takes no
+transcript rows, and exposes no target when the label is clipped. `Ui` registers
+the target after the pane-focus region so its click has priority. `Follow_chat`
+resets chat anchoring and remembered distance without resetting Activity or saved
+task data. Search query/matches survive, but a pending seek cannot undo following.

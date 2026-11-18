@@ -30,6 +30,7 @@ type action =
   | Next_chat_match
   | Previous_chat_match
   | Clear_chat_search
+  | Follow_chat
   | Begin_search
   | Begin_compose
   | Confirm_live
@@ -392,6 +393,12 @@ let rec act t action =
       Chat_search.move t.chat_search ~backwards:(action = Previous_chat_match);
       focus_pane t Conversation
   | Clear_chat_search -> Chat_search.clear t.chat_search
+  | Follow_chat ->
+      focus_pane t Conversation;
+      reset_chat_view t;
+      t.scroll <- 0;
+      (* A pending search seek must not replace the explicit latest position. *)
+      ignore (Chat_search.seek t.chat_search)
   | Begin_search ->
       t.input <- Search;
       t.editor <- Text_edit.create t.query

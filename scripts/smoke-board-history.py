@@ -79,7 +79,21 @@ def main():
             )
             if args.preview:
                 tui.preview(args.preview)
-            tui.send(b"\x1b[F")
+            button_y = next(
+                index
+                for index, row in enumerate(tui.screen.display)
+                if "[Latest / End]" in row
+            )
+            button_x = tui.screen.display[button_y].index("[Latest / End]")
+            tui.check(
+                "paused border reports transcript rows",
+                "rows 1-" in tui.screen.display[button_y],
+            )
+            tui.send(f"\x1b[<65;{button_x + 1};{button_y + 1}M".encode())
+            tui.check(
+                "wheel on Latest border cannot move history", chat_rows() == old_chat
+            )
+            tui.send(f"\x1b[<0;{button_x + 1};{button_y + 1}M".encode())
             tui.wait(
                 "follow resumed",
                 lambda: (
@@ -87,7 +101,22 @@ def main():
                     and "reading history" not in tui.text()
                 ),
             )
-            tui.check("End explicitly resumes following after board scrolling", True)
+            tui.check(
+                "Latest click resumes following after board scrolling",
+                "[Latest / End]" not in tui.text(),
+            )
+            with replay.open("a") as output:
+                output.write(
+                    event("after-follow", "Following continues after Latest click")
+                )
+            tui.wait(
+                "followed append",
+                lambda: "Following continues after Latest click" in tui.text(),
+            )
+            tui.check(
+                "Latest stays followed on later output",
+                "[Latest / End]" not in tui.text(),
+            )
             tui.send(b"q")
             tui.wait_exit()
             tui.check(

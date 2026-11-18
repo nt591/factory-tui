@@ -753,3 +753,12 @@ opening accepted chat after restart. See `docs/harness.md` for scope and exclusi
 Test boundaries and the native command-fixture investigation are documented in
 [docs/testing.md](docs/testing.md). Normal tests keep parallel scheduling and
 production timeout limits; plain I/O checks do not time freshly created scripts.
+
+
+When chat has more wrapped rows than its viewport, its lower border shows the
+visible row range. While reading history, `[Latest / End]` is a mouse button:
+click it to focus chat and resume following output, without starting a run or
+sending a draft. End remains the keyboard equivalent when chat is focused. Search
+queries stay available for `n/N`; Activity keeps its own reading position. The
+button takes no transcript row, disappears while following, and is omitted if
+the complete label cannot fit. Wheel input on the button does not scroll.

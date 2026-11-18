@@ -476,3 +476,16 @@ a file. `--no-config` selects automatic sizes. Pure parser/layout/settings tests
 and `scripts/smoke-layout-config.py` verify discovery, explicit/no-config paths,
 CLI database override, reset, next-launch changes, startup inactivity, config byte
 preservation, and rejected values without source disclosure or storage creation.
+
+
+Overflowing chat shows a wrapped-row range on its lower border. Paused history
+exposes a complete `[Latest / End]` hit target when the border is wide enough.
+`Chat_position.ml/.mli` computes bounded copy and target geometry; no transcript
+row is consumed. `Follow_chat` focuses Conversation and resets only its reading
+anchor/distance, consuming any pending search seek while retaining query/matches.
+It changes no task, draft or run. Independent Activity offsets are preserved.
+The target disappears while following and is not exposed for a clipped label or
+zero-capacity pane. Modal hit isolation and normal-input gating remain intact;
+wheel input on the button is ignored. Pure rendering/input tests and the replay
+PTY check verify target alignment, position during append, mouse follow, later
+followed output, search retention and unchanged saved state.

@@ -465,3 +465,13 @@ never save config. `--no-config` keeps automatic sizes. Parser/layout/settings
 unit tests and a temporary-config PTY check cover discovered/explicit/ignored
 config, reset, disk edits taking effect next launch, simulation/live startup
 inactivity, exact config bytes, and invalid-value failure before storage opens.
+
+
+Chat overflow has a lower-border wrapped-row range. During paused history a
+`[Latest / End]` mouse target resumes following and focuses chat. The query remains
+available for match navigation; Activity's independent offset and drafts remain.
+The control takes no content row and appears only if its complete label fits.
+Modal input hides targets, editor input ignores shortcuts, and wheel input on the
+button is ignored. `test_chat_position` and the board-history replay PTY exercise
+range copy, bounded geometry, click alignment, paused append, later followed
+output, search retention, independent offsets and snapshot isolation.

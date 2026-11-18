@@ -390,3 +390,17 @@ next launch. An explicit live launch uses a never-started local shell fixture an
 a temporary database to verify configuration/CLI plumbing, not execution or jj.
 Invalid percentages fail before storage opens and do not expose source text.
 `--binary` uses an existing executable. No credentials or model are accessed.
+
+
+The board-history replay check also exercises the Latest border button:
+
+```sh
+uv run --with pyte --with pillow python scripts/smoke-board-history.py \
+  --preview /tmp/factory-chat-position.png
+```
+
+A temporary event file supplies output while chat is paused and board owns focus.
+The check verifies preserved visible content, the wrapped-row cue, wheel isolation
+on Latest, mouse follow and later followed output. It does not use a database,
+agent, credentials or workspace. `test_chat_position` separately checks pure target
+alignment, saved-state isolation, search/editor/modal behavior and terminal bounds.

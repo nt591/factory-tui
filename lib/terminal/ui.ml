@@ -180,6 +180,9 @@ let render t ~width:cols ~height:rows =
     let title =
       title ^ if view.following then "" else " / reading history · End follows"
     in
+    let position =
+      Chat_position.make ~width:(r.w - 5) ~height:available ~total:(List.length rows) view
+    in
     let rows = Chat_viewport.visible_rows view ~height:available rows in
     let content =
       I.vcat
@@ -204,7 +207,8 @@ let render t ~width:cols ~height:rows =
            rows)
     in
     paint r.x r.y
-      (border r.w chat_height ~title ~color:accent ~focused:(t.focus = Conversation)
+      (border r.w chat_height ~title ~footer:position.text ~color:accent
+         ~focused:(t.focus = Conversation)
          (if not searching then content
           else
             let position, count = Chat_search.position t.chat_search in
@@ -216,6 +220,10 @@ let render t ~width:cols ~height:rows =
             I.(line (r.w - 2) (emphasis accent) description <-> content)));
     panes := ({ r with h = chat_height }, Conversation) :: !panes;
     hit r.x r.y r.w chat_height (Focus Conversation);
+    Option.iter
+      (fun (offset, width) ->
+        hit (r.x + 3 + offset) (r.y + chat_height - 1) width 1 Follow_chat)
+      position.latest;
     if composer_height > 0 then (
       let task = Option.get task in
       let editing = t.input = Compose in
@@ -789,6 +797,7 @@ let mouse t frame ~now = function
         if over_modal_content then
           t.menu_scroll <-
             max 0 (min 10000 (t.menu_scroll + if direction = `Up then -3 else 3)))
+      else if hit_at frame x y = Some Follow_chat then ()
       else if t.input = Normal && t.workspace_form = None then (
         reset_keys t;
         let delta = if direction = `Up then -1 else 1 in
