@@ -6,7 +6,7 @@ completed commit. Push tested increments to origin/main as authorized by the use
 unverified working-copy changes or force-update remote history.
 Follow docs/implementation.md. Keep its status accurate in each implementation
 commit. Do not skip safety gates to match the native application feature list.
-Do not edit the in-flight Rust application at ../factory.
+Do not modify repositories outside this checkout as part of this task.
 Tests must not start agents, read credentials, or modify real workspaces.
 Keep simulation labels visible. Accepting a task does not merge or push code.
 Run scripts/format.sh --check, dune build, and dune runtest before committing.
@@ -51,3 +51,11 @@ commands and are not part of this suite.
 Vim-style navigation and insert mode are sufficient. Do not add keybindings solely
 for Vim parity. Prioritize the factory workflow, readable task/chat views, reliable
 updates, and simple input behavior.
+
+This repository is public. Use generic fixture model IDs, example endpoints and
+paths in tracked configs/tests. Never commit API keys, private gateway model
+catalogues, internal hostnames, live response captures or machine-local runtime
+paths. Keep user-authorized live-test evidence outside the repository.
+The user author email is permitted; internal repository and deployment facts are not.
+A working-tree deletion does not remove published Git history. Obtain explicit
+approval before rewriting or force-updating remote history.

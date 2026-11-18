@@ -16,8 +16,7 @@ bin/          # CLI entry point
 test/        # Unit and integration checks
 ```
 
-The subsystem grouping follows the organizational idea in Hack's
-`hphp/hack/src`, without copying its scale or build graph. Dune's
+The subsystem grouping keeps related implementations together. Dune
 `include_subdirs unqualified` keeps one wrapped `Factory_tui` library, so existing
 module names and `.mli` APIs do not change. File names must be unique across these
 directories. Each implementation and its interface stay beside each other.

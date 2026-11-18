@@ -56,7 +56,7 @@ compatibility. Literal `base_url` configs continue to work.
 List models explicitly from the current shell:
 
 ```sh
-cd ~/dev/factory-tui
+cd /path/to/factory-tui
 ./scripts/run.sh --list-models --gateway examples/litellm.toml
 ```
 
@@ -129,35 +129,12 @@ a request to test closing/reopening, filters a 40-model catalogue, applies a mod
 checks caching/auth error/retry, and preserves exact drafts/messages/run records.
 It is not a real model or gateway compatibility test.
 
-## Real smoke evidence
+## Live verification evidence
 
-On November 18, 2026, a user-authorized TUI call through the user's LiteLLM gateway
-and Codex 0.166.0 used `azure_ai/gpt-6.1-sol` with recorded low reasoning effort.
-The basic arithmetic answer was `4`; the run completed and the card became Ready.
-It used disposable jj/storage/HOME/CODEX_HOME and read-only policy; source was
-unchanged and the workspace retained only its original README. The safe report is
-`docs/verification/live-sol-low-20261118.json`. No key or gateway address is recorded.
-This establishes one no-tools completion, not tools/write/resume compatibility.
-The 4.93-second confirmation-to-terminal-state observation is not inference time
-or first-token latency. Low effort used a temporary executable wrapper; a native
-reasoning setting is not implemented yet.
-
-A second user-authorized arithmetic smoke used a local forwarding recorder that
-retained only request shape, HTTP/event timing and usage, not raw prompts, response
-content, authorization or gateway address. Evidence:
-`docs/verification/live-sol-network-20261118.json`. The Responses request had a
-56,069-byte body, seven input items and no tools; usage reported 10,869 input and
-five output tokens, with zero reasoning tokens. Codex supplied its own base,
-skills and multi-agent instructions in addition to the short question.
-
-The proxy observed HTTP headers at 2.94 seconds, first text delta at 3.18 seconds,
-and stream completion at 3.31 seconds from its request handler start. Overall TUI
-confirmation-to-terminal-state was 4.29 seconds. LiteLLM reported response duration
-1,315 ms and overhead 78 ms; those header scopes were not independently verified.
-An additional `/analytics/codex/turn-costs` POST returned 404; it overlapped the
-Responses call, so its latency must not be added to the completion latency.
-These are single-call observations with extra proxy/network overhead, not pure
-inference or stable percentile measurements. No further paid calls were needed.
+A user-authorized read-only completion passed through the configured gateway.
+Private model names, traffic captures, response metadata and local runtime paths
+are not published here. Fixture checks remain the reproducible public evidence;
+a single live completion does not establish tool, write or resume compatibility.
 
 ## Requested reasoning effort
 

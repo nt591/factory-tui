@@ -431,14 +431,10 @@ workspaces/tasks or starting an agent. Other form fields and task history stay
 unchanged; stale replacement choices are refused. Ctrl-G and Models are explicit
 form controls; Fetch remains the separate credential/network action.
 
-Two user-authorized real read-only arithmetic calls through Codex/LiteLLM returned
-4 and reached Ready. Safe smoke and network reports are retained under
-`docs/verification/live-sol-*-20261118.json`. Codex recorded the requested low
-reasoning effort. The network trace explains the large harness input and distinct
-HTTP/stream boundary observations but does not establish an inference bottleneck.
-No tools, writes or real-provider resume were exercised; no secret/header/body or
-gateway address is retained in the reports. These narrow real-call results do not
-replace the fixture suite or general provider/security verification.
+User-authorized read-only completions passed through the configured gateway.
+Private traffic evidence is retained outside the repository. Public evidence
+contains fixtures only; a basic completion does not establish tool, write or
+provider resume compatibility.
 The form-picker preview was inspected. Separate model-discovery CLI (31), setup
 CLI (35), invocation (21), fake execution (19) and package (17) checks passed.
 
@@ -449,3 +445,18 @@ workflow checks low effort on both new/resumed invocations, with confirmation
 review binding. Setup CLI (36), invocation (26), fake execution (19) and package
 (17) checks passed. No additional paid calls; effort is launch-only and not
 persisted in historical run records.
+
+## Public repository boundary
+
+The public-tree review covers tracked content and historical file blobs reachable
+from main. No credential-shaped private keys or API/GitHub token literals and no
+internal service-domain matches were found by the pattern scan. This is a bounded
+scan, not a guarantee that every secret format or internal fact was recognized.
+User author email is explicitly permitted. Private live model identifiers,
+response captures and local runtime paths are removed from the current tree;
+examples use generic project paths, endpoints and model IDs. References to sibling
+local repositories are removed. Live evidence stays outside the public checkout.
+
+Earlier published commits still contain the removed reports and sibling-checkout
+references. A deletion commit does not erase those historical copies. No history
+rewrite or force push is performed without separate explicit authorization.

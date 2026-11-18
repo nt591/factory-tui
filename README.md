@@ -1,7 +1,7 @@
 # Factory TUI
 
-An independent OCaml terminal prototype for a software factory. The in-flight
-Rust/GPUI app in `../factory` is not a dependency and is not modified.
+An independent OCaml terminal prototype for a software factory.
+No companion application or checkout is required.
 
 The interface borrows bottom's dashboard structure: bordered panes, visible
 focus, compact status widgets, mouse selection, search, and pane expansion.
@@ -43,7 +43,7 @@ Reproducible commands and measurement limits are in `docs/performance.md`.
 A project-local OCaml 5.3 switch is installed under `_opam`:
 
 ```sh
-cd ~/dev/factory-tui
+cd /path/to/factory-tui
 ./scripts/run.sh
 ```
 
@@ -368,7 +368,7 @@ TOML
 Then launch without database arguments:
 
 ```sh
-~/dev/factory-tui/scripts/run.sh
+/path/to/factory-tui/scripts/run.sh
 ```
 
 To launch as `factory-tui`, add this alias to your shell configuration:
@@ -426,8 +426,8 @@ Add this to your startup TOML after configuring SQLite:
 ```toml
 [workspace]
 jj = "/absolute/path/to/jj"
-source = "~/dev/project"
-parent = "~/dev/factory-workspaces"
+source = "~/projects/example"
+parent = "~/factory-workspaces"
 revision = "main@origin"
 model = "coding-large"
 ```

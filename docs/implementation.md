@@ -1,8 +1,7 @@
 # Implementation sequence
 
-This plan adapts the product and implementation sequence in `../factory/README.md`
-and its development instructions. The native application is a reference, not a
-runtime dependency. Implement the core in OCaml. Do not modify the native checkout.
+Build the core in OCaml with independently verified terminal, storage, process
+and workspace boundaries. No other local checkout is a runtime dependency.
 
 ## Product contract
 

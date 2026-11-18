@@ -5,8 +5,8 @@ database = "board.sqlite"
 # Optional form defaults. These never create a workspace or enable live runs.
 # [workspace]
 # jj = "/absolute/path/to/jj"
-# source = "~/dev/project"
-# parent = "~/dev/factory-workspaces"
+# source = "~/projects/example"
+# parent = "~/factory-workspaces"
 # revision = "main@origin"
 # model = "coding-large"
 
