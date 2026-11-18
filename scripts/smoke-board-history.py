@@ -29,9 +29,12 @@ def event(item, text):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--preview", type=Path)
+    parser.add_argument("--binary", type=Path)
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
-    subprocess.run([str(root / "scripts/build.sh")], cwd=root, check=True)
+    if args.binary is None:
+        subprocess.run([str(root / "scripts/build.sh")], cwd=root, check=True)
+    binary = (args.binary or root / "_build/default/bin/main.exe").resolve()
     with tempfile.TemporaryDirectory(prefix="factory-board-history-") as temporary:
         replay = Path(temporary) / "events.jsonl"
         replay.write_text(
@@ -40,7 +43,7 @@ def main():
             )
         )
         command = [
-            str(root / "_build/default/bin/main.exe"),
+            str(binary),
             "--no-config",
             "--events",
             str(replay),

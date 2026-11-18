@@ -674,3 +674,37 @@ reported 6.42 ms / 96 allocated bytes for prepared matching versus 50.25 ms /
 818,312,496 bytes for the prior substring scan. It excludes full UI/rendering and
 is not a test performance gate. Search remains literal and ASCII-case-insensitive;
 Unicode case folding is not introduced.
+
+
+## One-build UI regression suite
+
+```sh
+uv run --with pyte --with pillow python scripts/check-ui.py \
+  --output /tmp/factory-ui-check-new
+```
+
+The runner checks formatting and runs scripts/check.sh, then all 15 fixture-only
+PTY cases sequentially against the same executable. It never invokes the installed
+Codex, sandbox probes, fresh-switch reconstruction or a real provider. Each child
+uses --binary so it cannot rebuild during terminal execution. Sidebar, column and
+board-history fixtures support the same option while retaining standalone build
+behavior. --case may be repeated; selected cases run in catalogue order, once each.
+--list has no build/process/output-directory side effects. --binary tests an
+existing executable and explicitly skips format/build/unit gates in its report.
+FACTORY_BUILD_DIR is respected when the suite builds the application.
+
+Output paths are new private directories, never overwritten. Without --output a
+new private temporary path is retained and printed. report.json updates atomically
+after each step and records passed/failed/not_run/interrupted states, exit codes,
+elapsed time, selected cases and the executable digest. Logs and PNGs contain only
+fixture data but remain sensitive artifacts. The runner fails fast; a failed or
+interrupted run is not presented as complete coverage. Interrupt cleanup terminates
+and reaps the child process group, escalating only if it will not exit. Escaped
+descendants remain outside that containment, as for the application runner.
+The normal Python unit check tests planning, report transitions, failure/interrupt
+handling and cleanup with injected callables/mocks, not real UI subprocesses.
+
+All previews currently use the macOS Menlo font. The report is fixture regression
+evidence, not a visual-quality verdict, provider/sandbox audit, clean-OS validation
+or public release gate. Inspect relevant captures. CLI invocation/execution and
+package reproducibility/install checks remain separate commands.

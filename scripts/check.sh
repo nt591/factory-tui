@@ -9,3 +9,5 @@ opam exec --switch="$switch" -- dune runtest --root "$root" --build-dir "$build_
 
 python3 "$root/scripts/test-responses.py"
 python3 "$root/scripts/test-fresh-lock.py"
+
+python3 "$root/scripts/test-check-ui.py"

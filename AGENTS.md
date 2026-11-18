@@ -39,3 +39,10 @@ Package/install tests must use temporary destinations, not the user's PATH.
 Use native child fixtures for plain process I/O checks. Keep shell/jj integration
 tests where that behavior is the tested boundary. Do not increase timeouts or
 serialize the full suite to hide a launch failure; document its evidence and scope.
+
+For a full fixture-only UI audit, use scripts/check-ui.py through uv with pyte and
+Pillow, and select a new output directory. It runs PTYs sequentially against one
+binary. Inspect the report scope and relevant preview images before claiming UI
+coverage. --binary skips format/build/unit gates. Do not run build/format/package
+commands concurrently with its PTYs. Installed-agent checks remain separate opt-in
+commands and are not part of this suite.

@@ -16,13 +16,16 @@ from fixtures.terminal import Terminal
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--preview", type=Path)
+    parser.add_argument("--binary", type=Path)
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
-    subprocess.run([str(root / "scripts/build.sh")], cwd=root, check=True)
+    if args.binary is None:
+        subprocess.run([str(root / "scripts/build.sh")], cwd=root, check=True)
+    binary = (args.binary or root / "_build/default/bin/main.exe").resolve()
     with tempfile.TemporaryDirectory(prefix="factory-sidebar-") as temporary:
         database = Path(temporary) / "board.sqlite"
         command = [
-            str(root / "_build/default/bin/main.exe"),
+            str(binary),
             "--no-config",
             "--database",
             str(database),

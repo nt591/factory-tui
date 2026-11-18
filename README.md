@@ -305,6 +305,23 @@ uv run --with pyte --with pillow python scripts/smoke-terminal.py \
 
 The preview uses the macOS Menlo font. Omit `--preview` for a portable smoke.
 
+Run all dedicated UI fixtures against one build and retain their evidence:
+
+```sh
+uv run --with pyte --with pillow python scripts/check-ui.py \
+  --output /tmp/factory-ui-check-new
+```
+
+The output directory must be new. It contains a JSON result report, per-case logs,
+and preview PNGs. Checks run sequentially: formatting and parallel unit tests first,
+then the full terminal regression and dedicated board, chat, composer, confirmation,
+configuration and review fixtures. No installed agent or real model is used.
+Preview rendering currently requires the macOS Menlo font. Use `--list` to inspect
+cases without running; repeat `--case` to select a subset. `--binary /path/to/binary`
+tests an existing build without formatting, rebuilding, or running unit tests;
+that skipped scope is explicit in the report. Failures stop the suite and retain
+logs, with later cases marked `not_run`. Package checks remain a separate gate.
+
 ## Low-effort TOML setup
 
 The app reads `~/.config/factory-tui/config.toml` if present. With an absolute

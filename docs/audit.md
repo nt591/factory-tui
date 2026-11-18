@@ -124,12 +124,10 @@ narrow fixture success claims.
 ## Repeat the verification
 
 ```sh
-./scripts/format.sh --check
-./scripts/check.sh
+uv run --with pyte --with pillow python scripts/check-ui.py \
+  --output /tmp/factory-ui-audit-new
 python3 scripts/smoke-invocation.py
 python3 scripts/smoke-execution.py
-uv run --with pyte --with pillow python scripts/smoke-terminal.py \
-  --preview /tmp/factory-tui-audit.png
 python3 scripts/smoke-package.py
 ```
 
@@ -207,3 +205,10 @@ Literal-search matching has fixed/seeded equivalence checks and repeated-prefix
 large-text coverage. A scoped local measurement supports reduced allocations,
 not whole-app or cross-machine performance. Existing board/chat search semantics
 and terminal count/navigation checks remain in force.
+
+
+The fixture UI suite now runs all dedicated board/chat/composer/confirmation/config/
+review checks against one build, retaining logs, previews and a fail-fast JSON
+report. It includes format/build/unit gates unless --binary explicitly skips them.
+Its case catalogue excludes installed-agent and real-provider work; full fixture
+success does not replace the unresolved security/provider/release boundaries.

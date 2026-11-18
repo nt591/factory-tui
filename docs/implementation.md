@@ -728,3 +728,15 @@ agreement with the previous algorithm. A scoped ten-search measurement reported
 6.42 ms / 96 allocated bytes versus 50.25 ms / 818.3 MB for the prior scan on a
 300,001-byte repeated-prefix text and 256-byte query. This excludes whole-UI work
 and does not impose timing or allocation thresholds in tests.
+
+
+scripts/check-ui.py consolidates the full terminal regression and 14 dedicated UI
+fixtures into one sequential verification command. A single format/build/unit phase
+precedes the PTYs, which all use the exact selected --binary without rebuilding.
+New private output directories retain atomic reports, per-case logs and previews;
+failures stop immediately and preserve later cases as not_run. Existing binary
+mode skips build/unit gates explicitly. Pure Python tests cover planning, report
+state and interrupt cleanup without running UI processes. The suite excludes
+installed agents, provider calls, sandbox probes and toolchain reconstruction;
+package/CLI checks remain separate. This improves repeatable verification rather
+than claiming real-provider or release completeness.
