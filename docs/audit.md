@@ -307,3 +307,19 @@ board-summary checks, and all 17 fixture UI cases (58 previews). Evidence:
 `/tmp/factory-show-card-ui-20261118/report.json`. The off-board Archive preview
 was inspected. Separate CLI invocation (20), fake execution (19) and temporary
 package (14) checks passed. Real-provider and release limitations remain unchanged.
+
+Shortcut_guidance.ml/.mli supplies a width-bounded bottom-row hint for the current
+input mode, pane focus, expansion and transcript search. Reply editing shows INSERT,
+Enter queues, draft-preserving Escape and newline controls. Model/task/search editors
+state their own submit and Escape behavior. Normal chat hints describe scrolling
+and Latest rather than card movement; Activity names readable/raw tools. Expanded
+views say return, and the pending pane prefix names pane controls. Input-limit and
+validation feedback keep precedence. No binding, state transition, persistence or
+execution behavior changes. Pure layout/render tests and the input-feedback PTY
+verify the mode changes and recovery from validation errors.
+
+Contextual shortcut verification on 2026-11-18 passed 106 pure input/render checks,
+format/build/unit gates, and all 17 fixture UI cases with 59 previews. Evidence:
+`/tmp/factory-shortcuts-ui-20261118/report.json`. The insert-mode preview was
+inspected. Separate CLI invocation (20), fake execution (19) and temporary package
+(14) checks passed. No installed provider or real model was called.

@@ -653,8 +653,10 @@ let render t ~width:cols ~height:rows =
          | _ when t.input <> Normal && t.input_error <> None ->
              " " ^ Option.get t.input_error
          | _ ->
-             " hjkl: move · gg/G: first/last · Ctrl-W hjkl: pane · Ctrl-U/D: half-page · \
-              Ctrl-B/F: page · e: zoom · Esc: back"));
+             Shortcut_guidance.text ~width:cols ~input:t.input ~focus:t.focus
+               ~expanded:t.zoom
+               ~searching:(Chat_search.query t.chat_search <> "")
+               ~prefix:t.prefix));
   if t.help then (
     let w = min 86 cols and h = min 31 rows in
     let x = (cols - w) / 2 and y = (rows - h) / 2 in

@@ -31,6 +31,8 @@ is coupled; moving directories alone does not remove that coupling.
 Each library module has an explicit interface. The compiler checks implementations
 against these interfaces during the normal Dune build.
 
+- `Shortcut_guidance`: pure current-mode/pane shortcut copy with terminal-width
+  limits. Input validation and size warnings take priority in the renderer.
 - `Model`: immutable task/run/event data and lifecycle transitions. Records and
   variants are public because reducers, codecs, and rendering inspect them.
 - `Restart_guidance`: pure pre-recovery snapshot summary of interrupted tasks and

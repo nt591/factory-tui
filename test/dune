@@ -407,3 +407,8 @@
  (name test_acceptance_summary)
  (modules test_acceptance_summary)
  (libraries factory_tui notty))
+
+(test
+ (name test_shortcut_guidance)
+ (modules test_shortcut_guidance)
+ (libraries factory_tui notty))

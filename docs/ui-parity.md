@@ -657,3 +657,13 @@ closes so the card can be inspected. Full labels have exact mouse targets; narro
 headers use a short label and omit the button below its minimum usable width.
 Controller/layout tests and temporary SQLite PTYs verify active and accepted
 reveal, retained conversation data, input/modal isolation and no execution.
+
+Shortcut_guidance.ml/.mli supplies a width-bounded bottom-row hint for the current
+input mode, pane focus, expansion and transcript search. Reply editing shows INSERT,
+Enter queues, draft-preserving Escape and newline controls. Model/task/search editors
+state their own submit and Escape behavior. Normal chat hints describe scrolling
+and Latest rather than card movement; Activity names readable/raw tools. Expanded
+views say return, and the pending pane prefix names pane controls. Input-limit and
+validation feedback keep precedence. No binding, state transition, persistence or
+execution behavior changes. Pure layout/render tests and the input-feedback PTY
+verify the mode changes and recovery from validation errors.

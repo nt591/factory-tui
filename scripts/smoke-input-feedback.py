@@ -31,7 +31,19 @@ def main():
             [str(binary), "--no-config", "--events", str(replay)], env
         ) as tui:
             tui.ready()
-            tui.send(b"ei\r")
+            tui.send(b"ei")
+            tui.wait(
+                "reply insert guidance",
+                lambda: "INSERT / Enter queues" in tui.screen.display[-1],
+            )
+            tui.check(
+                "reply hint names draft-preserving Escape and newline",
+                "Esc keeps draft" in tui.screen.display[-1]
+                and "Ctrl-L newline" in tui.screen.display[-1],
+            )
+            if args.preview:
+                tui.preview(args.preview.with_stem(args.preview.stem + "-insert"))
+            tui.send(b"\r")
             tui.wait(
                 "empty reply feedback",
                 lambda: "Message is empty." in tui.screen.display[-1],
@@ -44,7 +56,7 @@ def main():
             tui.send(b"Recovered reply")
             tui.wait(
                 "feedback clears on edit",
-                lambda: "Message is empty." not in tui.screen.display[-1],
+                lambda: "INSERT / Enter queues" in tui.screen.display[-1],
             )
             tui.send(b"\r")
             tui.wait(
@@ -55,6 +67,10 @@ def main():
                 ),
             )
             tui.send(b"m\x1b[H")
+            tui.wait(
+                "model edit guidance",
+                lambda: "MODEL / Enter applies" in tui.screen.display[-1],
+            )
             tui.send(b"\x1b[200~-\x1b[201~\r")
             tui.wait(
                 "invalid model feedback",
@@ -66,7 +82,12 @@ def main():
             )
             tui.send(b"\x7f\r")
             tui.wait("model corrected", lambda: "Next-run model updated" in tui.text())
-            tui.send(b"n\r")
+            tui.send(b"n")
+            tui.wait(
+                "task creation guidance",
+                lambda: "NEW TASK / Enter creates" in tui.screen.display[-1],
+            )
+            tui.send(b"\r")
             tui.wait(
                 "blank task feedback",
                 lambda: "Enter a task instruction" in tui.screen.display[-1],
@@ -82,6 +103,31 @@ def main():
             )
             tui.check(
                 "recovered task is queued without automatic run", "Queued" in tui.text()
+            )
+            tui.send(b"\t")
+            tui.wait(
+                "Activity guidance",
+                lambda: "t: tools" in tui.screen.display[-1],
+            )
+            tui.send(b"\t")
+            tui.wait(
+                "conversation guidance",
+                lambda: "End: latest" in tui.screen.display[-1],
+            )
+            tui.send(b"S")
+            tui.wait(
+                "transcript search editing guidance",
+                lambda: "CHAT SEARCH / Enter finishes" in tui.screen.display[-1],
+            )
+            tui.send(b"Created\r")
+            tui.wait(
+                "transcript result guidance",
+                lambda: "n/N: matches" in tui.screen.display[-1],
+            )
+            tui.send(b"\x1b")
+            tui.wait(
+                "search cleared guidance",
+                lambda: "End: latest" in tui.screen.display[-1],
             )
             tui.send(b"q")
             tui.wait_exit()
