@@ -229,3 +229,8 @@ Background-update badges have pure event/visibility tests and a replay PTY cover
 stream chunk deduplication, automatic column movement, stable selected chat and
 clear-on-inspection. Marks are launch-local and do not prove all content was read;
 modal/board-only views retain them and snapshot restore does not badge old history.
+
+Stream identity protection has pure namespace/collision tests and strict failed-run
+snapshot/render checks. Retained user instructions cannot be silently replaced by
+conflicting output, and a conflicted run cannot reach Ready. This does not authenticate
+arbitrary imported author labels or repair existing corrupt databases.

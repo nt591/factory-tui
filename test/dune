@@ -377,3 +377,8 @@
  (name test_task_updates)
  (modules test_task_updates)
  (libraries factory_tui notty))
+
+(test
+ (name test_stream_identity)
+ (modules test_stream_identity)
+ (libraries factory_tui notty))

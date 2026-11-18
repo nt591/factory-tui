@@ -770,3 +770,14 @@ not proof a user read every message or tool. No marker is saved or alters task/r
 state. Pure event/visibility/compact/modal tests and the board-history replay PTY
 verify background chunks, automatic movement, selected-chat stability and badge
 clear on inspecting the moved task. Existing fixture suite covers normal layouts.
+
+Run output may replace only an existing nonqueued message with the captured harness
+label and no submitted-instruction ownership. A collision with user/Factory/other
+history preserves that record, emits a diagnostic and marks the run failed so later
+completion cannot make it Ready. Model.start refuses a retained message/tool namespace
+under the new run prefix, including overlapping nested run names. Model.send refuses
+reply IDs under the active output prefix. Valid stream replacements are unchanged.
+Pure reducer/start/send tests cover namespace refusal, queued/sent history protection,
+sticky failure, strict snapshot roundtrip and readable channel diagnostics. This is
+an in-process identity guard, not authentication of imported authors or a new stored
+provenance schema; invalid stored snapshots are not repaired.

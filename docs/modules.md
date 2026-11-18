@@ -413,3 +413,10 @@ and clears the selected set only when conversation/Activity content is visible
 without a modal. Compact Task_row receives a count without changing task text or
 identity. Snapshot restore drops transient marks. They are not persisted unread
 receipts and do not prove content comprehension.
+
+Model guards run-output identity at three boundaries: start cannot claim a retained
+message/tool namespace, reply append cannot occupy the active run prefix, and message
+replacement cannot overwrite submitted, queued or differently authored history.
+A conflicting output preserves history and records a failed-run diagnostic. The
+existing scoped IDs and captured harness labels remain the supported stream identity;
+no new author authentication or persistence schema is introduced.

@@ -160,6 +160,14 @@ let start ?(simulated = true) ?(policy = Read_only) task run_id =
       "Workspace-write requires a non-simulated Codex run in an isolated task workspace."
   else if task.state = Working || task.state = Done then
     Error "Task cannot start in this state."
+  else if
+    List.exists
+      (fun (message : message) -> String.starts_with ~prefix:(run_id ^ "/") message.id)
+      task.messages
+    || List.exists
+         (fun (id, _) -> String.starts_with ~prefix:(run_id ^ "/") id)
+         task.tools
+  then Error "Run output namespace is already occupied by retained history."
   else if not (List.exists (fun (m : message) -> m.queued) task.messages) then
     Error "Post an instruction before starting a run."
   else
@@ -206,6 +214,11 @@ let send task ~id text =
     Error "Message ID must contain 1 to 1024 bytes."
   else if List.exists (fun (message : message) -> message.id = id) task.messages then
     Error "Message ID is already recorded."
+  else if
+    Option.fold ~none:false
+      ~some:(fun (run : run) -> String.starts_with ~prefix:(run.id ^ "/") id)
+      task.active
+  then Error "Reply ID is reserved for the active run's output."
   else
     Ok
       {
@@ -268,15 +281,32 @@ let apply task (envelope : envelope) =
                   ^ if record.simulated then " (simulated)" else ""
               | None -> "Agent (simulated)"
             in
-            let message = { id; author; text; queued = false } in
-            let messages =
-              if List.exists (fun (m : message) -> m.id = id) task.messages then
-                List.map
-                  (fun (m : message) -> if m.id = id then message else m)
-                  task.messages
-              else task.messages @ [ message ]
+            let previous =
+              List.find_opt (fun (message : message) -> message.id = id) task.messages
             in
-            { task with messages }
+            if
+              Option.fold ~none:false
+                ~some:(fun (message : message) ->
+                  message.queued || message.author <> author
+                  || List.mem message.id run.submitted)
+                previous
+            then
+              system
+                (update { run with failed = true })
+                "Run output conflicts with retained conversation history. The message \
+                 was not changed."
+            else
+              let message = { id; author; text; queued = false } in
+              let messages =
+                match previous with
+                | Some _ ->
+                    List.map
+                      (fun (previous : message) ->
+                        if previous.id = id then message else previous)
+                      task.messages
+                | None -> task.messages @ [ message ]
+              in
+              { task with messages }
         | Tool (id, text) ->
             let id = run.id ^ "/" ^ id in
             { task with tools = List.remove_assoc id task.tools @ [ (id, text) ] }

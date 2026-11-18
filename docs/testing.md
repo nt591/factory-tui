@@ -744,3 +744,11 @@ restore reset and snapshot isolation. The board-history PTY now selects another 
 appends two chunks of one background message, checks one badge, completes the run,
 verifies the badge follows Ready while selection stays fixed, then inspects that
 card and checks badge clearing. No agent, credentials or real workspace are used.
+
+`test_stream_identity` supplies colliding user and output IDs to the reducer and
+checks start/send refusal, overlapping run-prefix history, legitimate replacement,
+queued and sent user-record preservation, failure stickiness through successful
+exit events, snapshot validity and rendered diagnostics. The corrupt in-memory case
+is a guard test, not a claim that the loader permits corrupt snapshots. No agent,
+credentials or real workspace are used. The full UI suite exercises normal stream
+replacement, movement and persistent conversations separately.
