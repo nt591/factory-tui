@@ -334,3 +334,20 @@ omit buttons that cannot fit. Normal card clicks and modal controls retain their
 existing input isolation. Pure mouse/render tests and the input-feedback PTY
 verify clicked submission, newline, model correction, task creation and search
 closure without starting agents.
+
+E2E perf now runs the real TUI executable through a PTY against isolated SQLite
+and replay data. The 200-task/200-message and 1,000-task/1,000-message workloads
+passed ordered-reply persistence, navigation/editor and event-driven Ready checks.
+Raw latency/resource reports are retained under docs/verification/e2e-perf-*-20261118.json.
+They include observer/binary hashes and explicit measurement limits. See
+docs/performance.md for commands and dimensions. This is not live-provider,
+model throughput, terminal GUI paint, peak-RSS or application-only profiling.
+Five pure helper tests verify summaries, fixtures, stale-state refusal, private
+reports and preservation of partial evidence on failure/interruption.
+
+Perf-tool verification on 2026-11-18 passed formatting/build/unit gates and five
+pure benchmark-helper tests. The default 3x5 workload, the 1,000-task/message 2x2
+workload, and the build-on-demand 20-task/36-message smoke all completed exact
+persistence and replay checks. Separate CLI invocation (20), fake execution (19)
+and temporary package (14) checks passed. This increment changes no OCaml runtime
+behavior; the preceding editor-controls increment passed all 17 fixture UI cases.

@@ -9,6 +9,12 @@ Session rules are adapted from Factory's Rust session and event reducers, not
 linked through FFI. The TUI remains a simulated interaction prototype; explicit headless Codex
 execution is available separately and requires deliberate invocation.
 
+## End-to-end performance
+
+Use `scripts/bench-e2e.py` for a fixture-only PTY baseline of input-to-screen,
+streamed updates, SQLite reopen/shutdown, CPU and sampled memory. It runs no agents.
+Reproducible commands and measurement limits are in `docs/performance.md`.
+
 ## Run
 
 A project-local OCaml 5.3 switch is installed under `_opam`:

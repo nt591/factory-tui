@@ -803,3 +803,11 @@ accepted chat selection, independent active counters, read-only controls, expand
 answer and exact saved tasks/drafts/selection. HOME/XDG are isolated; no agent or
 workspace operation is used. The case is included in check-ui.py. Unit restart and
 onboarding tests cover accepted selection, empty filters, absent IDs and empty state.
+
+## End-to-end performance
+
+`scripts/bench-e2e.py` measures the real binary through a PTY against temporary
+SQLite and replay workloads. See `docs/performance.md` for commands, parameters,
+raw samples, resource attribution and observer limitations. `passed` establishes
+correctness of the measured workflow, not a latency budget. Pure report/statistics/
+fixture tests run through `scripts/check.sh`; the benchmark remains opt-in.

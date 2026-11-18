@@ -11,3 +11,5 @@ python3 "$root/scripts/test-responses.py"
 python3 "$root/scripts/test-fresh-lock.py"
 
 python3 "$root/scripts/test-check-ui.py"
+
+python3 "$root/scripts/test-bench-e2e.py"

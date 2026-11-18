@@ -1,0 +1,260 @@
+{
+  "status": "passed",
+  "schema_version": 1,
+  "scope": "Fixture-only process/PTY/SQLite and replay. No agent, credentials, network, real workspace or GUI comparison.",
+  "measurement": "perf_counter input/event-write to expected parsed PTY screen. Includes app loop, output transport and pyte observer; excludes terminal GUI paint. No fixed post-input sleeps. No warmup removal. Repeated local launches, not cold-OS launches.",
+  "resource_scope": "RSS samples are main TUI process, not peak. Child CPU includes two ps samplers per workload; bootstrap/build excluded. Shutdown includes PTY drain and SQLite flush, with up to 10 ms exit-observation quantization. Terminal-byte counts stop before shutdown.",
+  "parameters": {
+    "runs": 2,
+    "interactions": 2,
+    "tasks": 1000,
+    "messages": 1000,
+    "columns": 180,
+    "rows": 50,
+    "timeout": 15
+  },
+  "latency": {
+    "sqlite_startup": {
+      "samples_ms": [
+        35.222332924604416,
+        32.568583032116294
+      ],
+      "count": 2,
+      "median_ms": 33.895457978360355,
+      "p95_ms": 35.222332924604416,
+      "max_ms": 35.222332924604416
+    },
+    "board_search": {
+      "samples_ms": [
+        1450.8340840693563,
+        1387.415749952197,
+        1433.5978331509978,
+        1389.386458788067
+      ],
+      "count": 4,
+      "median_ms": 1411.4921459695324,
+      "p95_ms": 1450.8340840693563,
+      "max_ms": 1450.8340840693563
+    },
+    "board_reset": {
+      "samples_ms": [
+        3.3948328346014023,
+        3.3990831580013037,
+        3.510375041514635,
+        3.381500020623207
+      ],
+      "count": 4,
+      "median_ms": 3.396957996301353,
+      "p95_ms": 3.510375041514635,
+      "max_ms": 3.510375041514635
+    },
+    "card_navigation": {
+      "samples_ms": [
+        64.67970903031528,
+        61.19258305989206,
+        58.61945892684162,
+        59.77475014515221
+      ],
+      "count": 4,
+      "median_ms": 60.483666602522135,
+      "p95_ms": 64.67970903031528,
+      "max_ms": 64.67970903031528
+    },
+    "chat_expand": {
+      "samples_ms": [
+        83.74983305111527,
+        85.5979158077389,
+        83.12520803883672,
+        86.2504169344902
+      ],
+      "count": 4,
+      "median_ms": 84.67387442942709,
+      "p95_ms": 86.2504169344902,
+      "max_ms": 86.2504169344902
+    },
+    "composer_open": {
+      "samples_ms": [
+        30.296582961454988,
+        31.266167061403394,
+        29.93841702118516,
+        30.916708055883646
+      ],
+      "count": 4,
+      "median_ms": 30.606645508669317,
+      "p95_ms": 31.266167061403394,
+      "max_ms": 31.266167061403394
+    },
+    "paste": {
+      "samples_ms": [
+        286.5249579772353,
+        291.85704118572176,
+        293.4639169834554,
+        294.49525009840727
+      ],
+      "count": 4,
+      "median_ms": 292.6604790845886,
+      "p95_ms": 294.49525009840727,
+      "max_ms": 294.49525009840727
+    },
+    "queue_reply": {
+      "samples_ms": [
+        108.47483295947313,
+        105.08429096080363,
+        107.43016703054309,
+        108.66912500932813
+      ],
+      "count": 4,
+      "median_ms": 107.95249999500811,
+      "p95_ms": 108.66912500932813,
+      "max_ms": 108.66912500932813
+    },
+    "history_top": {
+      "samples_ms": [
+        44.02895807288587,
+        44.32025016285479,
+        42.815082939341664,
+        44.44487509317696
+      ],
+      "count": 4,
+      "median_ms": 44.17460411787033,
+      "p95_ms": 44.44487509317696,
+      "max_ms": 44.44487509317696
+    },
+    "history_latest": {
+      "samples_ms": [
+        34.23666604794562,
+        33.626666059717536,
+        33.17962493747473,
+        33.74095796607435
+      ],
+      "count": 4,
+      "median_ms": 33.68381201289594,
+      "p95_ms": 34.23666604794562,
+      "max_ms": 34.23666604794562
+    },
+    "chat_return": {
+      "samples_ms": [
+        62.91512493044138,
+        62.98212497495115,
+        61.74183287657797,
+        61.47604202851653
+      ],
+      "count": 4,
+      "median_ms": 62.32847890350968,
+      "p95_ms": 62.98212497495115,
+      "max_ms": 62.98212497495115
+    },
+    "board_focus": {
+      "samples_ms": [
+        57.97920818440616,
+        58.452000143006444,
+        57.7562500257045,
+        59.79291698895395
+      ],
+      "count": 4,
+      "median_ms": 58.2156041637063,
+      "p95_ms": 59.79291698895395,
+      "max_ms": 59.79291698895395
+    },
+    "sqlite_shutdown": {
+      "samples_ms": [
+        12.686125002801418,
+        12.613083934411407
+      ],
+      "count": 2,
+      "median_ms": 12.649604468606412,
+      "p95_ms": 12.686125002801418,
+      "max_ms": 12.686125002801418
+    },
+    "replay_startup_backlog": {
+      "samples_ms": [
+        2407.793208025396,
+        2446.299082832411
+      ],
+      "count": 2,
+      "median_ms": 2427.0461454289034,
+      "p95_ms": 2446.299082832411,
+      "max_ms": 2446.299082832411
+    },
+    "stream_replacement": {
+      "samples_ms": [
+        133.74241697601974,
+        141.45362516865134,
+        128.27862496487796,
+        142.14545884169638
+      ],
+      "count": 4,
+      "median_ms": 137.59802107233554,
+      "p95_ms": 142.14545884169638,
+      "max_ms": 142.14545884169638
+    },
+    "automatic_ready": {
+      "samples_ms": [
+        108.3427919074893,
+        108.03179116919637
+      ],
+      "count": 2,
+      "median_ms": 108.18729153834283,
+      "p95_ms": 108.3427919074893,
+      "max_ms": 108.3427919074893
+    }
+  },
+  "resources": [
+    {
+      "workload": "sqlite",
+      "iteration": 0,
+      "observer_cpu_seconds": 4.416269000000001,
+      "child_user_cpu_seconds": 0.24473499999999998,
+      "child_system_cpu_seconds": 0.035138,
+      "rss_samples_bytes": [
+        18219008,
+        26951680
+      ],
+      "observed_terminal_bytes": 3233908
+    },
+    {
+      "workload": "sqlite",
+      "iteration": 1,
+      "observer_cpu_seconds": 4.407583,
+      "child_user_cpu_seconds": 0.248385,
+      "child_system_cpu_seconds": 0.035196,
+      "rss_samples_bytes": [
+        18120704,
+        27705344
+      ],
+      "observed_terminal_bytes": 3233750
+    },
+    {
+      "workload": "replay",
+      "iteration": 0,
+      "observer_cpu_seconds": 1.1114080000000008,
+      "child_user_cpu_seconds": 0.030546000000000018,
+      "child_system_cpu_seconds": 0.009799000000000002,
+      "rss_samples_bytes": [
+        11386880,
+        12173312
+      ],
+      "observed_terminal_bytes": 762401
+    },
+    {
+      "workload": "replay",
+      "iteration": 1,
+      "observer_cpu_seconds": 1.1456350000000004,
+      "child_user_cpu_seconds": 0.033030000000000004,
+      "child_system_cpu_seconds": 0.009801999999999991,
+      "rss_samples_bytes": [
+        11386880,
+        12173312
+      ],
+      "observed_terminal_bytes": 762401
+    }
+  ],
+  "binary_sha256": "cd7caee356416bad9ef98beabae0aaf58c4ee20c5105990c6adcf3f1db5ecbc4",
+  "binary_bytes": 5111992,
+  "platform": "macOS-26.7.1-arm64-arm-64bit-Mach-O",
+  "architecture": "arm64",
+  "pyte_version": "0.8.2",
+  "python_version": "3.14.5",
+  "benchmark_sha256": "ddce389290db3345848c0a9f2ae397badfb8e580d26e4798abe7f566e6c6b08d",
+  "timestamp_utc": "2026-11-18T14:46:07.002173+00:00"
+}

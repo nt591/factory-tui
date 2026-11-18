@@ -896,3 +896,12 @@ omit buttons that cannot fit. Normal card clicks and modal controls retain their
 existing input isolation. Pure mouse/render tests and the input-feedback PTY
 verify clicked submission, newline, model correction, task creation and search
 closure without starting agents.
+
+E2E performance now has an opt-in real-binary PTY/SQLite/replay benchmark in
+scripts/bench-e2e.py. It measures input/event-to-visible-state latency without
+fixed post-input waits, retains raw samples and checks exact SQLite history/replies
+across launches. Replay measures transcript backlog, stream replacement and event-
+driven Ready movement. CPU, sampled main-process RSS, terminal bytes and binary/
+observer metadata are reported. Pure measurement-helper tests are part of check.sh.
+See docs/performance.md for scope and reproducible commands. These measurements
+establish a baseline, not a release latency target or native-GUI comparison.
