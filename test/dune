@@ -217,3 +217,8 @@
  (name test_board_counts)
  (modules test_board_counts)
  (libraries factory_tui notty))
+
+(test
+ (name test_confirmation_layout)
+ (modules test_confirmation_layout)
+ (libraries factory_tui notty))

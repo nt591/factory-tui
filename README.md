@@ -422,7 +422,9 @@ banner marks live mode. Only workspace-backed Codex tasks can run.
 
 Create a task with `W`, queue instructions with `i`, and press `s` to inspect the
 confirmation. Enter/`y` runs; Escape/`n` cancels. Pasted text cannot confirm, and
-terminals smaller than 64x13 must resize first. Every run waits for its SQLite
+terminals smaller than 64x13 must resize first. Complete task/model/workspace/thread
+details wrap; long identities can require additional rows before Run is available.
+Every run waits for its SQLite
 Working checkpoint before spawn. Streaming output updates the same chat and moves
 its card. `x` cancels; shutdown cancels/joins and flushes. `v` reviews real changes.
 

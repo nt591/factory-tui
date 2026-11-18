@@ -692,17 +692,16 @@ let render t ~width:cols ~height:rows =
   | None -> ()
   | Some id ->
       modal_scroll := None;
-      let width = min 88 cols and height = min 13 rows in
-      let x = (cols - width) / 2 and y = (rows - height) / 2 in
+      let width = min 88 cols in
       let task = List.find_opt (fun (task : task) -> task.id = id) t.tasks in
-      let view =
-        Live_confirmation.render
-          ~policy:
-            (match t.live_config with
-            | None -> Model.Read_only
-            | Some config -> Live_runner.policy config)
-          task ~width ~height
+      let policy =
+        match t.live_config with
+        | None -> Model.Read_only
+        | Some config -> Live_runner.policy config
       in
+      let height = min rows (Live_confirmation.required_height ~policy task ~width) in
+      let x = (cols - width) / 2 and y = (rows - height) / 2 in
+      let view = Live_confirmation.render ~policy task ~width ~height in
       t.confirmation_readable <- view.readable;
       paint x y view.image;
       hits := [];

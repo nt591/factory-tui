@@ -138,10 +138,10 @@ printf '%s\n' '{"type":"turn.completed"}'
   check "enabling write starts no process" (not (Sys.file_exists marker));
   Controller.act controller Controller.Start;
   let view =
-    Live_confirmation.render ~policy:Workspace_write (Some task) ~width:88 ~height:13
+    Live_confirmation.render ~policy:Workspace_write (Some task) ~width:88 ~height:24
   in
   let buffer = Buffer.create 4096 in
-  Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (88, 13) view.image;
+  Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (88, 24) view.image;
   check "write permission is visible before confirming"
     (Controller.contains (Buffer.contents buffer)
        "WRITE ACCESS: workspace + temp directories");

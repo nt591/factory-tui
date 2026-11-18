@@ -224,6 +224,8 @@ instructions and `m` edits the next-run model. `s` asks for confirmation, showin
 model, workspace, new/resumed thread, usage/auth disclosure, and requested
 sandbox policy (read-only by default). Enter/`y` confirms; Escape/`n` cancels. Pasted text cannot authorize a run.
 At less than 64 columns or 13 rows confirmation is blocked; resize or cancel.
+Complete wrapped task/model/workspace/thread details can require additional rows.
+If they do not fit, Run remains unavailable and the pane reports the required height.
 
 Confirmation creates a non-simulated run record. The runner captures that run's
 model/harness selection, snapshots Working, and waits for the SQLite acknowledgment

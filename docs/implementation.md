@@ -293,3 +293,11 @@ visible cards. Active views exclude accepted tasks; Archive counts only matching
 accepted tasks. Filtering does not close a selected conversation outside the
 board filter. Unit/render tests cover repository/query/empty/archive counts, and
 the forty-repository PTY fixture checks counters after clicking a repository.
+
+Live confirmation wraps the full task title, model, workspace path, and thread
+identity instead of clipping them. Its height follows the required content within
+the terminal bounds; Run is enabled only when the entire disclosure and buttons
+fit, in addition to the 64-column/13-row minimum. Too-small terminals show the
+required row count and remain non-authorizing. Button hitboxes track the actual
+wrapped-content row. Unicode/small-screen unit tests and installed-agent/fake PTY
+checks verify full workspace disclosure, paste isolation, and resize blocking.

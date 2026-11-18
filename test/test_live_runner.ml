@@ -129,7 +129,7 @@ printf '%s\n' '{"type":"turn.completed"}'
               let view =
                 Live_confirmation.render
                   (Controller.selected controller)
-                  ~width:88 ~height:13
+                  ~width:88 ~height:24
               in
               let hit =
                 List.find
@@ -138,7 +138,7 @@ printf '%s\n' '{"type":"turn.completed"}'
                   view.hits
               in
               let buffer = Buffer.create 4096 in
-              Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (88, 13) view.image;
+              Notty.Render.to_buffer buffer Notty.Cap.dumb (0, 0) (88, 24) view.image;
               check "confirmation click aligns with visible Run button"
                 (Controller.contains
                    (List.nth (String.split_on_char '\n' (Buffer.contents buffer)) hit.y)

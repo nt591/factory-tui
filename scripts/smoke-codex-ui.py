@@ -197,6 +197,15 @@ def main():
                     and "no approvals" in tui.text()
                     and UiGateway.requests == 0,
                 )
+                disclosure = "".join(
+                    row[17:103].strip()
+                    for row in tui.screen.display
+                    if row[16:17] == "│" and row[103:104] == "│"
+                )
+                tui.check(
+                    "confirmation shows the complete workspace and selected model",
+                    str(workspace) in disclosure and "Model: gpt-4.1" in disclosure,
+                )
                 tui.send(b"y")
                 tui.wait(
                     "Working card and checkpoint",

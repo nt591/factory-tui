@@ -561,6 +561,9 @@ printf '%s\\n' '{"type":"turn.completed"}'
         send(b"s")
         check("Start requires confirmation", "Confirm live run" in text() and not marker.exists())
         check("confirmation discloses usage", "may incur model usage" in text())
+        disclosure = "".join(row[17:103].strip() for row in screen.display
+                             if row[16:17] == "│" and row[103:104] == "│")
+        check("confirmation retains complete workspace identity", task["workspace"]["directory"] in disclosure)
         if args.preview:
             preview(args.preview.with_stem(args.preview.stem + "-live-confirmation"))
         send(b"\x1b[200~y\r\x1b[201~")

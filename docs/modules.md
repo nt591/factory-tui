@@ -193,3 +193,8 @@ answer/resume and sandbox-sentinel integration entry points. The sandbox fixture
 uses only supplied temporary command paths and never chooses a real provider.
 Pure fixture tests run under `scripts/check.sh` without a server or subprocess;
 installed-agent execution remains a separate explicit opt-in command.
+
+`Live_confirmation` computes required height from sanitized, grapheme-wrapped
+identity/disclosure rows. The UI limits that height to the terminal; insufficient
+space removes authorization controls. Button geometry uses the computed row,
+not a fixed coordinate. It starts no process or workspace operation.

@@ -294,3 +294,12 @@ visible cards. Active views exclude accepted tasks; Archive counts only matching
 accepted tasks. Filtering does not close a selected conversation outside the
 board filter. Unit/render tests cover repository/query/empty/archive counts, and
 the forty-repository PTY fixture checks counters after clicking a repository.
+
+Run confirmation wraps complete task/model/workspace/thread details. The overlay
+grows vertically to fit when the terminal permits; otherwise it shows a resize
+message and exposes no Run target. The minimum remains 64x13, but long details
+can require more rows. No identity suffix is silently clipped from an authorizing
+view. The Run button follows the computed disclosure row; malformed UTF-8 and
+controls are sanitized. Unit and PTY fixtures check complete identity visibility
+and blocked confirmation when content cannot fit. Very long titles can require a
+larger terminal; scrollable confirmation is not implemented.
