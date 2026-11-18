@@ -95,7 +95,7 @@ class Terminal:
 
     def toggle_board_view(self):
         label = "Archive" if "accepted" in self.screen.display[2] else "Session board"
-        self.click_text(label, row=2)
+        self.click_text("Board" if label == "Archive" else "Archive", row=1)
 
     def wait(self, name, predicate, timeout=15):
         deadline = time.monotonic() + timeout

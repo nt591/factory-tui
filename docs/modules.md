@@ -440,3 +440,11 @@ check. Controller captures task identity, checks process ownership and publishes
 persistent deletion only after a successful checkpoint. Storage removes the matching
 run/event rows in the same transaction as the snapshot. Demo and live runner
 `owned_tasks` accessors keep canceled-but-unreaped handles in the deletion guard.
+
+
+`lib/terminal/board_tabs.ml/.mli` supplies bounded destination-tab labels and hit
+regions, with an independent total archive count. `command_palette.ml/.mli` owns
+the bounded search editor, entry availability and selection. It exports command
+identifiers, not Controller actions, to avoid a module dependency cycle. Controller
+maps selected commands to existing actions and rechecks the current catalogue.
+The palette leaves the original editor untouched until an action is selected.

@@ -5,8 +5,8 @@ let text ~width ~input ~focus ~expanded ~searching ~prefix =
   let hint =
     match input with
     | Compose ->
-        "INSERT / Enter sends · Esc keeps draft · Tab: panes · Ctrl-L newline · Ctrl-X \
-         delete"
+        "INSERT / Enter sends · Esc: navigation · Ctrl-P: commands · Tab: panes · Ctrl-L \
+         newline · Ctrl-X delete"
     | Edit_model -> "MODEL / Enter applies · Esc cancels · arrows edit · Home/End"
     | New_task -> "NEW TASK / Enter creates · Esc cancels · arrows edit · Home/End"
     | Search -> "BOARD SEARCH / Enter finishes · Esc closes · arrows edit"
@@ -29,4 +29,5 @@ let text ~width ~input ~focus ~expanded ~searching ~prefix =
                 "j/k: scroll · t: tools · T: raw · Tab: panes · " ^ expansion
                 ^ " · ?: help"))
   in
-  Text_layout.ellipsize width (" " ^ hint)
+  Text_layout.ellipsize width
+    (" " ^ (if input = Normal && prefix <> Window then "NAVIGATION / " else "") ^ hint)

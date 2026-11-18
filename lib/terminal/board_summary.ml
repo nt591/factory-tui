@@ -1,4 +1,4 @@
-type action = Toggle_archive | Search | Reveal_selected
+type action = Search | Reveal_selected
 type hit = { x : int; width : int; action : action }
 type t = { text : string; hits : hit list }
 
@@ -26,11 +26,7 @@ let base ~width:columns ~archive ~repository ~count ~query =
     let prefix = " " ^ label ^ "  |  " ^ count ^ "  | " in
     {
       text = prefix ^ search;
-      hits =
-        [
-          { x = 1; width = width label; action = Toggle_archive };
-          { x = width prefix; width = width search; action = Search };
-        ];
+      hits = [ { x = width prefix; width = width search; action = Search } ];
     }
   else
     let prefix = " " ^ count ^ "  | " in

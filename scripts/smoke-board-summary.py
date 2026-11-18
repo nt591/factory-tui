@@ -111,10 +111,10 @@ def main():
             tui.wait(
                 "search editor closes", lambda: "Search:" not in tui.screen.display[-3]
             )
-            label_x = tui.screen.display[2].index("project")
-            tui.send(f"\x1b[<0;{label_x + 1};3M".encode())
+            label_x = tui.screen.display[1].index("Archive")
+            tui.send(f"\x1b[<0;{label_x + 1};2M".encode())
             tui.wait(
-                "archive label click",
+                "Archive destination click",
                 lambda: (
                     "Archive" in tui.screen.display[2]
                     and "0 tasks accepted" in tui.screen.display[2]

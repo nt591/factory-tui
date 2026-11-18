@@ -1124,3 +1124,31 @@ checks pass. The real-binary fixture performance harness passes with three launc
 and three interaction rounds over 200 tasks/messages. Evidence remains outside the
 repository; no live agent, provider key or network request is needed for these UI
 and performance checks.
+
+
+Persistent Board/Archive destination tabs replace the ambiguous Archive footer
+button and summary-label toggle. Tabs stay visible in compact usable layouts and
+show an archive count when it fits. Opening Archive clears stale query/repository
+filters and focuses its list; Enter repairs an off-board selection before opening
+a card. Escape from expanded archived chat returns to the list before leaving the
+Archive area. Explicit INSERT/NAVIGATION footer guidance explains editing and
+return to shortcuts. Reply Escape keeps the draft; Enter/i reenters INSERT.
+
+Ctrl-P Commands uses a bounded search editor and an availability-aware catalogue.
+It is available from navigation and nonmodal editing without changing the original
+editor mode, cursor, draft, validation error or input limit. Escape/Ctrl-P cancels.
+Enter or a click selects an enabled command after rechecking current task state;
+empty/no-match/disabled selections and pasted Enter cannot execute. Destination
+navigation exits INSERT while retaining its draft. Task deletion still opens the
+separate typed confirmation. Palette navigation starts no implicit run, model fetch
+or creation. Other modal forms retain their own bindings, including Projects in the
+workspace form. No slash-command interception or credential/configuration changes
+apply in this increment.
+
+Validation includes 49 pure palette checks and bounded destination-tab/layer checks,
+plus the 25-case fixture UI audit with 78 previews. The palette and Archive views
+were inspected at compact and normal sizes. CLI discovery/config/invocation/
+execution and temporary package checks pass. The existing fixture E2E performance
+harness passes with three launches and three interaction rounds over 200 tasks and
+messages. All runtime evidence remains outside the public checkout; no installed
+agent, real provider key or paid request is used for this validation.

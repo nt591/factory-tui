@@ -888,3 +888,12 @@ Pure `test_task_deletion` checks captured identity, active/waiting/owned process
 refusal and atomic deletion rollback. `test_conversation_entry` covers insert/read
 entry and visible focus after returning to the board. Workspace and external agent
 history deletion are not supported or exercised.
+
+
+`scripts/smoke-commands.py` checks persistent tabs without a sidebar, command search
+from INSERT, cancellation back to the retained draft, explicit mode indicators,
+Archive/Board navigation and no-match refusal at 60, 120 and 240 columns. It uses
+an empty temporary replay source and no database, network or agent. The pure
+`test_command_palette` covers cursor/error preservation, bounded input, unavailable
+commands, stale state rechecks, paste and modal isolation. `test_board_tabs` checks
+compact widths, unfiltered destination entry and layered archive return.

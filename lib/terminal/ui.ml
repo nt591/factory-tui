@@ -115,18 +115,32 @@ let render t ~width:cols ~height:rows =
   let repository_label = Repository_labels.label repository_labels in
   let board_tasks = visible t in
   let states = if t.archive then [ Done ] else columns in
-  let meter_width = max 1 (main_width / List.length states) in
-  List.iteri
-    (fun i state ->
-      let count =
-        List.length (List.filter (fun (task : task) -> task.state = state) board_tasks)
-      in
-      let body = Printf.sprintf " %02d  %s" count (label state) in
-      paint
-        (sidebar_width + (i * meter_width))
-        1
-        (line meter_width (emphasis (state_color state)) body))
-    states;
+  let tabs =
+    Board_tabs.make ~width:cols ~archive:t.archive
+      ~count:(List.length (List.filter (fun (task : task) -> task.state = Done) t.tasks))
+  in
+  List.iter
+    (fun (item : Board_tabs.item) ->
+      paint item.x 1
+        (line item.width (if item.active then emphasis accent else attr muted) item.text);
+      hit item.x 1 item.width 1
+        (match item.destination with Board -> Session_board | Archive -> Archive_view))
+    tabs;
+  let meter_x = max sidebar_width (Board_tabs.extent tabs) in
+  let meter_width = max 0 ((cols - meter_x) / List.length states) in
+  if meter_width >= 10 then
+    List.iteri
+      (fun i state ->
+        let count =
+          List.length (List.filter (fun (task : task) -> task.state = state) board_tasks)
+        in
+        paint
+          (meter_x + (i * meter_width))
+          1
+          (line meter_width
+             (emphasis (state_color state))
+             (Printf.sprintf " %02d  %s" count (label state))))
+      states;
   let summary =
     Board_summary.make ~width:main_width ~archive:t.archive
       ~repository:(Option.map repository_label t.repository)
@@ -140,7 +154,6 @@ let render t ~width:cols ~height:rows =
     (fun (item : Board_summary.hit) ->
       hit (sidebar_width + item.x) 2 item.width 1
         (match item.action with
-        | Board_summary.Toggle_archive -> Toggle_archive
         | Board_summary.Search -> Begin_search
         | Board_summary.Reveal_selected -> Reveal_selected))
     summary.hits;
@@ -365,8 +378,9 @@ let render t ~width:cols ~height:rows =
         |> I.hpad 1 1
       in
       paint r.x r.y
-        (border ~section:true r.w r.h ~title:"Session board" ~color:accent
-           ~focused:(t.focus = Board) content);
+        (border ~section:true r.w r.h
+           ~title:(if t.archive then "Archive" else "Session board")
+           ~color:accent ~focused:(t.focus = Board) content);
       if r.h > 3 && r.w > 4 then
         (* The button exists only if its actual row is inside the pane. *)
         let actual_row = List.length lines + 2 in
@@ -409,8 +423,9 @@ let render t ~width:cols ~height:rows =
           tasks
       in
       let title =
-        if Board_window.cue window = "" then "Tasks / click to focus / e expand"
-        else "Tasks / click · " ^ Board_window.cue window ^ " · e expand"
+        let name = if t.archive then "Archive" else "Tasks" in
+        if Board_window.cue window = "" then name ^ " / click to focus / Enter opens"
+        else name ^ " / click · " ^ Board_window.cue window ^ " · Enter opens"
       in
       paint r.x r.y
         (border ~section:true r.w r.h ~title ~color:accent ~focused:(t.focus = Board)
@@ -602,8 +617,8 @@ let render t ~width:cols ~height:rows =
            details
              { x = sidebar_width; y = body_y + top; w = main_width; h = body_h - top });
   if
-    !detail_visible && t.model_target = None && (not t.help) && t.review = None
-    && t.workspace_form = None
+    !detail_visible && t.commands = None && t.model_target = None && (not t.help)
+    && t.review = None && t.workspace_form = None
   then Task_updates.clear t.task_updates t.selected;
   let pending_keys =
     (if t.count = 0 then "" else string_of_int t.count)
@@ -845,6 +860,75 @@ let render t ~width:cols ~height:rows =
           if capacity > 0 && w >= 5 then
             hit (x + 1) (y + 4 + (i * 2)) (w - 2) 2 (Choose_project project.name))
         displayed);
+  (match t.commands with
+  | None -> ()
+  | Some commands ->
+      Controller.refresh_commands t;
+      let w = min 86 cols and h = min 25 rows in
+      let x = (cols - w) / 2 and y = (rows - h) / 2 in
+      let inner = max 1 (w - 4) in
+      let capacity = max 0 ((h - 5) / 2) in
+      let entries = Command_palette.visible commands in
+      let index = Command_palette.index commands in
+      let offset = max 0 (index - capacity + 1) in
+      let shown =
+        List.filteri (fun i _ -> i >= offset && i < offset + capacity) entries
+      in
+      let lines =
+        if entries = [] then [ line inner (attr muted) "No matching commands." ]
+        else
+          List.concat
+            (List.mapi
+               (fun i (entry : Command_palette.entry) ->
+                 let selected = i + offset = index in
+                 let a = if selected then emphasis accent else attr text in
+                 [
+                   line inner a
+                     ((if selected then "> " else "  ")
+                     ^ entry.title
+                     ^ if entry.shortcut = "" then "" else "  [" ^ entry.shortcut ^ "]");
+                   line inner (attr muted) ("  " ^ Option.value ~default:"" entry.disabled);
+                 ])
+               shown)
+      in
+      let search =
+        Input_line.render ~width:inner ~label:"Find: " ~hint:""
+          (Command_palette.editor commands)
+      in
+      let content =
+        I.vcat
+          ([
+             line inner (attr muted) "Enter selects · arrows move · Esc cancels";
+             line inner (attr text) search;
+             line inner (attr muted) "";
+           ]
+          @ lines)
+        |> I.hpad 1 1
+      in
+      paint x y
+        (border ~section:true w h ~title:"Commands / Ctrl-P"
+           ~footer:"Esc cancels / draft stays saved" ~color:accent ~focused:true content);
+      hits := [];
+      input_controls := [];
+      sidebar := None;
+      column_regions := [];
+      panes := [];
+      scroll_panes := [];
+      modal_scroll := Some { x; y; w; h };
+      List.iteri
+        (fun i (entry : Command_palette.entry) ->
+          if entry.disabled = None && w > 4 then
+            hit (x + 1) (y + 4 + (i * 2)) (w - 2) 1 (Choose_command entry.command))
+        shown;
+      if w >= 18 && h >= 2 then hit (x + 2) (y + h - 1) 12 1 Close_commands;
+      if rows >= 4 then (
+        paint 0 (rows - 2) (block cols 1 (attr muted));
+        paint 0 (rows - 1) (block cols 1 (attr muted));
+        paint 0 (rows - 2)
+          (line cols (attr accent) " COMMANDS / Escape cancels and restores your mode");
+        paint 0 (rows - 1)
+          (line cols (attr muted)
+             " Type to find a command · Enter selects · no command runs on open")));
   (match t.deletion with
   | None -> ()
   | Some dialog ->
@@ -888,7 +972,11 @@ let render t ~width:cols ~height:rows =
 
 let mouse (t : Controller.t) frame ~now = function
   | `Press `Left, (x, y), _ ->
-      if t.deletion <> None then (
+      if t.commands <> None then
+        match hit_at frame x y with
+        | Some ((Choose_command _ | Close_commands) as action) -> act t action
+        | _ -> ()
+      else if t.deletion <> None then (
         if hit_at frame x y = Some Cancel_delete then act t Cancel_delete)
       else if t.input = Normal then (
         reset_keys t;
@@ -952,7 +1040,10 @@ let mouse (t : Controller.t) frame ~now = function
         | Some r -> x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h
         | None -> false
       in
-      if t.deletion <> None then ()
+      if t.commands <> None then (
+        if over_modal_content then
+          Command_palette.move (Option.get t.commands) (if direction = `Up then -3 else 3))
+      else if t.deletion <> None then ()
       else if t.project_picker <> None then (
         if over_modal_content then
           Project_picker.move (Option.get t.project_picker)

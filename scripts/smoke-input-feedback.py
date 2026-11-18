@@ -45,7 +45,7 @@ def main():
             )
             tui.check(
                 "reply hint names draft-preserving Escape and newline",
-                "Esc keeps draft" in tui.screen.display[-1]
+                "Esc: navigation" in tui.screen.display[-1]
                 and "Ctrl-L newline" in tui.screen.display[-1],
             )
             if args.preview:

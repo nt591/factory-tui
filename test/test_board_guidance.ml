@@ -151,8 +151,8 @@ let () =
     (reopened.selected = accepted.id);
   reopened.query <- "not-visible";
   Controller.act reopened Controller.Archive_view;
-  check "archive filter preserves retained conversation"
-    (reopened.selected = accepted.id && Controller.visible reopened = []);
+  check "opening Archive clears stale filters and keeps the conversation"
+    (reopened.selected = accepted.id && Controller.visible reopened = [ accepted ]);
   reopened.query <- "";
   Controller.act reopened Controller.Archive_view;
   check "clearing archive filter preserves selected conversation"

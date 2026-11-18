@@ -27,6 +27,7 @@ CASES = (
     "default-mode",
     "archive-safety",
     "task-deletion",
+    "commands",
     "layout-config",
     "input-limit",
     "input-feedback",

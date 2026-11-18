@@ -7,6 +7,9 @@ type prefix = No_prefix | Go | Window
 type model_target = Task_model of string | Workspace_model of Workspace_form.t
 
 type action =
+  | Open_commands
+  | Close_commands
+  | Choose_command of Command_palette.command
   | Select of string
   | Zoom
   | Open_conversation
@@ -64,6 +67,7 @@ type action =
   | Begin_new
 
 type t = {
+  mutable commands : Command_palette.t option;
   mutable projects : Project.t list;
   mutable project_picker : Project_picker.t option;
   model_picker : Model_picker.t;
@@ -132,6 +136,7 @@ type t = {
 
 let create ?(external_events = false) ?(fake_harness = false) () =
   {
+    commands = None;
     projects = [];
     project_picker = None;
     model_picker = Model_picker.create ();
@@ -365,6 +370,19 @@ let deletion_busy t id =
          task.id = id && (task.active <> None || task.state = Working))
        t.tasks
 
+let command_entries t =
+  Command_palette.catalogue ~task:(selected t) ~live:(t.live_config <> None)
+    ~replay:t.external_events ~storage:(t.database_path <> None)
+    ~busy:
+      (Option.fold ~none:false
+         ~some:(fun (task : task) -> deletion_busy t task.id)
+         (selected t))
+
+let refresh_commands t =
+  Option.iter
+    (fun commands -> Command_palette.update commands (command_entries t))
+    t.commands
+
 let deleted_snapshot t id =
   let saved = snapshot t in
   let tasks = List.filter (fun (task : task) -> task.id <> id) saved.tasks in
@@ -437,14 +455,48 @@ let report_creation t text =
 
 let rec act t action =
   reset_keys t;
-  t.input_limit <- None;
-  t.input_error <- None;
+  (match action with
+  | Open_commands | Close_commands | Choose_command _ -> ()
+  | _ ->
+      t.input_limit <- None;
+      t.input_error <- None);
   match action with
+  | Open_commands ->
+      if
+        t.deletion = None && t.workspace_form = None && t.model_target = None
+        && t.project_picker = None && t.review = None && not t.help
+      then t.commands <- Some (Command_palette.create (command_entries t))
+  | Close_commands -> t.commands <- None
+  | Choose_command command -> (
+      refresh_commands t;
+      match t.commands with
+      | None -> ()
+      | Some commands -> (
+          match Command_palette.choose commands command with
+          | Edit | Cancel -> ()
+          | Execute command ->
+              t.commands <- None;
+              if command <> Command_palette.Delete then t.input <- Normal;
+              act t
+                (match command with
+                | Board -> Session_board
+                | Archive -> Archive_view
+                | New_task -> Begin_new
+                | Reply -> Begin_compose
+                | Model -> Begin_model
+                | Models -> Open_models
+                | Stop -> Stop
+                | Accept -> Accept
+                | Restore -> Restore_task
+                | Delete -> Begin_delete
+                | Review -> Open_review
+                | Help -> Help)))
   | Select id ->
       select t id;
       focus_pane t Board
   | Focus focus -> focus_pane t focus
   | Open_conversation ->
+      if t.focus = Board then repair_selection t;
       t.zoom <- true;
       focus_pane t Conversation;
       act t Begin_compose
@@ -452,7 +504,10 @@ let rec act t action =
       if t.input <> Normal then t.input <- Normal
       else if Chat_search.query t.chat_search <> "" && t.focus = Conversation then
         Chat_search.clear t.chat_search
-      else if t.zoom then close_expansion t
+      else if t.zoom then (
+        let activity = t.activity_expanded in
+        close_expansion t;
+        if t.archive && not activity then repair_selection t)
       else if t.focus <> Board then focus_pane t Board
       else (
         t.query <- "";
@@ -514,12 +569,16 @@ let rec act t action =
       Column_scroll.clear t.column_scroll;
       focus_pane t Board
   | Archive_view ->
+      t.input <- Normal;
       t.archive <- true;
+      t.query <- "";
+      t.repository <- None;
       t.board_scroll <- 0;
       ensure_selection t;
       focus_pane t Board;
       t.zoom <- false
   | Session_board ->
+      t.input <- Normal;
       t.sidebar_scroll <- None;
       t.query <- "";
       t.archive <- false;
@@ -964,7 +1023,15 @@ let insert_text t value =
     else ignore (accept_input t editor)
 
 let paste_key t (key, mods) =
-  if t.deletion <> None then
+  if t.commands <> None then
+    match key with
+    | `ASCII char -> Command_palette.insert (Option.get t.commands) (String.make 1 char)
+    | `Uchar char ->
+        let buffer = Buffer.create 4 in
+        Uutf.Buffer.add_utf_8 buffer char;
+        Command_palette.insert (Option.get t.commands) (Buffer.contents buffer)
+    | _ -> ()
+  else if t.deletion <> None then
     match key with
     | `ASCII char -> Task_deletion.insert (Option.get t.deletion) (String.make 1 char)
     | _ -> ()
@@ -1256,6 +1323,20 @@ let key t (key, mods) =
   if key = `ASCII 'c' && List.mem `Ctrl mods then (
     reset_keys t;
     t.quit <- true)
+  else if t.commands <> None then (
+    reset_keys t;
+    refresh_commands t;
+    if key = `ASCII 'p' && List.mem `Ctrl mods then act t Close_commands
+    else
+      match Command_palette.key (Option.get t.commands) (key, mods) with
+      | Cancel -> act t Close_commands
+      | Execute command -> act t (Choose_command command)
+      | Edit -> ())
+  else if
+    key = `ASCII 'p'
+    && List.mem `Ctrl mods && t.deletion = None && t.workspace_form = None
+    && t.model_target = None && t.project_picker = None && t.review = None && not t.help
+  then act t Open_commands
   else if t.deletion <> None then (
     reset_keys t;
     match Task_deletion.key (Option.get t.deletion) (key, mods) with

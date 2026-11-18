@@ -55,8 +55,8 @@ let () =
   controller.query <- "";
   Controller.act controller Controller.Archive_view;
   let rows = render () in
-  check "archive count respects repository filter"
-    (has (List.nth rows 1) "01  Done" && has (List.nth rows 2) "1 tasks accepted");
+  check "Archive destination clears repository filters"
+    (has (List.nth rows 1) "02  Done" && has (List.nth rows 2) "2 tasks accepted");
   Controller.act controller (Controller.Repository None);
   let rows = render () in
   check "cleared repository exposes full archive count" (has (List.nth rows 1) "02  Done");

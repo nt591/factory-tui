@@ -46,7 +46,7 @@ let () =
             (text = hint ~input width))
         [ -1; 0; 1; 20; 40; 60; 120 ])
     [
-      (Compose, "INSERT", "Enter sends", "Esc keeps draft");
+      (Compose, "INSERT", "Enter sends", "Esc: navigation");
       (Edit_model, "MODEL", "Enter applies", "Esc cancels");
       (New_task, "NEW TASK", "Enter creates", "Esc cancels");
       (Search, "BOARD SEARCH", "Enter finishes", "Esc closes");

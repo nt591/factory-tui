@@ -103,14 +103,7 @@ def main():
                 if attempt == 0:
                     tui.toggle_board_view()
                 else:
-                    archive_row = next(
-                        row
-                        for row, text in enumerate(tui.screen.display)
-                        if "Archive" in text
-                    )
-                    tui.send(
-                        f"\x1b[<0;3;{archive_row + 1}M\x1b[<0;3;{archive_row + 1}m".encode()
-                    )
+                    tui.click_text("Archive", row=1)
                 tui.check(
                     "archive switch keeps active conversation open",
                     f"{active['id']} / Queued / conversation" in tui.text()

@@ -206,7 +206,8 @@ plugins, modify shell startup files, or require global OCaml tool installations.
   returns to the preceding task layout. Task selection, drafts, and run state
   remain unchanged. Tab or `i` returns from Activity-only display to visible chat.
 - Four columns contain bordered cards: Queued, Working, Needs you, Ready.
-  Click Archive to view accepted tasks. Acceptance leaves the selected chat open and read-only.
+  Click the persistent Archive tab to view accepted tasks. Acceptance leaves the
+  selected chat open and read-only.
 - Wide layouts show a repository sidebar. `R` cycles repositories at any size;
   `b` returns to all active tasks. Repository filtering does not close the chat.
 - Wide terminals place the board and task detail side by side. Medium terminals
@@ -854,8 +855,8 @@ message stays unchanged. Body-row anchors do not shift when an author grows.
 The board summary keeps filtered task counts visible when repository labels or
 search queries are long. It uses the same distinguishing repository suffixes as
 the sidebar; full repository/filter identity is unchanged. Click the displayed
-view label to toggle Archive, or the displayed `/` search text to edit the full
-query. Hitboxes follow these labels rather than fixed terminal columns. On very
+Board/Archive tabs to change destinations, or the displayed `/` search text to edit
+the full query. Hitboxes follow these labels rather than fixed terminal columns. On very
 small widths, counts take priority and omitted controls have no click target.
 
 
@@ -984,3 +985,26 @@ its draft and SQLite run/event rows in one transaction. The UI waits for a durab
 checkpoint before removing it. Workspace files, agent-owned sessions, replay input
 files and external backups remain unchanged. This is not secure disk erasure.
 Startup remains in board navigation mode and never starts an agent.
+
+## Commands and navigation modes
+
+**Board / Archive** tabs stay above the board, including layouts without a sidebar.
+Archive shows the total archived-task count when space permits. Opening Archive
+clears stale board filters and focuses the archive list. Escape from an expanded
+archived task returns to that list; another Escape returns to Board. Archiving a
+task is separate: **Ctrl-A accept & archive** acts on Ready work. There is no Archive
+navigation button mixed into the task footer.
+
+**INSERT** means text goes to the reply. Escape keeps the draft and switches to
+**NAVIGATION** in the same conversation. Enter or i resumes INSERT; another Escape
+in NAVIGATION goes back a layer. Tab changes sections and preserves the draft.
+
+**Ctrl-P Commands** opens a searchable action palette from navigation or a reply
+editor. Type `archive` to see **Open Archive**, **Accept & archive task**, and
+**Restore archived task** as separate actions. Arrow keys move selection; Enter
+executes the selected available action. Disabled actions show their reason.
+Escape or Ctrl-P cancels and restores the prior input mode, cursor and draft.
+Opening Commands does not send a prompt or start a process. Delete still requires
+its separate typed confirmation. Slash-prefixed reply text remains ordinary text.
+Other modal editors retain their own controls; Ctrl-P in the workspace creation
+form still opens Projects.

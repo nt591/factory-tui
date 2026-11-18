@@ -31,6 +31,9 @@ let help ~mode =
     | Fake -> "s starts a local process fixture; x stops; Ctrl-A archives Ready."
     | Simulation -> "s starts a simulated run; x stops; Ctrl-A archives Ready tasks.");
     "M opens and loads gateway models; Ctrl-R refreshes. Uses the gateway key.";
+    "Board / Archive tabs stay above the board at every usable terminal width.";
+    "Ctrl-P opens Commands from navigation or reply editing. Type to find actions.";
+    "Esc cancels Commands and restores your mode and draft. Enter selects an action.";
     "b returns to the board. Click Archive to open it; u restores an archived task.";
     "v opens real workspace changes; r refreshes; Escape returns.";
     "Review: [/]: files; h/l: long lines; Ctrl-U/D: half; Ctrl-B/F: page.";

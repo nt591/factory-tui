@@ -112,16 +112,16 @@ let () =
   let row = List.nth (String.split_on_char '\n' (Buffer.contents buffer)) 2 in
   check "UI uses repository suffix and filtered count"
     (Controller.contains row "project" && Controller.contains row "1 tasks");
-  let header_hits = List.filter (fun (hit : Ui.hit) -> hit.rect.y = 2) frame.hits in
+  let header_hits = List.filter (fun (hit : Ui.hit) -> hit.rect.y = 1) frame.hits in
   let archive =
-    List.find (fun (hit : Ui.hit) -> hit.action = Controller.Toggle_archive) header_hits
+    List.find (fun (hit : Ui.hit) -> hit.action = Controller.Archive_view) header_hits
   in
-  Ui.mouse controller frame ~now:0. (`Press `Left, (archive.rect.x, 2), []);
-  check "label click toggles only board archive view"
-    (controller.archive
-    && controller.repository = Some repo
+  Ui.mouse controller frame ~now:0. (`Press `Left, (archive.rect.x, 1), []);
+  check "persistent Archive tab opens an unfiltered destination"
+    (controller.archive && controller.repository = None
     && (Controller.snapshot controller).tasks = saved.tasks
     && (Controller.snapshot controller).drafts = saved.drafts);
+  controller.query <- String.make 150 'q';
   let frame = render 60 23 in
   let search =
     List.find
@@ -137,7 +137,7 @@ let () =
   check "modal hides all summary targets"
     (List.for_all
        (fun (hit : Ui.hit) ->
-         hit.action <> Controller.Begin_search && hit.action <> Controller.Toggle_archive)
+         hit.action <> Controller.Begin_search && hit.action <> Controller.Archive_view)
        modal.hits);
   controller.help <- false;
   List.iter

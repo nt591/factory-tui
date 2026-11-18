@@ -200,17 +200,17 @@ try:
     send(b"s")
     check("fixture start automatically moves card", "T-101 / Working / conversation" in text())
     check("working footer offers stop but not start or acceptance", "x stop" in screen.display[-2]
-          and "s start" not in screen.display[-2] and "Ctrl-A archive" not in screen.display[-2])
+          and "s start" not in screen.display[-2] and "Ctrl-A accept & archive" not in screen.display[-2])
     pump(8.0)
     check("completion automatically moves card to Ready", "T-101 / Ready / conversation" in text())
-    check("ready footer offers acceptance without stale stop", "Ctrl-A archive" in screen.display[-2]
+    check("ready footer offers acceptance without stale stop", "Ctrl-A accept & archive" in screen.display[-2]
           and "x stop" not in screen.display[-2])
     send(b"\x01")
-    archive_x = screen.display[2].index("Session board")
-    send(f"\x1b[<0;{archive_x + 1};3M\x1b[<0;{archive_x + 1};3m".encode())
+    archive_x = screen.display[1].index("Archive")
+    send(f"\x1b[<0;{archive_x + 1};2M\x1b[<0;{archive_x + 1};2m".encode())
     check("accepted tasks appear in archive", "T-101" in text() and "Done" in text())
     check("accepted footer omits run and editing actions", all(label not in screen.display[-2]
-          for label in ("s start", "x stop", "Ctrl-A archive", "i reply", "m model", "H harness")))
+          for label in ("s start", "x stop", "Ctrl-A accept & archive", "i reply", "m model", "H harness")))
     send(b"?")
     check("help opens", "Help / Settings" in text())
     menu_rows = screen.display[2:33]

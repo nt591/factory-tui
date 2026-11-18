@@ -472,3 +472,13 @@
  (name test_conversation_entry)
  (modules test_conversation_entry)
  (libraries factory_tui notty))
+
+(test
+ (name test_command_palette)
+ (modules test_command_palette)
+ (libraries factory_tui notty))
+
+(test
+ (name test_board_tabs)
+ (modules test_board_tabs)
+ (libraries factory_tui notty))

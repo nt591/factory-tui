@@ -2,17 +2,18 @@ open Model
 open Controller
 
 let items ~archive ~task ~live ~replay ~fake ~storage ~expanded =
-  [ ("? menu", Help) ]
+  [ ("Ctrl-P commands", Open_commands) ]
   @ (if archive then [ ("b session board", Session_board) ] else [])
   @ (match task with
     | None -> []
     | Some task ->
-        [
-          ((if expanded then "Esc back" else "e expand"), if expanded then Back else Zoom);
-        ]
-        @ (if task.state = Done then [ ("u restore", Restore_task) ] else [])
+        (if task.state = Ready then [ ("Ctrl-A accept & archive", Accept) ] else [])
         @ (if task.workspace <> None then [ ("v changes", Open_review) ] else [])
-        @ (if task.state = Ready then [ ("Ctrl-A archive", Accept) ] else [])
+        @ [
+            ( (if expanded then "Esc back" else "e expand"),
+              if expanded then Back else Zoom );
+          ]
+        @ (if task.state = Done then [ ("u restore", Restore_task) ] else [])
         @ (if task.state = Working && not replay then [ ("x stop", Stop) ] else [])
         @ (if task.state <> Done then [ ("i reply", Begin_compose) ] else [])
         @ (if
@@ -32,7 +33,6 @@ let items ~archive ~task ~live ~replay ~fake ~storage ~expanded =
   @ (if storage then [ ("W workspace", Begin_workspace) ] else [])
   @ (if live then if storage then [ ("n task", Begin_new) ] else []
      else [ ("n demo", Begin_new) ])
-  @ (if archive then [] else [ ("Archive", Toggle_archive) ])
   @ (if live || replay || fake then [] else [ ("f pause", Toggle_pause) ])
   @ (if task <> None then [ ("Ctrl-X delete", Begin_delete) ] else [])
   @ [ ("q quit", Quit) ]

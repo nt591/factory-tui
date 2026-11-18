@@ -120,7 +120,7 @@ def main():
         )
         assert list(home.iterdir()) == []
     print(
-        "PASS: Ctrl-A archive and u restore persist exact history/queued replies/draft. Temporary SQLite/replay only."
+        "PASS: Ctrl-A accept & archive and u restore persist exact history/queued replies/draft. Temporary SQLite/replay only."
     )
 
 

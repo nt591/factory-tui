@@ -7,6 +7,9 @@ type prefix = No_prefix | Go | Window
 type model_target = Task_model of string | Workspace_model of Workspace_form.t
 
 type action =
+  | Open_commands
+  | Close_commands
+  | Choose_command of Command_palette.command
   | Select of string
   | Zoom
   | Open_conversation
@@ -64,6 +67,7 @@ type action =
   | Begin_new
 
 type t = {
+  mutable commands : Command_palette.t option;
   mutable projects : Project.t list;
   mutable project_picker : Project_picker.t option;
   model_picker : Model_picker.t;
@@ -142,6 +146,7 @@ val receive : t -> Model.envelope -> unit
 val snapshot : t -> Snapshot.t
 val restore : t -> Snapshot.t -> unit
 val tick : t -> float -> unit
+val refresh_commands : t -> unit
 val act : t -> action -> unit
 val clean : ?newlines:bool -> string -> string
 val remove_last : string -> string

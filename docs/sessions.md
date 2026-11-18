@@ -108,7 +108,7 @@ Archived tasks keep their conversation, run history, working directory, queued
 replies and draft. They are read-only until restored. No merge, push or deletion
 occurs on archiving.
 
-Click **Archive** in the sidebar/action bar to open it. Plain `d` has no action.
+Click the persistent **Archive** tab above the board to open it. Plain `d` has no action.
 Select the task and press **`u`** or click **Restore**
 to put it back in Ready and return to the visible session board. This clears board
 filters that could hide the restored card, but does not send any retained message
@@ -143,3 +143,23 @@ are removed. SQLite commits those changes together; the UI keeps the task until
 that checkpoint succeeds. Other tasks stay unchanged. Workspace files, external
 agent sessions, replay input files and backups are not deleted. This is not secure
 disk erasure. Use reversible archiving if you may want to restore the task.
+
+## Commands without leaving your draft
+
+Ctrl-P opens Commands from NAVIGATION or INSERT. Type a title to filter the actions,
+use arrows to select and Enter to execute. Open Archive changes the destination;
+Accept & archive task changes a Ready task. They are not the same command.
+Unavailable actions show a reason and cannot execute. The action's current
+availability is checked again when selected.
+
+Escape or Ctrl-P cancels the palette and restores the editor mode, cursor and draft.
+Opening, searching and canceling Commands send no message and start no agent.
+A navigation command exits INSERT but retains its draft. Reply to agent returns to
+the saved draft. Delete task opens the separate confirmation dialog; it does not
+delete directly. Other modal forms keep their context-specific controls.
+
+The footer names INSERT and NAVIGATION explicitly. Escape from INSERT keeps your
+draft and returns to NAVIGATION without changing views. Enter/i resumes INSERT.
+The Board/Archive tabs remain clickable from INSERT. Opening Archive clears filters
+that could hide its tasks; Escape backs out of an archived task to the list, then
+from the list to Board. The archive count on its tab is independent of board filters.
