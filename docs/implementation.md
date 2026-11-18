@@ -138,6 +138,10 @@ Acceptance does not merge, push, or delete a workspace.
    than a generic scroll label. Pure `Board_window` computes both visible items
    and cues; paging/selection tests verify matching ranges and retained task hits.
    Short columns with tasks request resize instead of falsely claiming emptiness.
+   Transcript search reuses matches for unchanged query/message-list identity,
+   rebuilding on streaming replacements or query changes. Indexed membership
+   avoids repeated match-list walks while highlighting visible rows. Cache state
+   stays transient; unit and large-list checks preserve selection/seek behavior.
    UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,

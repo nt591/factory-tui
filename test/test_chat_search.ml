@@ -24,6 +24,13 @@ let () =
     (Chat_search.position search = (1, 2));
   check "seek anchors to first message" (Chat_search.seek search = Some "first");
   check "seek consumed exactly once" (Chat_search.seek search = None);
+  Chat_search.sync search messages;
+  check "unchanged sync does not recreate a seek" (Chat_search.seek search = None);
+  check "cached membership retains all matching identities"
+    (Chat_search.matches search "first"
+    && Chat_search.matches search "last"
+    && not (Chat_search.matches search "middle"));
+
   Chat_search.move search ~backwards:false;
   check "next message selected"
     (Chat_search.current search = Some "last" && Chat_search.position search = (2, 2));
@@ -34,10 +41,15 @@ let () =
   Chat_search.sync search (messages @ [ message "new" "You" "new needle" ]);
   check "new updates retain selected message ID"
     (Chat_search.current search = Some "last" && Chat_search.position search = (2, 3));
+  check "new immutable list refreshes membership" (Chat_search.matches search "new");
+
   Chat_search.sync search
     [ message "first" "You" "needle"; message "last" "Codex" "streamed item changed" ];
   check "replacement removing match selects surviving message"
     (Chat_search.current search = Some "first");
+  check "removed match leaves no stale highlighting"
+    ((not (Chat_search.matches search "last")) && not (Chat_search.matches search "new"));
+
   Chat_search.set_query search "界";
   Chat_search.sync search messages;
   check "Unicode literal matches" (Chat_search.current search = Some "last");
@@ -54,6 +66,21 @@ let () =
   Chat_search.clear search;
   check "clear resets transient state"
     (Chat_search.query search = "" && Chat_search.position search = (0, 0));
+  check "clear removes cached highlight membership"
+    (not (Chat_search.matches search "last"));
+  Chat_search.set_query search "needle";
+  Chat_search.sync search messages;
+  check "query change invalidates cache for same message list"
+    (Chat_search.position search = (1, 2));
+  Chat_search.set_query search "unmatched";
+  Chat_search.sync search messages;
+  check "same list is searched again for replacement query"
+    (Chat_search.current search = Some "middle"
+    && not (Chat_search.matches search "first"));
+  Chat_search.clear search;
+  Chat_search.sync search messages;
+  check "empty query never highlights content" (Chat_search.position search = (0, 0));
+
   let controller = Controller.create ~external_events:true () in
   let task = make ~id:"chat" ~title:"Task chat" ~repository:"fixture" in
   let fillers =

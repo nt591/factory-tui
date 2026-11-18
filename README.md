@@ -168,6 +168,8 @@ plugins, modify shell startup files, or require global OCaml tool installations.
   Matches are literal, ASCII-case-insensitive (Unicode otherwise exact), capped
   at 256 query bytes, and counted once per message. Escape clears chat search
   before leaving task zoom. Search never changes saved drafts or task content.
+  Unchanged transcripts reuse matches; new stream text or query changes refresh
+  the transient match/highlight index.
 - `i` composes a reply; Enter queues it. Ctrl-L or Alt-Enter inserts a newline.
   Arrows move the cursor, Home/End move within a line, and Backspace/Delete edit.
   Multiline paste preserves newlines without submitting or activating shortcuts.

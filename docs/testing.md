@@ -158,3 +158,21 @@ whole-TUI latency claim: it excludes search matching, viewport scans, image
 construction, and terminal output. The cache retains extra wrapped text and
 anchors, and a changed message list still rebuilds the full transcript. Incremental
 per-message wrapping and whole-application performance are not verified here.
+
+## Unchanged search matches
+
+`Chat_search` skips recomputing matches for the same query and immutable message
+list. Query changes invalidate the cache; streamed replacements refresh membership
+and preserve the selected message when it still matches. Clearing search releases
+retained messages and resets the highlight index. Tests cover query changes on the
+same list, append/removal, stale-highlight removal, and large-list selection/seek.
+
+```sh
+opam exec --switch=. -- dune exec test/test_search_cache.exe -- --measure
+```
+
+A local November 18, 2026 synthetic run with 2,000 matching messages measured
+40.045 ms for twenty forced match rebuilds and 0.045061 ms for twenty cached syncs
+plus thirty highlight lookups per pass. This is a component observation, not a
+whole-TUI benchmark. It excludes layout, viewport scans, terminal output, and
+match navigation; changed lists still perform a full match scan.

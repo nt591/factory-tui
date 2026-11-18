@@ -105,6 +105,8 @@ against these interfaces during the normal Dune build.
   Its bounded visible-row selection prevents offscreen chat image construction.
 - `Chat_search`: abstract transient query/matching-message selection, anchored
   by stable message ID. It searches content/authors without modifying tasks.
+  Unchanged immutable messages reuse query matches; indexed membership supports
+  visible-row highlighting. Clear releases retained cache data.
 - `Text_edit`: abstract bounded UTF-8 text and cursor state, with insertion,
   deletion, line navigation, and extended-grapheme movement. Segmentation uses
   Uuseg; cached boundaries are private and malformed UTF-8 is normalized. It performs no UI actions.

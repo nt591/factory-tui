@@ -3,9 +3,20 @@ type t = {
   mutable matches : string list;
   mutable selected : string option;
   mutable pending_seek : bool;
+  mutable cached_messages : Model.message list option;
+  membership : (string, unit) Hashtbl.t;
 }
 
-let create () = { query = ""; matches = []; selected = None; pending_seek = false }
+let create () =
+  {
+    query = "";
+    matches = [];
+    selected = None;
+    pending_seek = false;
+    cached_messages = None;
+    membership = Hashtbl.create 16;
+  }
+
 let query t = t.query
 
 let contains text query =
@@ -20,33 +31,43 @@ let set_query t query =
   if String.length query <= 256 && t.query <> query then (
     t.query <- query;
     t.selected <- None;
+    t.cached_messages <- None;
     t.pending_seek <- true)
 
 let clear t =
   t.query <- "";
   t.matches <- [];
   t.selected <- None;
-  t.pending_seek <- false
+  t.pending_seek <- false;
+  t.cached_messages <- None;
+  Hashtbl.reset t.membership
 
 let sync t messages =
-  let matches =
-    if t.query = "" then []
-    else
-      List.filter_map
-        (fun (message : Model.message) ->
-          if contains message.text t.query || contains message.author t.query then
-            Some message.id
-          else None)
-        messages
-  in
-  let selected =
-    match t.selected with
-    | Some id when List.mem id matches -> Some id
-    | _ -> ( match matches with [] -> None | id :: _ -> Some id)
-  in
-  if selected <> t.selected then t.pending_seek <- true;
-  t.selected <- selected;
-  t.matches <- matches
+  (* A new immutable list is required when streamed text or authors change. *)
+  match t.cached_messages with
+  | Some cached when cached == messages -> ()
+  | _ ->
+      let matches =
+        if t.query = "" then []
+        else
+          List.filter_map
+            (fun (message : Model.message) ->
+              if contains message.text t.query || contains message.author t.query then
+                Some message.id
+              else None)
+            messages
+      in
+      Hashtbl.clear t.membership;
+      List.iter (fun id -> Hashtbl.replace t.membership id ()) matches;
+      let selected =
+        match t.selected with
+        | Some id when Hashtbl.mem t.membership id -> Some id
+        | _ -> ( match matches with [] -> None | id :: _ -> Some id)
+      in
+      if selected <> t.selected then t.pending_seek <- true;
+      t.selected <- selected;
+      t.matches <- matches;
+      t.cached_messages <- Some messages
 
 let position t =
   let rec index n = function
@@ -63,7 +84,7 @@ let move t ~backwards =
     t.selected <- Some (List.nth t.matches next);
     t.pending_seek <- true)
 
-let matches t id = List.mem id t.matches
+let matches t id = Hashtbl.mem t.membership id
 let current t = t.selected
 
 let seek t =

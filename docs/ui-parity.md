@@ -178,3 +178,11 @@ manual scrolling can inspect another window, and offsets clamp to a full final
 page. A column too short for one card requests resize rather than saying there
 are no tasks. Unit tests cover ranges, paging, last selection, manual scrolling,
 compact lists, and short columns; PTY checks verify initial/last card ranges.
+
+Transcript search reuses matches while query and immutable message-list identity
+stay unchanged. Query changes and streaming replacements rebuild membership;
+removed matches stop highlighting, and a still-matching selected message retains
+its identity. Visible-row highlighting uses an index instead of walking every
+match. Clear discards retained cache data. Pure search and large-list checks cover
+selection, seek, invalidation, and raw/queued conversation preservation; existing
+PTY search/stream tests cover the UI path. Measurements are in `docs/testing.md`.
