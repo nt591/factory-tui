@@ -84,6 +84,7 @@ type t = {
   mutable drafts : (string * string) list;
   mutable scroll : int;
   mutable board_scroll : int;
+  mutable board_list : bool;
   mutable status : string;
   mutable quit : bool;
   mutable serial : int;

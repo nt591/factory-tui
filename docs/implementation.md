@@ -130,6 +130,10 @@ Acceptance does not merge, push, or delete a workspace.
    invalidating on immutable message-list replacement. Height/model changes reuse
    it; new stream text and delivery acknowledgements rebuild. The single cache is
    transient, with unit/streaming/search/PTY verification and scoped measurements.
+   Compact-list navigation follows displayed task order across states, including
+   arrows/counts/gg/G/pages. Four-column layouts keep state-local vertical and
+   cross-column horizontal motion. Rendering updates transient navigation mode;
+   resize/filter/state-change unit and PTY checks verify selection consistency.
    UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,

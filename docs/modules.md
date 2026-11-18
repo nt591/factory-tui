@@ -84,6 +84,8 @@ against these interfaces during the normal Dune build.
   Its mutable state record is public because the current renderer and app loop
   read and update it. Navigation algorithms and command dispatch helpers remain
   private. This is not yet an abstract controller with a read-only view model.
+  The renderer supplies transient board list/column mode so navigation follows
+  the displayed task order; this mode is not a persisted task preference.
 - `Board_guidance`: pure empty-state copy and action selection for live, demo,
   archive, and filtered boards. It starts no jobs and owns no persistence.
 - `Activity_content`: pure logical task metadata, tool groups, and captured-run

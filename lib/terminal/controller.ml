@@ -84,6 +84,7 @@ type t = {
   mutable drafts : (string * string) list;
   mutable scroll : int;
   mutable board_scroll : int;
+  mutable board_list : bool;
   mutable status : string;
   mutable quit : bool;
   mutable serial : int;
@@ -142,6 +143,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     drafts = [];
     scroll = 0;
     board_scroll = 0;
+    board_list = false;
     status = "Simulation only. No agent, credentials, or workspace access.";
     quit = false;
     serial = 200;
@@ -660,10 +662,11 @@ let ordered_tasks t =
       columns
 
 let navigation_tasks t =
-  let tasks = ordered_tasks t in
+  let tasks = if t.board_list then visible t else ordered_tasks t in
   match selected t with
-  | Some task when (not t.archive) && List.exists (fun (x : task) -> x.id = task.id) tasks
-    ->
+  | Some task
+    when (not t.archive) && (not t.board_list)
+         && List.exists (fun (x : task) -> x.id = task.id) tasks ->
       List.filter (fun (x : task) -> x.state = task.state) tasks
   | _ -> tasks
 
@@ -689,8 +692,8 @@ let navigate t direction =
       else move_in t (navigation_tasks t) delta
   | `Left | `Right -> (
       if t.focus <> Board || t.zoom then ()
-      else if t.archive then
-        move_in t (ordered_tasks t) (if direction = `Left then -1 else 1)
+      else if t.archive || t.board_list then
+        move_in t (navigation_tasks t) (if direction = `Left then -1 else 1)
       else
         match selected t with
         | None -> ()

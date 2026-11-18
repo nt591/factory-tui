@@ -229,6 +229,14 @@ try:
     os.kill(process.pid, signal.SIGWINCH)
     pump()
     check("narrow terminal resize survives", process.poll() is None and "FACTORY" in text())
+    send(b"bggj")
+    check("compact j follows displayed list across states", any("› T-103" in row for row in screen.display))
+    send(b"k")
+    check("compact k returns to preceding displayed task", any("› T-102" in row for row in screen.display))
+    send(b"G")
+    check("compact G selects last task across all states", any("› T-106" in row for row in screen.display))
+    send(b"gg2j")
+    check("compact counted motion matches visible rows", any("› T-104" in row for row in screen.display))
     send(b"?")
     check("compact Help exposes content below", "more below" in text())
     send(b"\x1b[6~")
@@ -447,7 +455,8 @@ try:
         check("changes refresh disclosure visible", "Refresh snapshots the workspace" in text())
         send(b"/opt/homebrew/bin/jj\r")
         deadline = time.monotonic() + 5
-        while "+A real workspace addition" not in text() and time.monotonic() < deadline:
+        # A PTY read can end inside a frame; wait for its body and footer.
+        while ("+A real workspace addition" not in text() or "file 1/2: review.txt" not in text()) and time.monotonic() < deadline:
             pump(0.05)
         check("real workspace patch appears in TUI", "+A real workspace addition" in text()
               and "review.txt" in text())

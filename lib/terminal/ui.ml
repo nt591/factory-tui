@@ -292,6 +292,7 @@ let render t ~width:cols ~height:rows =
     else conversation r
   in
   let board r =
+    t.board_list <- r.w < 88 || t.archive;
     let tasks = visible t in
     if tasks = [] then (
       let guidance =

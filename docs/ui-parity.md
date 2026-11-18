@@ -162,3 +162,11 @@ transcript/width is retained, and the cache is never serialized. Search styling,
 viewport selection, and visible image construction remain separate. Pure and UI
 checks cover invalidation, retained labels/text, stable anchors, and persistence
 isolation; terminal streaming/search/history checks cover the complete behavior.
+
+Compact task lists use displayed list order for j/k, arrows, counted motion,
+gg/G, and paging instead of skipping to another task in the same Kanban state.
+In list mode h/l moves to the previous/next list row. Four-column boards retain
+state-local j/k and cross-column h/l. The renderer updates transient navigation
+mode when the board layout changes; filters and automatic state updates keep the
+same list ordering as the display. Tests cover resizing, filtering, paging,
+state changes, and actual compact-terminal key input. No layout mode is persisted.

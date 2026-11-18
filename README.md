@@ -150,7 +150,9 @@ plugins, modify shell startup files, or require global OCaml tool installations.
   - `i` enters the reply composer; Escape returns to normal mode and keeps the draft.
     Navigation keys are literal text while composing or searching.
   - Pending counts and `g` / Ctrl-W prefixes appear in the status line.
-- Arrow keys or `hjkl` navigate. Mouse wheel and Page Up/Down scroll.
+- Arrow keys or `hjkl` navigate. Compact task lists follow displayed row order
+  across states; four-column boards keep vertical motion within a column and
+  horizontal motion between columns. Mouse wheel and Page Up/Down scroll.
   Conversations follow new messages until you scroll back. A message/row anchor
   then preserves the reading position as output arrives; End resumes following.
   Search seeking and explicit navigation move the anchor. The chat header marks
