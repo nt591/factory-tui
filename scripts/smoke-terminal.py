@@ -309,6 +309,15 @@ try:
         send(b"e")
         check("process fixture moves selected card to Ready", "T-101 / Ready / conversation" in text())
         check("process fixture streams into chat", "Local fixture checks are complete" in text())
+        send(b"t")
+        check("tool activity uses readable command summary", "Command / completed / exit 0" in text())
+        check("command output displayed as text", "Fixed local fixture output" in text())
+        if args.preview:
+            preview(args.preview.with_stem(args.preview.stem + "-tool-activity"))
+        send(b"T")
+        check("raw tool diagnostics available", '"command_execution"' in text())
+        send(b"Tt")
+
         send(b"iAnother fixture turn\r")
         send(b"s")
         send(b"x")

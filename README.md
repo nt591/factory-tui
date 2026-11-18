@@ -172,7 +172,11 @@ plugins, modify shell startup files, or require global OCaml tool installations.
 - `s` starts a simulated run, `x` interrupts it. Activity retains each run's
   original harness/model, timestamps, and outcome.
 - `a` accepts a Ready task. Acceptance does not merge, push, or delete anything.
-- Tool output is collapsed by default; `t` expands it in Activity.
+- Tool output is collapsed by default; `t` expands it in Activity. Commands show
+  supplied status/exit codes and plain output; MCP calls show server/tool and
+  arguments/results; file changes list paths and operations. `T` switches between
+  readable activity and the preserved raw payload. Missing status/output is marked
+  unknown or not supplied, never inferred as success. Tool content is sensitive.
 - `f` pauses/resumes demo events. `?` opens Help / Settings; Tab or `h/l` switches
   tabs, `j/k` scrolls, and Escape closes. Settings shows storage and next-run
   harness/model; `m` edits the model and `H` cycles the simulated harness.

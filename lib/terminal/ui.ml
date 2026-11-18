@@ -302,6 +302,25 @@ let render t ~width:cols ~height:rows =
             "updates: " ^ string_of_int task.revision;
             "";
           ]
+          @ (if task.tools = [] then [ "No tool activity yet." ]
+             else if t.tools_expanded then
+               Printf.sprintf "▾ %d tool items / %s / T toggles raw"
+                 (List.length task.tools)
+                 (if t.raw_tools then "raw" else "readable")
+               :: List.concat_map
+                    (fun (id, payload) ->
+                      let activity = Tool_activity.describe ~id payload in
+                      let details =
+                        if t.raw_tools then Tool_activity.raw payload
+                        else activity.details
+                      in
+                      wrap inner activity.summary
+                      @ List.concat_map (wrap inner) details
+                      @ [ "" ])
+                    task.tools
+             else
+               [ Printf.sprintf "▸ %d tool items / t expands" (List.length task.tools) ])
+          @ [ "" ]
           @ List.concat_map
               (fun (record : run_record) ->
                 let status =
@@ -321,12 +340,6 @@ let render t ~width:cols ~height:rows =
                   | Model.Read_only -> " / read-only"
                   | Model.Workspace_write -> " / workspace-write"))
               task.runs
-          @ [ "" ]
-          @
-          if task.tools = [] then [ "No tool activity yet." ]
-          else if t.tools_expanded then
-            List.concat_map (fun (_, detail) -> wrap inner detail @ [ "" ]) task.tools
-          else [ Printf.sprintf "▸ %d tool items / t expands" (List.length task.tools) ]
     in
     if t.focus = Activity then (
       t.page_rows <- max 1 (r.h - 2);
@@ -596,7 +609,7 @@ let render t ~width:cols ~height:rows =
         "s starts a demo or asks for live confirmation; x stops; a accepts.";
         "b returns to all tasks. R cycles repositories. d opens Archive.";
         "v opens real workspace changes; r refreshes; Escape returns.";
-        "t expands/collapses tools. f pauses/resumes demo events.";
+        "t expands tools; T toggles readable/raw payload. f pauses demo.";
         "/ searches focused board or chat. S searches chat from any pane.";
         "In chat search: n/N moves matches; Escape clears. Literal search.";
         "";

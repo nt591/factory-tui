@@ -16,7 +16,10 @@ for the selected task. Keep bottom-style pane focus, expansion, and Vim navigati
   merge, push, or delete a workspace.
 - A visible reply composer shows the next-run harness/model and queued delivery.
   Task drafts persist when configured SQLite storage is enabled.
-- Tool output is collapsed by default and expanded with `t`. Run history retains
+- Tool output is collapsed by default and expanded with `t`; readable summaries
+  retain supplied status, exit codes, commands, results, and file operations. `T`
+  shows preserved raw payloads. Recent tool activity precedes historical runs
+  so it is not buried behind the run ledger. Run history retains
   original settings and outcomes.
 - `?` opens Help and Settings tabs. Tab/h/l switches tabs; j/k and the mouse wheel
   scroll. Tab labels are clickable. The overlay blocks the underlying controls.

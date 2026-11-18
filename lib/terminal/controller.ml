@@ -17,6 +17,7 @@ type action =
   | Archive_view
   | Menu_tab of menu_tab
   | Close_menu
+  | Toggle_raw_tools
   | Toggle_tools
   | Next_repository
   | Next_harness
@@ -64,6 +65,7 @@ type t = {
   mutable menu_scroll : int;
   mutable repository : string option;
   mutable tools_expanded : bool;
+  mutable raw_tools : bool;
   mutable database_path : string option;
   mutable input : input;
   mutable query : string;
@@ -116,6 +118,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     menu_scroll = 0;
     repository = None;
     tools_expanded = false;
+    raw_tools = false;
     database_path = None;
     input = Normal;
     query = "";
@@ -245,6 +248,9 @@ let act t action =
   | Menu_tab tab ->
       t.menu_tab <- tab;
       t.menu_scroll <- 0
+  | Toggle_raw_tools ->
+      t.raw_tools <- not t.raw_tools;
+      t.tools_expanded <- true
   | Toggle_tools -> t.tools_expanded <- not t.tools_expanded
   | Repository repository ->
       t.repository <- repository;
@@ -761,6 +767,7 @@ let normal_key t (key, mods) =
     | `ASCII 'i' -> command (fun () -> act t Begin_compose)
     | `ASCII 'R' -> command (fun () -> act t Next_repository)
     | `ASCII 'b' -> command (fun () -> act t Session_board)
+    | `ASCII 'T' -> command (fun () -> act t Toggle_raw_tools)
     | `ASCII 't' -> command (fun () -> act t Toggle_tools)
     | `ASCII 'm' -> command (fun () -> act t Begin_model)
     | `ASCII 'H' -> command (fun () -> act t Next_harness)

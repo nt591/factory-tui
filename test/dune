@@ -82,3 +82,8 @@
  (name test_chat_viewport)
  (modules test_chat_viewport)
  (libraries factory_tui notty))
+
+(test
+ (name test_tool_activity)
+ (modules test_tool_activity)
+ (libraries factory_tui notty yojson))

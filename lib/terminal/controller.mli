@@ -17,6 +17,7 @@ type action =
   | Archive_view
   | Menu_tab of menu_tab
   | Close_menu
+  | Toggle_raw_tools
   | Toggle_tools
   | Next_repository
   | Next_harness
@@ -64,6 +65,7 @@ type t = {
   mutable menu_scroll : int;
   mutable repository : string option;
   mutable tools_expanded : bool;
+  mutable raw_tools : bool;
   mutable database_path : string option;
   mutable input : input;
   mutable query : string;
