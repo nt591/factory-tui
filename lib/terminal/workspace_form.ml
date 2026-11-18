@@ -1,9 +1,10 @@
 type field = Jj | Source | Parent | Revision | Model | Task
+type feedback = Guidance of string | Validation of field * string | Report of string
 
 type t = {
   mutable current : field;
   mutable values : (field * Text_edit.t) list;
-  mutable status : string;
+  mutable status : feedback;
 }
 
 let fields = [ Jj; Source; Parent; Revision; Model; Task ]
@@ -19,7 +20,7 @@ let label = function
 let create ?(jj = "") ~source ~parent ~revision ~model () =
   {
     current = Source;
-    status = "Fill the fields; Ctrl-S creates a queued task. No agent starts.";
+    status = Guidance "Fill the fields; Ctrl-S creates a queued task. No agent starts.";
     values =
       [
         (Jj, Text_edit.create jj);
@@ -32,8 +33,15 @@ let create ?(jj = "") ~source ~parent ~revision ~model () =
   }
 
 let current t = t.current
-let status t = t.status
-let report t text = t.status <- text
+
+let status t =
+  match t.status with Guidance text | Validation (_, text) | Report text -> text
+
+let report t text =
+  match t.status with
+  | Validation (_, error) when error = text -> ()
+  | _ -> t.status <- Report text
+
 let editor t field = List.assoc field t.values
 let value t field = Text_edit.text (editor t field)
 
@@ -45,7 +53,14 @@ let cursor_parts t field =
 let focus t field = t.current <- field
 
 let change t fn =
-  t.values <- (t.current, fn (editor t t.current)) :: List.remove_assoc t.current t.values
+  let previous = editor t t.current in
+  let updated = fn previous in
+  (if Text_edit.text previous <> Text_edit.text updated then
+     match t.status with
+     | Validation (field, _) when field = t.current ->
+         t.status <- Guidance "Field edited. Ctrl-S checks all fields before creating."
+     | _ -> ());
+  t.values <- (t.current, updated) :: List.remove_assoc t.current t.values
 
 let cycle t backwards =
   let order = if backwards then List.rev fields else fields in
@@ -131,4 +146,5 @@ let validate_submission t =
   | None -> Ok ()
   | Some (field, error) ->
       t.current <- field;
+      t.status <- Validation (field, error);
       Error error

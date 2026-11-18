@@ -369,3 +369,10 @@ the affected field. Field values remain intact, and ordinary validation does not
 move focus. The submission-specific helper owns this behavior; invalid submission
 starts no workspace job. Pure recovery tests and the terminal creation workflow
 verify correction from an empty form through successful explicit submission.
+
+Workspace validation feedback is scoped to its failing field. Changing that value
+replaces the stale error with an explicit instruction to recheck all fields on
+Ctrl-S; cursor movement, no-op deletion, and edits to other fields do not erase
+it. Operational creation/storage reports remain visible while editing. The form
+keeps feedback kinds private behind its existing status API. Unit and PTY checks
+verify stale-error recovery, full resubmission validation, and report retention.

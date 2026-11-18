@@ -424,6 +424,7 @@ try:
         send(b"\x13")
         check("invalid workspace submission selects the executable field", "jj executable: Use absolute paths" in text())
         send(b"/opt/homebrew/bin/jj\t")
+        check("editing invalid executable removes its stale validation message", "Field edited. Ctrl-S checks all fields" in text())
         send(str(source).encode())
         send(b"\x1b[H")
         check("workspace source Home reveals start cursor", "▏/private/" in text())
@@ -435,7 +436,8 @@ try:
         pump(0.5)
         check("workspace form remains explicit", "Task instruction" in text()
               and "Create an isolated task through the TUI" in text())
-        check("form-local validation survives background demo updates", "jj executable: Use absolute paths" in text())
+        check("edited-field feedback survives background demo updates", "Field edited. Ctrl-S checks all fields" in text()
+              and "jj executable: Use absolute paths" not in text())
         if args.preview:
             preview(args.preview.with_stem(args.preview.stem + "-workspace"))
         send(b"\x13")

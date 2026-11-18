@@ -373,3 +373,10 @@ field order. Path errors identify the field; model/revision/instruction failures
 also move directly to their editor. Ordinary validation remains side-effect-free,
 and submitted values are not changed by recovery. Unit and Ctrl-S PTY checks
 verify focused correction without a creation request or agent invocation.
+
+Workspace validation feedback is scoped to its failing field. Changing that value
+replaces the stale error with an explicit instruction to recheck all fields on
+Ctrl-S; cursor movement, no-op deletion, and edits to other fields do not erase
+it. Operational creation/storage reports remain visible while editing. The form
+keeps feedback kinds private behind its existing status API. Unit and PTY checks
+verify stale-error recovery, full resubmission validation, and report retention.

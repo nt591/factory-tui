@@ -63,7 +63,9 @@ against these interfaces during the normal Dune build.
   local validation and input only. Background task status cannot replace dialog
   feedback; controller creation paths explicitly report form outcomes.
   Submission validation focuses the first invalid field; ordinary validation
-  remains side-effect-free. Cursor-separated text parts support horizontal display
+  remains side-effect-free. Private feedback kinds distinguish field-validation
+  errors from operational reports; actual edits clear only their failing field's
+  obsolete error. Cursor-separated text parts support horizontal display
   windows without exposing the editor handle. Text_layout selects whole graphemes around the cursor.
 - `Workspace_dialog`: form rendering/hitboxes, independent of controller and jobs.
 - `Task_creation`: abstract background job for workspace creation and task assembly;

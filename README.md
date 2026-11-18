@@ -583,7 +583,9 @@ values follow the cursor horizontally; Home/End reveals the prefix/suffix withou
 changing the stored path or instruction. The form
 shows the source-snapshot disclosure and its own setup/validation status; background
 run updates do not erase form errors. Invalid submission moves focus to the first
-field that needs correction, without changing entered values or starting a job. Creation runs in the background and selects
+field that needs correction, without changing entered values or starting a job.
+Editing that field clears its stale error and requests another Ctrl-S check;
+creation/storage failures remain visible while editing. Creation runs in the background and selects
 the new Queued chat; it starts no agent. Source, parent, exact base, and model are
 remembered from previous workspace-backed tasks unless overridden by optional
 TOML workspace defaults. jj's path is explicit but can be configured once.

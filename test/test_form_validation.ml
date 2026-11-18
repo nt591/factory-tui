@@ -61,5 +61,34 @@ let () =
     (Controller.contains (Buffer.contents buffer) "jj executable");
   check "invalid submission leaves persisted tasks and drafts unchanged"
     (Controller.snapshot controller = saved);
+  let error = Workspace_form.status form in
+  List.iter
+    (fun key -> Workspace_form.key form (key, []))
+    [ `Home; `End; `Arrow `Left; `Backspace ];
+  check "cursor motion and empty deletion retain validation error"
+    (Workspace_form.status form = error);
+  Workspace_form.focus form Workspace_form.Task;
+  Workspace_form.key form (`ASCII 'x', []);
+  check "editing another field does not erase executable error"
+    (Workspace_form.status form = error);
+  Workspace_form.focus form Workspace_form.Jj;
+  Workspace_form.paste_key form (`ASCII '/', []);
+  check "actual edit clears only the obsolete failing-field message"
+    (Workspace_form.status form
+   = "Field edited. Ctrl-S checks all fields before creating.");
+  check "edited feedback does not imply the whole form is valid"
+    (Result.is_error (Workspace_form.validate form));
+  Controller.key controller (`ASCII 's', [ `Ctrl ]);
+  check "resubmission still checks every field"
+    (Workspace_form.current form = Workspace_form.Source
+    && controller.creation_request = None);
+  Workspace_form.report form "Workspace creation failed. Retain the destination.";
+  Workspace_form.key form (`ASCII '/', []);
+  check "operational failure remains visible while editing"
+    (Workspace_form.status form = "Workspace creation failed. Retain the destination.");
+  Workspace_form.report form "Storage error: checkpoint failed";
+  Workspace_form.key form (`ASCII 'x', []);
+  check "editing cannot clear reported storage error"
+    (Workspace_form.status form = "Storage error: checkpoint failed");
   Printf.printf "Passed %d field-validation recovery checks. No filesystem operations.\n"
     !checks
