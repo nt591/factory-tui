@@ -22,6 +22,12 @@ def resize(tui, columns, rows):
     os.kill(tui.process.pid, signal.SIGWINCH)
 
 
+def click(tui, label):
+    y = next(index for index, row in enumerate(tui.screen.display) if label in row)
+    x = tui.screen.display[y].index(label)
+    tui.send(f"\x1b[<0;{x + 1};{y + 1}M".encode())
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--binary", type=Path)
@@ -84,6 +90,11 @@ def main():
             tui.check("opening review starts no command", not count.exists())
             tui.send(b"\x1b[200~" + str(executable).encode() + b"\x1b[201~")
             tui.check("pasted executable path starts no command", not count.exists())
+            click(tui, "[Close / Esc]")
+            tui.wait("mouse closes path editor", lambda: "CHANGES /" not in tui.text())
+            tui.check("path editor Close starts no command", not count.exists())
+            tui.send(b"v")
+            tui.wait("review reopened", lambda: "[Refresh / r]" in tui.text())
             tui.send(b"\r")
             tui.wait(
                 "review error", lambda: "Changes error: jj command failed" in tui.text()
@@ -130,7 +141,16 @@ def main():
                 "changing fixture does not automatically retry",
                 count.read_text().count("call") == 1,
             )
-            tui.send(b"r")
+            resize(tui, 30, 10)
+            tui.wait(
+                "compact complete controls",
+                lambda: "[Refresh]  [jj]  [Close]" in tui.text(),
+            )
+            click(tui, "[Refresh]")
+            tui.wait(
+                "fixture patch loaded", lambda: "diff --git a/fixture" in tui.text()
+            )
+            tui.send(b"G")
             tui.wait(
                 "explicit retry returns patch",
                 lambda: "+Fixture patch line" in tui.text(),
@@ -139,6 +159,21 @@ def main():
                 "retry replaces notices with unwrapped patch lines",
                 count.read_text().count("call") == 2
                 and "Changes error:" not in tui.text(),
+            )
+            click(tui, "[jj]")
+            tui.wait(
+                "compact editor close control", lambda: "[Close / Esc]" in tui.text()
+            )
+            click(tui, "[Close / Esc]")
+            tui.wait("compact mouse close", lambda: "CHANGES /" not in tui.text())
+            tui.check(
+                "compact editor and Close never refresh",
+                count.read_text().count("call") == 2,
+            )
+            tui.send(b"v")
+            tui.wait(
+                "compact review reopened",
+                lambda: "[Refresh]  [jj]  [Close]" in tui.text(),
             )
             executable.write_text("#!/bin/sh\nprintf 'call\n' >> calls\n")
             tui.send(b"r")

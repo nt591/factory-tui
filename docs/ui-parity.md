@@ -528,3 +528,11 @@ C0/DEL/C1 replacement and malformed-UTF-8 repair. It does not strip printable
 Unicode or rewrite stored message/editor content. Fixed-control and seeded byte
 corpus tests verify equivalence; existing component and terminal checks continue
 to cover widths, cursor visibility, Unicode draft retention and input isolation.
+
+
+Review action strips use complete wide, compact or minimal labels with matching
+mouse spans, never partially clipped buttons. Small panes prioritize Close;
+path editing has a Close button but no Refresh target. File buttons require both
+multiple files and enough room; their keyboard controls remain intact. Width-sweep
+unit tests and fake-jj terminal checks verify exact targets, compact Refresh/jj/
+Close actions and no command side effects from editing, closing or resizing.

@@ -312,3 +312,8 @@
  (name test_terminal_text)
  (modules test_terminal_text)
  (libraries factory_tui))
+
+(test
+ (name test_review_controls)
+ (modules test_review_controls)
+ (libraries factory_tui notty))

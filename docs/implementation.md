@@ -564,3 +564,14 @@ algorithm over fixed controls, malformed sequences, 2,000 deterministic byte
 strings and printable BMP scalars; they check idempotence, Unicode validity,
 printable grapheme preservation and unchanged editor state. Existing component
 and terminal tests verify call-site integration and exact retained text.
+
+
+Review_controls.ml/.mli supplies one responsive strip of complete ASCII labels
+and exact hit spans. Wide label positions remain unchanged. Compact strips retain
+Refresh/jj/Close, then file buttons when space allows; minimal strips prioritize
+Close and expose no partial labels or targets. Path editing exposes only Close,
+not a Refresh button. Review_view uses the strip for both image text and actions,
+retaining body capacity and existing key validation. Pure exhaustive width tests
+and the fake-jj review PTY check verify label/hit agreement, narrow Refresh/path/
+Close clicks, path-editor Close, retained executable on reopen, no implicit command
+and exactly three explicit fixture refreshes. Real-jj review/file tests remain.

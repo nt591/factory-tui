@@ -497,3 +497,13 @@ The terminal component tests remain the integration checks for wrapping, widths,
 search, confirmation, path input and drafts; full PTY/review/composer checks verify
 readability and retained text through actual input. These checks do not claim
 universal font/terminal grapheme width or broader terminal-security containment.
+
+
+The review-notice PTY fixture also checks responsive review controls. It closes a
+pasted-path editor by mouse before any command, reopens its retained executable,
+uses compact Refresh and jj buttons at 30 columns, and closes the compact path
+editor without a command. The fixture still counts only its three explicit
+refreshes. test_review_controls sweeps widths 0–180 in editing/non-editing and
+single/multiple-file modes, checking full brackets, target bounds and separation.
+No label is truncated into a clickable action. Wide existing review tests retain
+full-label file-button geometry and real-jj behavior.

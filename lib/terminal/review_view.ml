@@ -1,6 +1,12 @@
 open Notty
 
-type action = Refresh | Edit_executable | Close | Next_file | Previous_file
+type action = Review_controls.action =
+  | Refresh
+  | Edit_executable
+  | Close
+  | Next_file
+  | Previous_file
+
 type hit = { x : int; y : int; width : int; action : action }
 type scroll_region = { x : int; y : int; width : int; height : int }
 type t = { image : Notty.image; hits : hit list; scroll_region : scroll_region option }
@@ -71,6 +77,10 @@ let render review ~width:cols ~height:rows =
          ~some:(fun document -> Diff_document.file_count document > 1)
          document
   in
+  let controls =
+    Review_controls.make ~width:cols ~editing:(Review.editing review)
+      ~files:file_navigation
+  in
   let file_position =
     Option.fold ~none:""
       ~some:(fun document ->
@@ -99,9 +109,7 @@ let render review ~width:cols ~height:rows =
                   line_count (Review.horizontal review)
                   (file_position ^ if widest > cols then " · h/l: long lines" else ""))
              (Review.status review));
-        row A.lightcyan
-          (" [Refresh / r]  [jj path / i]  [Close / Esc]"
-          ^ if file_navigation then "  [Prev file]  [Next file]" else "");
+        row A.lightcyan controls.text;
         row A.white
           (if Review.editing review then
              " Arrows/Home/End: edit path · Enter: refresh · Esc: chat · paste never \
@@ -114,25 +122,12 @@ let render review ~width:cols ~height:rows =
   let hits = ref [] in
   if rows >= 6 then (
     hits := { x = 1; y = 2; width = max 0 (cols - 2); action = Edit_executable } :: !hits;
-    if not (Review.editing review) then (
-      hits :=
-        { x = 1; y = rows - 2; width = min 13 (max 0 (cols - 1)); action = Refresh }
-        :: !hits;
-      if cols > 16 then
+    List.iter
+      (fun (item : Review_controls.hit) ->
         hits :=
-          { x = 16; y = rows - 2; width = min 13 (cols - 16); action = Edit_executable }
-          :: !hits;
-      if cols > 31 then
-        hits :=
-          { x = 31; y = rows - 2; width = min 13 (cols - 31); action = Close } :: !hits;
-      if file_navigation && cols > 46 then
-        hits :=
-          { x = 46; y = rows - 2; width = min 11 (cols - 46); action = Previous_file }
-          :: !hits;
-      if file_navigation && cols > 59 then
-        hits :=
-          { x = 59; y = rows - 2; width = min 11 (cols - 59); action = Next_file }
-          :: !hits));
+          { x = item.x; y = rows - 2; width = item.width; action = item.action } :: !hits)
+      controls.hits);
+
   {
     image =
       I.(

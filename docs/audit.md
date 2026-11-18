@@ -83,6 +83,10 @@ and multiline entry points. Pure corpus tests verify equivalence and editor-stat
 isolation; component and terminal checks cover integration. Raw Text_edit repair
 remains separate, and no persistence/dependency change is introduced.
 
+Review_controls produces complete responsive labels and exact hit spans. Pure
+width sweeps and fake-jj compact mouse checks cover path-editor Close, narrow
+Refresh/jj/Close and retained command inactivity during closing/reflow.
+
 Review failure notices also wrap and page without a patch document. Pure and
 fake-jj PTY checks verify complete retry guidance, output privacy, no implicit
 retry during reading/reflow, explicit patch recovery and saved-state isolation.

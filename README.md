@@ -793,3 +793,10 @@ message exceeds the pane, use `j/k`, Page Up/Down, Ctrl-U/D/B/F, or Home/End to 
 it. Resizing reflows notices, not patch lines; diffs retain horizontal scrolling.
 Reading or paging an error never retries the command. `r`/Enter remains an explicit
 refresh, and command output is still withheld from failure messages.
+
+
+Review buttons adapt to the terminal width. Wide panes keep full labels; narrow
+panes use complete compact buttons, with Close taking priority at the smallest
+sizes. A clipped or omitted button has no mouse target. While editing the jj path,
+only Close is available as a button; Enter still explicitly refreshes. File buttons
+appear only when multiple files and enough space exist; `[`/`]` remain available.

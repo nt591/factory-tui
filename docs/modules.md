@@ -302,3 +302,10 @@ reply windows and review notices retain LF. Controller.clean remains a supported
 compatibility wrapper. Workspace-form insertion uses the same single-line rule.
 Text_edit's UTF-8 repair is separate: it must preserve raw controls and logical
 line separators so rendering does not silently modify stored/editor text.
+
+
+Review_controls owns complete ASCII button labels and responsive hit spans. It
+has no Review/controller/process dependency. Review_view re-exports its action
+variant and adds row coordinates, keeping full-label geometry stable on wide
+panes. Compact/minimal modes omit labels that do not fit; editing exposes only
+Close. The module changes no page capacity, editor value or command permission.
