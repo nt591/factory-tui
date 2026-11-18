@@ -621,21 +621,24 @@ let render t ~width:cols ~height:rows =
         (fun row -> if row = "" then [ "" ] else wrap_title (max 1 (w - 4)) row)
         menu_rows
     in
-    let capacity = max 0 (h - 5) in
-    t.menu_scroll <- min t.menu_scroll (max 0 (List.length menu_rows - capacity));
-    let menu_rows =
-      List.filteri
-        (fun index _ -> index >= t.menu_scroll && index < t.menu_scroll + capacity)
-        menu_rows
-    in
+    let window = Menu_window.make ~height:h ~scroll:t.menu_scroll menu_rows in
+    t.menu_scroll <- window.scroll;
+    t.menu_page_rows <- max 1 window.capacity;
     let tab title tab =
       line 18 (if t.menu_tab = tab then emphasis accent else attr muted) title
     in
     let tabs = I.(tab " Help " Help_tab <|> tab " Settings " Settings_tab) in
     let content =
       I.vcat
-        ([ tabs; line (max 0 (w - 4)) (attr muted) "" ]
-        @ List.map (line (max 0 (w - 4)) (attr text)) menu_rows)
+        [
+          tabs;
+          line (max 0 (w - 4)) (attr muted) "";
+          fit
+            (max 0 (w - 4))
+            window.capacity
+            (I.vcat (List.map (line (max 0 (w - 4)) (attr text)) window.rows));
+          line (max 0 (w - 4)) (emphasis accent) (Menu_window.position window);
+        ]
       |> I.hpad 1 1
     in
     paint x y (border w h ~title:"Help / Settings" ~color:accent ~focused:true content);

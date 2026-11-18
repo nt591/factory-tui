@@ -68,6 +68,7 @@ type t = {
   mutable help : bool;
   mutable menu_tab : menu_tab;
   mutable menu_scroll : int;
+  mutable menu_page_rows : int;
   mutable repository : string option;
   mutable tools_expanded : bool;
   mutable raw_tools : bool;
@@ -124,6 +125,7 @@ let create ?(external_events = false) ?(fake_harness = false) () =
     help = false;
     menu_tab = Help_tab;
     menu_scroll = 0;
+    menu_page_rows = 8;
     repository = None;
     tools_expanded = false;
     raw_tools = false;
@@ -885,8 +887,8 @@ let key t (key, mods) =
     | `ASCII 'k' | `Arrow `Up -> t.menu_scroll <- max 0 (t.menu_scroll - 1)
     | `ASCII 'g' | `Home -> t.menu_scroll <- 0
     | `ASCII 'G' | `End -> t.menu_scroll <- 10000
-    | `Page `Down -> t.menu_scroll <- min 10000 (t.menu_scroll + 8)
-    | `Page `Up -> t.menu_scroll <- max 0 (t.menu_scroll - 8)
+    | `Page `Down -> t.menu_scroll <- min 10000 (t.menu_scroll + t.menu_page_rows)
+    | `Page `Up -> t.menu_scroll <- max 0 (t.menu_scroll - t.menu_page_rows)
     | `ASCII 'm' when t.menu_tab = Settings_tab ->
         t.help <- false;
         act t Begin_model

@@ -131,3 +131,11 @@ cropped by the final image rather than divided. This does not solve differences
 in terminal/font emoji width. Unit tests compare grapheme sequences and retained
 bytes, and the compact PTY composer checks a boundary-adjacent skin-tone emoji.
 Stored text and drafts are not rewritten by rendering.
+
+Help/Settings includes a fixed position row with the visible range/total and an
+explicit more-above/more-below cue. Page keys use the visible menu height, and
+switching tabs resets to the top. The cue occupies reserved space rather than
+covering content. `Menu_window.ml/.mli` computes row selection and clamping;
+keyboard/mouse dispatch stays in the controller. Unit and compact-terminal PTY
+checks cover paging, bottom instructions, tab reset, frame bounds, and background
+control isolation. Saved tasks and drafts do not change while browsing the menu.

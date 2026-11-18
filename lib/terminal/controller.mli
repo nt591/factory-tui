@@ -68,6 +68,7 @@ type t = {
   mutable help : bool;
   mutable menu_tab : menu_tab;
   mutable menu_scroll : int;
+  mutable menu_page_rows : int;
   mutable repository : string option;
   mutable tools_expanded : bool;
   mutable raw_tools : bool;

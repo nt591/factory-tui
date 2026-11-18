@@ -567,6 +567,10 @@ accepted tasks show inspection rather than run/edit controls. Live Start says
 `s confirm`; it still opens the per-run confirmation. Keyboard shortcuts retain
 validation even when their actions are absent from the bar.
 
+Help/Settings shows the visible row range and indicates more content above or
+below. Page Up/Down moves by the current menu height; switching tabs returns to
+the top. `?` or Escape closes the menu without changing tasks or drafts.
+
 ## Module interfaces
 
 All core modules have explicit `.mli` interfaces. Database, persistence worker,

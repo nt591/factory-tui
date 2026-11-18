@@ -116,6 +116,10 @@ Acceptance does not merge, push, or delete a workspace.
    editor. `Text_layout` is separate from controller/rendering state; sanitized
    chat, composer, activity, and card-title wrapping cannot split emoji sequences.
    Oversized clusters stay whole for pane cropping. Unit/PTY checks cover boundaries.
+   Help/Settings shows its visible row range and overflow direction. Page keys
+   use the current menu capacity and tab changes reset the position. Pure
+   `Menu_window` selection preserves modal isolation and task/draft state; unit/PTY
+   checks cover compact paging and bottom instructions.
    UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,

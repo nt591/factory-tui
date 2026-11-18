@@ -137,3 +137,8 @@
  (name test_text_layout)
  (modules test_text_layout)
  (libraries factory_tui notty uuseg.string))
+
+(test
+ (name test_menu_window)
+ (modules test_menu_window)
+ (libraries factory_tui notty))
