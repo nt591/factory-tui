@@ -327,3 +327,10 @@ not commands or completion progress. The indicator uses the same window as visib
 output and takes no content space. It remains visible when another pane has focus;
 fitting content has no false overflow cue. Unit and PTY tests verify ranges and
 unchanged page capacity. Narrow borders can clip the cue; expansion exposes it.
+
+Long workspace-form values follow the cursor horizontally. Home shows the prefix,
+End shows the suffix, and editing in the middle keeps the marker visible rather
+than hiding it behind a fixed right-aligned viewport. Whole graphemes are selected
+for the display window; unfocused clipped values use an ellipsis. Paths and task
+instructions are never shortened in stored form data. Pure text/render and PTY
+Home/End checks cover this behavior without creating workspaces until submission.

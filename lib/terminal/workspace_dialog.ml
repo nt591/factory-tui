@@ -17,15 +17,16 @@ let render_body form ~busy ~status ~width:cols ~height:rows =
         let focused = Workspace_form.current form = field in
         let attr = if focused then accent else normal in
         let text =
-          if focused && not busy then Workspace_form.cursor_text form field
-          else Workspace_form.value form field
-        in
-        let text_image = I.string attr text in
-        let align =
-          if focused && I.width text_image > max 1 (cols - 4) then `Right else `Left
+          if focused && not busy then
+            let before, after = Workspace_form.cursor_parts form field in
+            Text_layout.cursor_window (max 1 (cols - 4)) ~before ~after
+          else Text_layout.ellipsize (max 1 (cols - 4)) (Workspace_form.value form field)
         in
         let value =
-          I.(text_image |> hsnap ~align (max 1 (cols - 4)) |> hpad 2 2 |> hsnap cols)
+          I.(
+            string attr text
+            |> hsnap ~align:`Left (max 1 (cols - 4))
+            |> hpad 2 2 |> hsnap cols)
         in
         [
           (row attr (" " ^ Workspace_form.label field), None);

@@ -335,3 +335,9 @@ arrows in their lower border. The same bounded window selects content and derive
 the cue; it does not consume a tool-output row or change page size. Fitting panes
 show no overflow indicator. Unit and streaming PTY checks cover initial/middle/
 final ranges, retained output capacity, and unchanged snapshot behavior.
+
+Workspace-form values use a grapheme-safe horizontal window around the editor
+cursor, rather than always right-aligning long values. Home/End and cursor movement
+expose the text being edited; unfocused values indicate clipping with an ellipsis.
+Original paths/instructions remain in the form. Text/form unit and actual PTY
+Home/End checks verify visible editing and no workspace side effects before submit.

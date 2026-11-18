@@ -58,6 +58,8 @@ against these interfaces during the normal Dune build.
 - `Workspace_defaults`: optional typed startup preferences shared by config and
   form initialization; it holds no instruction, credentials, or execution permission.
 - `Workspace_form`: abstract field/editor state; local validation and input only.
+  Cursor-separated text parts support horizontal display windows without exposing
+  the editor handle. Text_layout selects whole graphemes around the cursor.
 - `Workspace_dialog`: form rendering/hitboxes, independent of controller and jobs.
 - `Task_creation`: abstract background job for workspace creation and task assembly;
   it uses domain APIs and never starts an agent or owns UI/persistence.

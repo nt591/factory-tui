@@ -68,3 +68,25 @@ let limit_rows ~width ~height rows =
     | row :: rest -> ellipsize width row :: select (remaining - 1) rest
   in
   select height rows
+
+let cursor_window columns ~before ~after =
+  if columns <= 0 then ""
+  else
+    let marker = "▏" in
+    let available = max 0 (columns - width marker) in
+    let clusters text =
+      Uuseg_string.fold_utf_8 `Grapheme_cluster
+        (fun rows cluster -> cluster :: rows)
+        [] text
+    in
+    let rec take remaining selected = function
+      | [] -> (selected, remaining)
+      | cluster :: rest ->
+          let size = width cluster in
+          if size > remaining then (selected, remaining)
+          else take (remaining - size) (cluster :: selected) rest
+    in
+    (* Keep the cursor visible even when preceding text exceeds the field width. *)
+    let left, remaining = take available [] (clusters before) in
+    let right, _ = take remaining [] (List.rev (clusters after)) in
+    String.concat "" left ^ marker ^ String.concat "" (List.rev right)

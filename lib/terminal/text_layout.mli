@@ -4,3 +4,4 @@ val wrap : int -> string -> string list
 val wrap_words : int -> string -> string list
 val ellipsize : ?more:bool -> int -> string -> string
 val limit_rows : width:int -> height:int -> string list -> string list
+val cursor_window : int -> before:string -> after:string -> string

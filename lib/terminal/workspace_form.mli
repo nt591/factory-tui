@@ -14,7 +14,7 @@ val fields : field list
 val label : field -> string
 val current : t -> field
 val value : t -> field -> string
-val cursor_text : t -> field -> string
+val cursor_parts : t -> field -> string * string
 val focus : t -> field -> unit
 val key : t -> Notty.Unescape.key -> unit
 val paste_key : t -> Notty.Unescape.key -> unit

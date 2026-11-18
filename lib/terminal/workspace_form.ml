@@ -29,10 +29,10 @@ let current t = t.current
 let editor t field = List.assoc field t.values
 let value t field = Text_edit.text (editor t field)
 
-let cursor_text t field =
+let cursor_parts t field =
   let editor = editor t field in
   let text = Text_edit.text editor and cursor = Text_edit.cursor editor in
-  String.sub text 0 cursor ^ "▏" ^ String.sub text cursor (String.length text - cursor)
+  (String.sub text 0 cursor, String.sub text cursor (String.length text - cursor))
 
 let focus t field = t.current <- field
 
