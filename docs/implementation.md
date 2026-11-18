@@ -35,7 +35,8 @@ Acceptance does not merge, push, or delete a workspace.
    The UI saves through explicit TOML configuration or `--database`; no config
    means memory-only startup. Tests cover 200 queued saves, final flush, write
    errors, and PTY save/reopen with task drafts and interruption recovery.
-   Live-agent pre-spawn durability will require a separate checkpoint gate.
+   Both explicit headless execution and confirmed live UI runs now acknowledge
+   their Working checkpoint before spawning.
    Unconfigured launches create no database. Stored conversations are sensitive.
 5. **Codex supervision — process/fake UI and explicit headless path implemented.**
    The Codex-style decoder, bounded runner, and background delivery handle are
@@ -43,9 +44,9 @@ Acceptance does not merge, push, or delete a workspace.
    explicit Start streams fixture events into chat. Stop/shutdown cancel and join.
    With SQLite, the Working checkpoint is acknowledged before spawning. Tests
    verify checkpoint refusal, stream replacement, queued replies, and stored
-   process events. Details: `docs/harness.md`. A pure invocation builder validates model/directory and explicit resume identity
-   and sets read-only execution. Installed Codex and gateway compatibility remain
-   unverified; a loopback integration is still required. `--dry-run-codex` exposes
+   process events. Details: `docs/harness.md`. The invocation builder validates
+   model/directory and explicit resume identity and requests read-only execution.
+   Loopback verifies installed Codex; real gateway behavior remains unverified. `--dry-run-codex` exposes
    a structured invocation preview with no executable, credential, or database
    access. CLI tests verify no process side effect and rejection of conflicting
    modes. `--run-codex` explicitly executes with a required database and stdin
@@ -59,7 +60,8 @@ Acceptance does not merge, push, or delete a workspace.
    environment-key references without reading secrets or contacting the network.
    `--check-gateway` validates without opening storage or starting agents. Codex
    provider overrides are pure and tested for new/resumed threads. Details:
-   `docs/gateway.md`. Installed-Codex headless loopback checks pass; real gateway checks remain pending. Setup starts no agent and reads no secret.
+   `docs/gateway.md`. Installed-Codex headless loopback checks pass; real gateway
+   checks remain pending. Setup starts no agent and reads no secret.
    Dry-run invocation must disclose no credentials. Verify protocol compatibility
    against a loopback fixture before an explicitly requested real gateway check.
    Configuration validity does not prove model compatibility.
@@ -75,13 +77,17 @@ Acceptance does not merge, push, or delete a workspace.
    persistence/reopening, and isolation. `v` opens explicit background diff review
    with real patch/empty/error states and task-bound result ownership. Review never
    accepts, integrates, or deletes. `--live-ui` explicitly enables confirmed
-   workspace-backed Codex execution with a durable Working checkpoint. Acceptance remains separate from merge and push.
-   Real calls and workspace changes require explicit live mode and user action.
-8. **Local distribution and lifecycle — implemented; release portability pending.** Vim navigation, repository sidebar,
+   workspace-backed Codex execution with a durable Working checkpoint. Acceptance
+   remains separate from merge and push. Live calls require explicit live mode;
+   workspace creation and review require explicit user actions.
+8. **Local distribution and lifecycle — implemented; release portability pending.**
+   Vim navigation, repository sidebar,
    bordered cards, multiline editing/paste, Help/Settings tabs, and terminal smoke tests
-   exist. UI guidance and visual verification are in `docs/ui-parity.md`. Standalone install and repeatable local archive packaging include build metadata,
+   exist. UI guidance and visual verification are in `docs/ui-parity.md`.
+   Standalone install and repeatable local archive packaging include build metadata,
    dependency lock, operational docs, and temporary-install checks. Signing,
-   notarization, and fresh-machine lock reconstruction are not verified. Measure build time, executable size, and idle resources.
+   notarization, and fresh-machine lock reconstruction are not verified. Local
+   build/footprint measurements are in `docs/distribution.md`.
    Do not claim a GUI performance advantage without a comparable measurement.
 
 A step can require several tested commits. Keep storage, process supervision,
@@ -122,3 +128,9 @@ TODO does not block any of the product steps above.
 Demo seed data and fake runners live in `lib/demo` as `Demo.Seed` and
 `Demo.Runner`. Runner ownership is abstract and delivery uses a callback context,
 so fixture implementation does not depend on the terminal controller.
+
+## Current audit
+
+`docs/audit.md` maps the original UI/product requirements to inspected source,
+tests, terminal behavior, and packaged execution. Read-only execution, real gateway
+compatibility, and fresh-machine release validation are not claimed complete.

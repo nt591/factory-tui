@@ -477,3 +477,11 @@ No remote is configured and nothing is pushed without an explicit request.
 
 A lighter UI does not eliminate execution, durability, or safety work. No
 performance comparison with the Rust application has been established yet.
+
+## Verification and remaining scope
+
+See [docs/audit.md](docs/audit.md) for a requirement-by-requirement evidence map.
+The usable board/chat, persistence, workspace creation/review, and local package
+are implemented. Current Codex execution requests read-only sandboxing; approved
+code-writing/interactive approvals, real gateway behavior, and fresh-machine
+release validation are not claimed complete. OxCaml remains a deferred TODO.
