@@ -204,8 +204,9 @@ let set_draft t text =
   t.drafts <- (t.selected, text) :: List.remove_assoc t.selected t.drafts
 
 let next_id t prefix =
-  t.serial <- t.serial + 1;
-  Printf.sprintf "%s-%d" prefix t.serial
+  let id, serial = Id_allocation.next ~prefix ~serial:t.serial t.tasks in
+  t.serial <- serial;
+  id
 
 let replace t (task : task) =
   (if task.id = t.selected then

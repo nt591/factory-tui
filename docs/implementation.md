@@ -781,3 +781,14 @@ Pure reducer/start/send tests cover namespace refusal, queued/sent history prote
 sticky failure, strict snapshot roundtrip and readable channel diagnostics. This is
 an in-process identity guard, not authentication of imported authors or a new stored
 provenance schema; invalid stored snapshots are not repaired.
+
+Id_allocation.ml/.mli supplies unused counter-based identities against retained
+tasks, messages, tools, run records and active runs. Output namespace prefixes are
+reserved so a stale run counter cannot claim existing stream history. Controller
+next_id advances to the returned counter without renumbering retained records.
+Normal noncolliding sequences stay unchanged; max-int counters wrap to nonnegative
+candidates and still probe occupancy. The module uses a temporary membership index,
+not persisted global allocation state. Pure stale-counter/prefix/limit tests and
+a temporary SQLite restart/creation check verify exact retained records, unique
+new tasks/replies, valid snapshot encoding and unchanged explicit-start rules.
+This does not permit loading corrupt snapshots or guarantee cross-process global IDs.

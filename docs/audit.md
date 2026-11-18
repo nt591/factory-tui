@@ -234,3 +234,8 @@ Stream identity protection has pure namespace/collision tests and strict failed-
 snapshot/render checks. Retained user instructions cannot be silently replaced by
 conflicting output, and a conflicted run cannot reach Ready. This does not authenticate
 arbitrary imported author labels or repair existing corrupt databases.
+
+Stale-counter ID allocation has pure namespace/limit checks and temporary SQLite
+restart/creation coverage. Retained identities remain exact while new allocations
+skip occupancy. This is local snapshot safety, not cross-process global identity
+coordination or automatic repair of invalid stored data.

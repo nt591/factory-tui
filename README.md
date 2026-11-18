@@ -882,3 +882,8 @@ once; badges follow cards as they move columns. Compact lists show `[N new]`.
 Viewing that task's conversation or Activity clears its badge, unless a modal
 covers the detail. These are launch-local change indicators, not unread receipts:
 opening detail does not prove all content was read. Restart does not badge old history.
+
+Restored counters do not determine identity uniqueness on their own. Creating a task,
+posting a reply, or starting a run skips IDs already present in retained tasks,
+messages, runs, or output namespaces. Imported history is never renumbered. This
+protects valid snapshots with stale counters; invalid snapshots still fail validation.

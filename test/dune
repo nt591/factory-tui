@@ -382,3 +382,8 @@
  (name test_stream_identity)
  (modules test_stream_identity)
  (libraries factory_tui notty))
+
+(test
+ (name test_id_allocation)
+ (modules test_id_allocation)
+ (libraries factory_tui unix))

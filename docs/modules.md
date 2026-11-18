@@ -420,3 +420,9 @@ replacement cannot overwrite submitted, queued or differently authored history.
 A conflicting output preserves history and records a failed-run diagnostic. The
 existing scoped IDs and captured harness labels remain the supported stream identity;
 no new author authentication or persistence schema is introduced.
+
+Id_allocation computes the next free counter identity from supplied retained tasks.
+Its private ephemeral index includes exact task/message/tool/run IDs and slash
+namespace ancestors. Controller owns the counter and applies returned values;
+existing records are never modified by allocation. It is not a global/distributed
+ID service and exposes no mutable handle.

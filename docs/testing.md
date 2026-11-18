@@ -752,3 +752,10 @@ exit events, snapshot validity and rendered diagnostics. The corrupt in-memory c
 is a guard test, not a claim that the loader permits corrupt snapshots. No agent,
 credentials or real workspace are used. The full UI suite exercises normal stream
 replacement, movement and persistent conversations separately.
+
+`test_id_allocation` covers stale task/reply/run counters, tool/output namespace
+collisions, max-int wrap, unchanged ordinary sequences and retained-record isolation.
+It restores a strict snapshot, creates a unique task/reply and roundtrips updated
+state. A temporary SQLite save/reopen case starts from a stale counter and saves
+one new task without rewriting old identities. No agent, credentials or real
+workspace are used; demo-start coverage uses only scheduled fixture events.
