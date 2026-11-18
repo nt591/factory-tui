@@ -72,6 +72,37 @@ def main():
         ) as tui:
             tui.ready()
             tui.wait("history loaded", lambda: "Replay history 39" in tui.text())
+
+            def focused_title(label):
+                row = next(row for row in tui.screen.display if label in row)
+                return row[row.index(label) - 3] == "┏"
+
+            tui.check("whole board has strong initial focus", focused_title("Board /"))
+            original_top = conversation_row(tui)
+            for section in ("conversation", "activity", "Board /"):
+                tui.send(b"\t")
+                label = (
+                    "T-102 / Working / conversation"
+                    if section == "conversation"
+                    else ("T-102 / activity" if section == "activity" else section)
+                )
+                tui.check(
+                    "Tab makes " + section + " focus visible", focused_title(label)
+                )
+                tui.check(
+                    "Tab keeps layout stable", conversation_row(tui) == original_top
+                )
+                if args.preview:
+                    tui.preview(
+                        args.preview.with_stem(
+                            args.preview.stem + "-focus-" + section.replace(" /", "")
+                        )
+                    )
+            tui.send(b"d")
+            tui.check(
+                "plain d cannot open Archive",
+                "tasks accepted" not in tui.screen.display[2],
+            )
             original_top = conversation_row(tui)
             tui.send(b"3\x17+")
             tui.wait(

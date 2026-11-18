@@ -179,7 +179,7 @@ let () =
   window controller '=';
   let configured_frame = Ui.render controller ~width:120 ~height:36 in
   let r, _, _, _ = List.hd configured_frame.columns in
-  check "render uses configured reset dimensions" (r.h = 12);
+  check "lane fits inside configured board dimensions" (r.h = 10);
   check "reset status names configured defaults"
     (controller.status = "Configured pane sizes restored.");
   check "configured layout does not alter persisted data"

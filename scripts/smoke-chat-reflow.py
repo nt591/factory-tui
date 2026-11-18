@@ -37,7 +37,7 @@ def resize(tui, columns):
 
 
 def top_body(tui):
-    return tui.screen.display[4].split("│")[1].strip()
+    return tui.screen.display[4].replace("┃", "│").split("│")[1].strip()
 
 
 def main():

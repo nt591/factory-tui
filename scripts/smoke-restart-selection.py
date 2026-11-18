@@ -101,7 +101,7 @@ def main():
                     lambda: f"{active['id']} / Queued / conversation" in tui.text(),
                 )
                 if attempt == 0:
-                    tui.send(b"d")
+                    tui.toggle_board_view()
                 else:
                     archive_row = next(
                         row
@@ -135,10 +135,12 @@ def main():
                     "revealing active card keeps selected conversation",
                     f"{active['id']} / Queued / conversation" in tui.text(),
                 )
-                tui.send(b"d")
-                tui.send(b"dbd")
+                tui.toggle_board_view()
+                tui.toggle_board_view()
+                tui.send(b"b")
+                tui.toggle_board_view()
                 tui.check(
-                    "keyboard view switches keep active conversation open",
+                    "explicit view switches keep active conversation open",
                     f"{active['id']} / Queued / conversation" in tui.text(),
                 )
                 tui.send(b"j")

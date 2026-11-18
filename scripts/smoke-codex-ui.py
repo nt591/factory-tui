@@ -303,7 +303,7 @@ def main():
                     tui.preview(args.preview.with_stem(args.preview.stem + "-history"))
                 tui.send(b"\x1b")
                 tui.send(b"\x01")
-                tui.send(b"d")
+                tui.toggle_board_view()
                 tui.wait(
                     "accepted archive", lambda: "/ Done / conversation" in tui.text()
                 )
@@ -321,7 +321,7 @@ def main():
             requests = UiGateway.requests
             with Terminal(command, env) as tui:
                 tui.ready()
-                tui.send(b"d")
+                tui.toggle_board_view()
                 tui.send(b"e")
                 tui.check(
                     "restart retains accepted chat without a new run",

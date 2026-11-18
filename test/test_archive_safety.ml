@@ -40,6 +40,8 @@ let () =
     && accepted.runs = task.runs && accepted.id = task.id
     && controller.drafts = saved.drafts);
   Controller.key controller (`ASCII 'd', []);
+  check "plain d cannot switch archive view" (not controller.archive);
+  Controller.act controller Archive_view;
   controller.query <- "hidden";
   controller.repository <- Some "hidden";
   controller.zoom <- true;

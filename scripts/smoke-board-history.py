@@ -55,14 +55,14 @@ def main():
             tui.wait("paused history", lambda: "reading history" in tui.text())
 
             def chat_rows():
-                return [row[:80] for row in tui.screen.display[20:28]]
+                return [row[1:79] for row in tui.screen.display[20:28]]
 
             old_chat = chat_rows()
             tui.check(
                 "Home reveals original task instruction",
                 any("Build the event reducer" in row for row in old_chat),
             )
-            tui.send(b"\x1b[<65;5;4M")
+            tui.send(b"\x1b[<65;5;5M")
             tui.check(
                 "wheel on column title leaves its card range unchanged",
                 "Queued 3 / 1-2/3" in tui.text(),

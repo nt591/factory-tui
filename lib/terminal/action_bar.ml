@@ -30,6 +30,6 @@ let items ~archive ~task ~live ~replay ~fake ~storage ~expanded =
   @ (if storage then [ ("W workspace", Begin_workspace) ] else [])
   @ (if live then if storage then [ ("n task", Begin_new) ] else []
      else [ ("n demo", Begin_new) ])
-  @ (if archive then [] else [ ("d archive", Toggle_archive) ])
+  @ (if archive then [] else [ ("Archive", Toggle_archive) ])
   @ (if live || replay || fake then [] else [ ("f pause", Toggle_pause) ])
   @ [ ("q quit", Quit) ]

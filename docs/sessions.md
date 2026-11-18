@@ -108,8 +108,20 @@ Archived tasks keep their conversation, run history, working directory, queued
 replies and draft. They are read-only until restored. No merge, push or deletion
 occurs on archiving.
 
-Press `d` to open Archive. Select the task and press **`u`** or click **Restore**
+Click **Archive** in the sidebar/action bar to open it. Plain `d` has no action. Select the task and press **`u`** or click **Restore**
 to put it back in Ready and return to the visible session board. This clears board
 filters that could hide the restored card, but does not send any retained message
 or start an agent. The next send is a separate action. `b` returns to the session
 board without restoring a task. Restoration persists across SQLite restart.
+
+## Section navigation
+
+Tab cycles Board → Conversation → Activity; Shift-Tab goes back. The active section
+has a heavy cyan boundary. All kanban lanes sit inside one board boundary; a card's
+selection marker stays visible when you read its conversation. Use h/l or arrows
+on the board to move between lanes. Tab does not expand or resize sections; e still
+expands explicitly. Narrow terminals show the focused detail when both sections
+cannot fit.
+
+Ctrl-X deletion is not implemented. Archiving and restoring never delete a task's
+working directory.

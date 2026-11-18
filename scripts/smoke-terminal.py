@@ -180,8 +180,8 @@ try:
     send(b"\x1b[D!")
     send(b"\r")
     send(b"e")
-    check("multiline reply reaches chat", any(row.split("│")[1].strip() == "First line" for row in screen.display if "│" in row)
-          and any(row.split("│")[1].strip() == "Second line" for row in screen.display if "│" in row)
+    check("multiline reply reaches chat", any(row.replace("┃", "│").split("│")[1].strip() == "First line" for row in screen.display if "│" in row or "┃" in row)
+          and any(row.replace("┃", "│").split("│")[1].strip() == "Second line" for row in screen.display if "│" in row or "┃" in row)
           and "Pasted third lin!e" in text())
     if args.preview:
         preview(args.preview.with_stem(args.preview.stem + "-multiline"))
@@ -206,7 +206,8 @@ try:
     check("ready footer offers acceptance without stale stop", "Ctrl-A archive" in screen.display[-2]
           and "x stop" not in screen.display[-2])
     send(b"\x01")
-    send(b"d")
+    archive_x = screen.display[2].index("Session board")
+    send(f"\x1b[<0;{archive_x + 1};3M\x1b[<0;{archive_x + 1};3m".encode())
     check("accepted tasks appear in archive", "T-101" in text() and "Done" in text())
     check("accepted footer omits run and editing actions", all(label not in screen.display[-2]
           for label in ("s start", "x stop", "Ctrl-A archive", "i reply", "m model", "H harness")))
@@ -490,7 +491,7 @@ try:
         check("created task chat restores after restart", "Create an isolated task through the TUI" in text())
         send(b"\x17le")
         check("workspace Activity expands for inspection", "activity / expanded" in text())
-        metadata = "".join(row.strip().strip("│").strip() for row in screen.display[4:-4])
+        metadata = "".join(row.strip().strip("│┃").strip() for row in screen.display[4:-4])
         check("Activity retains full recorded workspace paths", task["workspace"]["source"] in metadata
               and task["workspace"]["directory"] in metadata)
         check("Activity exposes the exact diff base", task["workspace"]["base"] in metadata)
@@ -720,7 +721,7 @@ printf '%s\\n' '{"type":"turn.completed"}'
         send(b"\x1b[H")
         send(b"6j")
         def top_chat_line():
-            return screen.display[5].split("│")[1].strip()
+            return screen.display[5].replace("┃", "│").split("│")[1].strip()
         check("scroll reveals older message", top_chat_line() == "History item 01")
         check("paused history is disclosed", "reading history" in text())
         send(b"t")

@@ -967,6 +967,10 @@ show no conversation. Restoring selection never resumes an agent or changes draf
 
 ## Archive and undo
 
-Ctrl-A accepts and archives Ready work; plain a does not. In Archive (`d`), select
-a task and press u to restore it to Ready. History, drafts and working files are
+Ctrl-A accepts and archives Ready work; plain a does not. Click Archive to open it,
+then select a task and press u to restore it to Ready. History, drafts and working files are
 retained, and restore starts no run. Use b to return to the visible session board.
+
+Tab cycles Board → Conversation → Activity, with a heavy boundary around the active
+section. h/l or arrows navigate board lanes. Tab does not resize the layout; e expands
+explicitly. Plain d has no archive action. Ctrl-X deletion is not implemented.

@@ -76,7 +76,7 @@ def main():
                 "Ctrl-A archives",
                 lambda: f"{task['id']} / Done / conversation" in tui.text(),
             )
-            tui.send(b"d")
+            tui.toggle_board_view()
             tui.wait(
                 "archive navigation",
                 lambda: "1 tasks accepted" in tui.screen.display[2],
@@ -94,7 +94,7 @@ def main():
         assert archived["tasks"][0]["state"] == "done"
         with Terminal(command, env, columns=180, rows=50) as tui:
             tui.ready()
-            tui.send(b"d")
+            tui.toggle_board_view()
             tui.send(b"u")
             tui.wait(
                 "restore reveals active task",

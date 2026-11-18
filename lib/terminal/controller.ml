@@ -1107,7 +1107,6 @@ let normal_key t (key, mods) =
             t.status <-
               "Use Ctrl-A to accept and archive Ready work; u restores archived work.")
     | `ASCII 'u' -> command (fun () -> act t Restore_task)
-    | `ASCII 'd' -> command (fun () -> act t Toggle_archive)
     | `ASCII 'f' -> command (fun () -> act t Toggle_pause)
     | `ASCII 'j' | `Arrow `Down ->
         command (fun () -> repeat count (fun () -> navigate t `Down))

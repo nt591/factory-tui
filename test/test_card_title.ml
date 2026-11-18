@@ -19,7 +19,7 @@ let () =
     (frame, String.split_on_char '\n' (Buffer.contents buffer))
   in
   let frame, rows = render () in
-  check "long card title marks hidden rows" (Controller.contains (List.nth rows 6) "…");
+  check "long card title marks hidden rows" (Controller.contains (List.nth rows 7) "…");
   check "card retains task hit target"
     (List.exists
        (fun (hit : Ui.hit) -> hit.action = Controller.Select task.id)

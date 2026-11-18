@@ -44,32 +44,32 @@ let glyph a s = I.string a s
 let wrap cols text = Text_layout.wrap cols (clean text)
 let wrap_title cols text = Text_layout.wrap_words cols (clean ~newlines:false text)
 
-let border ?(footer = "") cols rows ~title ~color ~focused content =
+let border ?(footer = "") ?(section = false) cols rows ~title ~color ~focused content =
   if cols < 2 || rows < 2 then fit cols rows content
   else
     let a = if focused then emphasis color else attr muted in
-    let horizontal = String.concat "" (List.init (cols - 2) (fun _ -> "─")) in
-    let top =
-      I.(
-        glyph a "╭"
-        <|> (glyph a ("─ " ^ clean ~newlines:false title ^ " " ^ horizontal)
-            |> hsnap ~align:`Left (cols - 2))
-        <|> glyph a "╮")
+    let strong = section && focused in
+    let tl, tr, bl, br, bar, vertical =
+      if strong then ("┏", "┓", "┗", "┛", "━", 0x2503)
+      else ("╭", "╮", "╰", "╯", "─", 0x2502)
     in
+    let horizontal = String.concat "" (List.init (cols - 2) (fun _ -> bar)) in
+    let edge left right label =
+      I.(
+        glyph a left
+        <|> (glyph a (bar ^ " " ^ clean ~newlines:false label ^ " " ^ horizontal)
+            |> hsnap ~align:`Left (cols - 2))
+        <|> glyph a right)
+    in
+    let top = edge tl tr title in
     let bottom =
-      if footer = "" then glyph a ("╰" ^ horizontal ^ "╯")
-      else
-        I.(
-          glyph a "╰"
-          <|> (glyph a ("─ " ^ clean ~newlines:false footer ^ " " ^ horizontal)
-              |> hsnap ~align:`Left (cols - 2))
-          <|> glyph a "╯")
+      if footer = "" then glyph a (bl ^ horizontal ^ br) else edge bl br footer
     in
     let middle =
       I.(
-        uchar a (Uchar.of_int 0x2502) 1 (rows - 2)
+        uchar a (Uchar.of_int vertical) 1 (rows - 2)
         <|> (fit (cols - 2) (rows - 2) content </> block (cols - 2) (rows - 2) (attr text))
-        <|> uchar a (Uchar.of_int 0x2502) 1 (rows - 2))
+        <|> uchar a (Uchar.of_int vertical) 1 (rows - 2))
     in
     I.(top <-> middle <-> bottom)
 
@@ -227,7 +227,7 @@ let render t ~width:cols ~height:rows =
            rows)
     in
     paint r.x r.y
-      (border r.w chat_height ~title ~footer:position.text ~color:accent
+      (border ~section:true r.w chat_height ~title ~footer:position.text ~color:accent
          ~focused:(t.focus = Conversation)
          (if not searching then content
           else
@@ -270,7 +270,7 @@ let render t ~width:cols ~height:rows =
         |> I.hpad 1 1
       in
       paint r.x (r.y + chat_height)
-        (border r.w composer_height
+        (border ~section:true r.w composer_height
            ~title:
              (if task.state = Done then
                 Acceptance_summary.title ~width:(r.w - 5)
@@ -322,7 +322,7 @@ let render t ~width:cols ~height:rows =
         (window.items |> List.map (fun row -> I.hpad 1 1 (line inner (attr muted) row)))
     in
     paint r.x r.y
-      (border ~footer r.w r.h
+      (border ~section:true ~footer r.w r.h
          ~title:
            ((match task with None -> "Task" | Some task -> task.id)
            ^ " / activity"
@@ -348,9 +348,8 @@ let render t ~width:cols ~height:rows =
   in
   let board r =
     t.board_list <- r.w < 88 || t.archive;
-    if t.board_list then (
-      panes := (r, Board) :: !panes;
-      scroll_region r Board 0);
+    panes := (r, Board) :: !panes;
+    if t.board_list then scroll_region r Board 0;
     let tasks = visible t in
     if tasks = [] then (
       let guidance =
@@ -368,8 +367,8 @@ let render t ~width:cols ~height:rows =
         |> I.hpad 1 1
       in
       paint r.x r.y
-        (border r.w r.h ~title:"Session board" ~color:accent ~focused:(t.focus = Board)
-           content);
+        (border ~section:true r.w r.h ~title:"Session board" ~color:accent
+           ~focused:(t.focus = Board) content);
       if r.h > 3 && r.w > 4 then
         (* The button exists only if its actual row is inside the pane. *)
         let actual_row = List.length lines + 2 in
@@ -416,15 +415,21 @@ let render t ~width:cols ~height:rows =
         else "Tasks / click · " ^ Board_window.cue window ^ " · e expand"
       in
       paint r.x r.y
-        (border r.w r.h ~title ~color:accent ~focused:(t.focus = Board) (I.vcat rows)))
-    else
+        (border ~section:true r.w r.h ~title ~color:accent ~focused:(t.focus = Board)
+           (I.vcat rows)))
+    else (
+      paint r.x r.y
+        (border ~section:true r.w r.h ~title:"Board / h l: lanes / Tab: conversation"
+           ~color:accent ~focused:(t.focus = Board) I.empty);
+      hit r.x r.y r.w 1 (Focus Board);
+      let r = { x = r.x + 1; y = r.y + 1; w = r.w - 2; h = r.h - 2 } in
       let col_w = r.w / 4 in
       List.iteri
         (fun column state ->
           let x = r.x + (column * col_w) in
           let w = if column = 3 then r.w - (column * col_w) else col_w in
           let items = List.filter (fun (task : task) -> task.state = state) tasks in
-          let capacity = max 0 ((r.h - 2) / 7) in
+          let capacity = max 0 (r.h / 7) in
           if t.focus = Board then t.page_rows <- max 1 capacity;
           let selected_index =
             let rec find i = function
@@ -482,7 +487,8 @@ let render t ~width:cols ~height:rows =
                 hit (x + 1) (r.y + 1 + (index * 7)) (w - 2) 6 (Select task.id);
                 let title = task.id ^ if selected then " ◂" else "" in
                 I.(
-                  border (w - 2) 6 ~title ~color:(state_color state) ~focused:selected
+                  border (w - 2) 6 ~title ~color:(state_color state)
+                    ~focused:(selected && t.focus = Board)
                     card
                   <-> block (w - 2) 1 (attr muted)))
               shown
@@ -498,12 +504,14 @@ let render t ~width:cols ~height:rows =
                else " / " ^ Board_window.cue window)
           in
           paint x r.y
-            (border w r.h ~title ~color:(state_color state)
+            (* The board supplies the bottom edge, so this row can show the last card. *)
+            (border w (r.h + 1) ~title ~color:(state_color state)
                ~focused:
                  (t.focus = Board
                  && match task with Some task -> task.state = state | None -> false)
-               content))
-        columns
+               content
+            |> fit w r.h))
+        columns)
   in
   if sidebar_width > 0 then (
     let pinned =

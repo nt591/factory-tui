@@ -17,7 +17,7 @@ let action label =
     | None -> I.string base (" " ^ label ^ " ")
   else
     match String.index_opt label ' ' with
-    | None -> I.string key (" " ^ label ^ " ")
+    | None -> I.string base (" " ^ label ^ " ")
     | Some split ->
         I.(
           string base " "

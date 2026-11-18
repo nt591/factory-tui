@@ -18,6 +18,9 @@ let task = Model.make ~id:"task" ~title:"Instruction" ~repository:"fixture"
 
 let () =
   let empty = items None in
+  check "Archive is visible without an accidental letter shortcut"
+    (List.mem ("Archive", Toggle_archive) empty
+    && not (List.mem ("d archive", Toggle_archive) empty));
   check "empty bar has navigation and demo creation"
     (has empty Help && has empty Begin_new && has empty Quit);
   check "empty bar omits task actions"

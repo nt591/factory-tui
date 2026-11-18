@@ -131,7 +131,7 @@ let () =
     (reopened.selected = accepted.id
     && (not reopened.archive)
     && Controller.visible reopened = []);
-  Controller.key reopened (`ASCII 'd', []);
+  Controller.act reopened Controller.Archive_view;
   check "opening archive selects the retained task" (reopened.selected = accepted.id);
   Controller.key reopened (`ASCII 'e', []);
   check "archived task can open directly after restart" reopened.zoom;

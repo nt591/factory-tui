@@ -31,7 +31,7 @@ let help ~mode =
     | Fake -> "s starts a local process fixture; x stops; Ctrl-A archives Ready."
     | Simulation -> "s starts a simulated run; x stops; Ctrl-A archives Ready tasks.");
     "M opens and loads gateway models; Ctrl-R refreshes. Uses the gateway key.";
-    "b returns to the board. d toggles Archive; u restores a selected archived task.";
+    "b returns to the board. Click Archive to open it; u restores an archived task.";
     "v opens real workspace changes; r refreshes; Escape returns.";
     "Review: [/]: files; h/l: long lines; Ctrl-U/D: half; Ctrl-B/F: page.";
     (match mode with

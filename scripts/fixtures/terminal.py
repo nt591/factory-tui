@@ -87,6 +87,16 @@ class Terminal:
         os.write(self.master, data)
         self.pump(0.15)
 
+    def click_text(self, label, row=None):
+        rows = range(self.screen.lines) if row is None else [row]
+        y = next(y for y in rows if label in self.screen.display[y])
+        x = self.screen.display[y].index(label)
+        self.send(f"\x1b[<0;{x + 1};{y + 1}M\x1b[<0;{x + 1};{y + 1}m".encode())
+
+    def toggle_board_view(self):
+        label = "Archive" if "accepted" in self.screen.display[2] else "Session board"
+        self.click_text(label, row=2)
+
     def wait(self, name, predicate, timeout=15):
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:

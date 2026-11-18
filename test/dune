@@ -457,3 +457,8 @@
  (name test_archive_safety)
  (modules test_archive_safety)
  (libraries factory_tui notty))
+
+(test
+ (name test_section_focus)
+ (modules test_section_focus)
+ (libraries factory_tui notty))

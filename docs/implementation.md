@@ -1085,3 +1085,16 @@ messages, pending replies, drafts and run/workspace history. Controller restores
 the visible active board with cleared filters and no process start. Storage errors
 retain priority. Pure shortcut/reducer/codec/mouse tests and temporary SQLite PTYs
 verify accidental-key refusal, explicit archive, restart and exact-data restore.
+
+
+Section focus uses heavy boundaries for the active Board, Conversation or Activity.
+The kanban board has a shared outer boundary, with lane/card hit regions inside it.
+Tab/Shift-Tab cycle sections without changing their layout preferences; compact
+layouts retain their focused-detail fallback. Selection remains visible without
+using an active-card border while another section has focus. Plain d has no normal
+mode action; Archive remains a clickable sidebar/action-bar/header control. Ctrl-X
+deletion is not implemented. No task data or workspace lifecycle changes apply.
+Pure tests cover section boundary styles, stable pane geometry, forward/reverse
+Tab order, clickable board focus and unchanged snapshots. The 23-case fixture UI
+audit covers all three focus states, resize/history retention and mouse-only archive
+navigation with restart/restore; its 69 previews remain outside the repository.
