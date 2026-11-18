@@ -273,3 +273,35 @@ Incremental layout is also compared against a fresh cache over sixty determinist
 stream updates, including changing text, author/delivery labels, message order,
 content width, and task identity. Equality checks cover all rows and anchors;
 separate physical-identity tests verify that reuse actually occurs.
+
+## Fresh locked switch reconstruction
+
+The opt-in `scripts/smoke-fresh-switch.py` creates a temporary opam root and an
+empty switch. It downloads metadata/sources and installs application dependencies
+with `--locked --deps-only`, then checks exact installed versions against the
+checked-in lock. It builds in a separate Dune directory and runs parallel unit
+checks and the full terminal fixture against that fresh binary. The temporary
+root, compiler, dependencies, and build are removed on normal success or failure;
+a new report file retains stage outcomes. The project switch, personal shell
+configuration, editor, real workspaces, and credentials are not modified.
+
+```sh
+python3 scripts/smoke-fresh-switch.py --reconstruct \
+  --report /tmp/factory-fresh-switch-new.json
+```
+
+This is compiler/dependency reconstruction on the current host, not a clean OS
+installation. Network, opam, the system compiler/linker, pkg-config, SQLite, jj,
+Python, and uv must already work. The lock covers application dependencies, not
+ocamlformat, ocamllsp, or optional odoc. This heavy check is not part of normal
+`check.sh`; `test-fresh-lock.py` exercises its comparison logic without installing
+anything or starting a process.
+
+November 18, 2026: the first unmodified compiler/dependency reconstruction failed
+in topkg. The matching `ocamlbuild` crash report identified SIGSEGV at
+`caml_unix_pipe`. With explicit `--macos-compiler-workaround`, reconstruction
+passed all 52 exact locked versions, fresh build, parallel unit tests, and full
+PTY smoke using the fresh binary. The compiler's generated runtime header also
+showed the requested pipe2/dup3/accept4 functions disabled. No project switch or
+opam sandbox change was made; temporary resources were removed. The compact
+committed evidence is `docs/verification/fresh-switch-macos.json`.

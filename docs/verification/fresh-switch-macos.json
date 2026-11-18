@@ -1,0 +1,59 @@
+{
+  "result": "passed",
+  "stages": [
+    {
+      "name": "isolated opam metadata",
+      "seconds": 9.35,
+      "exit_code": 0
+    },
+    {
+      "name": "empty compiler switch",
+      "seconds": 0.178,
+      "exit_code": 0
+    },
+    {
+      "name": "locked application dependencies",
+      "seconds": 197.694,
+      "exit_code": 0
+    },
+    {
+      "name": "fresh application build",
+      "seconds": 2.319,
+      "exit_code": 0
+    },
+    {
+      "name": "fresh parallel tests",
+      "seconds": 14.899,
+      "exit_code": 0
+    },
+    {
+      "name": "fresh binary version",
+      "seconds": 0.206,
+      "exit_code": 0
+    },
+    {
+      "name": "fresh binary terminal workflow",
+      "seconds": 65.458,
+      "exit_code": 0
+    }
+  ],
+  "packages": "angstrom              0.16.1\nastring               0.8.5\nbase-bigarray         base\nbase-domains          base\nbase-effects          base\nbase-nnp              base\nbase-threads          base\nbase-unix             base\nbigstringaf           0.10.0\ncmdliner              2.1.1\nconf-pkg-config       5\nconf-sqlite3          1\ncppo                  1.8.0\ncsexp                 1.5.2\ncstruct               6.3.0\ndune                  3.25.0\ndune-compiledb        0.6.0\ndune-configurator     3.25.0\nezjsonm               1.3.0\nfmt                   0.11.0\nfpath                 0.7.3\nhex                   1.5.0\nISO8601               0.2.6\njsonm                 1.0.2\nmenhir                20260209\nmenhirCST             20260209\nmenhirGLR             20260209\nmenhirLib             20260209\nmenhirSdk             20260209\nnotty                 0.2.3\nnum                   1.6\nocaml                 5.3.0\nocaml-base-compiler   5.3.0\nocaml-compiler        5.3.0\nocaml-config          3\nocaml-options-vanilla 1\nocaml-syntax-shims    1.0.0\nocamlbuild            0.16.1\nocamlfind             1.9.8\nparsexp               v0.17.0\nsexplib               v0.17.0\nsexplib0              v0.17.0\nspawn                 v0.17.0\nsqlite3               5.4.2\nstringext             1.6.0\ntoml                  7.1.0\ntopkg                 1.1.1\nuri                   4.4.0\nuucp                  18.0.0\nuuseg                 18.0.0\nuutf                  1.0.4\nyojson                3.0.0\n",
+  "verified_locked_packages": 52,
+  "compiler_overrides": {
+    "ac_cv_func_pipe2": "no",
+    "ac_cv_func_dup3": "no",
+    "ac_cv_func_accept4": "no",
+    "ac_cv_func_ppoll": "no",
+    "MACOSX_DEPLOYMENT_TARGET": "14.0"
+  },
+  "scope": "Fresh temporary opam root, compiler and locked application dependencies on the existing macOS host. Explicit configure workaround; system libraries/tools remain prerequisites. No model calls, signing, clean-OS, editor-tool or cross-OS validation.",
+  "date": "2026-11-18",
+  "platform": "macOS 26.7.1 arm64",
+  "application_source_revision": "b1919d0ee2d250d12d20f77fe747c9298b9fab72",
+  "bootstrap_without_workaround": {
+    "result": "failed",
+    "stage": "locked application dependencies",
+    "package": "topkg.1.1.1",
+    "evidence": "ocamlbuild crash report at 2026-11-18 02:52:56 identifies SIGSEGV and caml_unix_pipe."
+  }
+}

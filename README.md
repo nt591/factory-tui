@@ -44,6 +44,29 @@ ac_cv_func_pipe2=no ac_cv_func_dup3=no ac_cv_func_accept4=no \
   opam reinstall --switch=. ocaml-compiler -y
 ```
 
+On this Mac's SDK, use those configure variables during compiler creation:
+
+```sh
+ac_cv_func_pipe2=no ac_cv_func_dup3=no ac_cv_func_accept4=no \
+  ac_cv_func_ppoll=no MACOSX_DEPLOYMENT_TARGET=14.0 \
+  opam switch create . ocaml-base-compiler.5.3.0 --no-switch -y
+opam install --switch=. --locked . --deps-only -y
+```
+
+Otherwise a fresh lock install can fail while building `topkg` through
+`ocamlbuild`. An isolated reconstruction check is available without changing your
+project switch or shell configuration:
+
+```sh
+python3 scripts/smoke-fresh-switch.py --reconstruct --macos-compiler-workaround \
+  --report /tmp/factory-fresh-switch-new.json
+```
+
+The explicit workaround is macOS-only; omit it when the system does not require
+it. This downloads/builds the compiler and locked dependencies in a temporary opam
+root, then verifies the application and terminal workflow. It is not a fresh-OS
+or cross-platform certification. See `docs/distribution.md` for scope.
+
 Use standard OCaml first. OxCaml is not required by this prototype.
 
 ## Standalone command and local package

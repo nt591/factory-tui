@@ -8,3 +8,4 @@ case "$build_dir" in /*) ;; *) build_dir="$root/$build_dir" ;; esac
 opam exec --switch="$switch" -- dune runtest --root "$root" --build-dir "$build_dir" --force
 
 python3 "$root/scripts/test-responses.py"
+python3 "$root/scripts/test-fresh-lock.py"

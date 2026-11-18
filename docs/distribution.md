@@ -56,9 +56,11 @@ OxCaml stays an optional deferred experiment. `factory_tui.opam.locked` records 
 versions. Install with `opam install --locked . --deps-only` in the project switch;
 refresh the lock intentionally with `opam lock ./factory_tui.opam` after changing
 dependencies. The optional odoc documentation dependency is not included because
-it is not installed here. Lock generation is verified, but recreating a completely
-fresh switch from the lock is not yet tested. Distributable signing/notarization
-remains future work.
+it is not installed here. A new temporary opam root/switch was reconstructed from
+the lock on November 18, 2026 with the explicit macOS compiler workaround below;
+all 52 locked versions, application build, parallel tests, and the fresh binary's
+terminal workflow passed. This does not reconstruct editor tools or validate a
+fresh OS. Distributable signing/notarization remains future work.
 
 ## Verify an extracted binary
 
@@ -94,3 +96,50 @@ These are observations from this machine, not performance guarantees. Packaging
 was verified twice from identical build bytes, and an extracted executable passed
 the full PTY smoke. The harness drains the PTY while waiting for shutdown, so
 terminal output cannot block the tested app just because the test stopped reading.
+
+## Opt-in dependency reconstruction
+
+```sh
+python3 scripts/smoke-fresh-switch.py --reconstruct \
+  --report /tmp/factory-fresh-switch-new.json
+```
+
+The command creates a temporary opam root and empty switch, installs the checked-in
+lock, verifies exact application/compiler package versions, builds in a temporary
+Dune directory, and checks the resulting binary with unit and terminal fixtures.
+No project switch, editor, shell profile, config, or installation prefix is changed.
+Sources/metadata are downloaded, so this is intentionally separate from normal
+checks. It requires the current host's system libraries and development tools;
+it is not fresh-OS validation or byte-reproducible compilation.
+
+This Mac's newer SDK requires the compiler workaround documented in README:
+
+```sh
+python3 scripts/smoke-fresh-switch.py --reconstruct --macos-compiler-workaround \
+  --report /tmp/factory-fresh-switch-macos-new.json
+```
+
+That explicit option records configure overrides in the report and leaves opam's
+build sandbox enabled. The unmodified compiler bootstrap can crash `ocamlbuild`
+in `caml_unix_pipe`; apply the workaround before compiler construction, not after
+installing the dependent tools. The option is rejected on non-macOS hosts.
+The report records exact package checks and stage outcomes. Failure reports retain
+bounded package build output, not environment dumps. Temporary resources are
+removed after checks; user configuration and the project switch remain untouched.
+
+### Reconstruction evidence
+
+`docs/verification/fresh-switch-macos.json` records the successful November 18,
+2026 check on macOS 26.7.1 arm64, including exact installed packages, compiler
+overrides, stages, and tested application source revision. Without overrides,
+the first attempt failed in topkg; the matching `ocamlbuild` macOS crash report
+at 02:52:56 identified SIGSEGV and `caml_unix_pipe`. That attempt did not reach
+application compilation. No application dependency versions changed to obtain
+the successful result, and no sandbox was disabled.
+
+The successful attempt took 197.694 seconds to construct the compiler and install
+locked dependencies, 2.319 seconds for application build, 14.899 seconds for the
+parallel suite, and 65.458 seconds for terminal fixtures. These include existing
+host tools/network inputs and are single-run observations, not reproducible timing
+or GUI-performance claims. Temporary roots were removed and the project switch
+remained unchanged. Reconstruction still needs a working system toolchain.

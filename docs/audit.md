@@ -31,6 +31,7 @@ accessible help/settings. The staged native-app implementation remains the guide
 | Acceptance is separate | Only Ready can be accepted; no merge/push/delete in acceptance. Controller/review tests verify retained read-only chat and blocked background shortcuts; installed-agent PTY verifies acceptance preserves source commit/workspace base/file and archived-chat restart. | Implemented |
 | Modularity and formatting | Every library `.ml` has a matching `.mli`. Subsystem folders and Demo namespace; abstract resource handles and native scoped let-bindings. `scripts/format.sh --check` and Dune compilation enforce formatting/interfaces. | Implemented; one Dune library and exposed controller state remain |
 | Editor | Project-switch LSP/Conform configuration, pinned editor tools, `.ml`/`.mli` attachment and formatting checks in actual Neovim config. | Verified locally |
+| Fresh locked compiler build | New temporary opam root/empty switch; all 52 locked package versions checked, application build and parallel tests passed, full PTY smoke used fresh binary. Unmodified macOS bootstrap crashed ocamlbuild at caml_unix_pipe; explicit recorded compiler overrides passed. Evidence: docs/verification/fresh-switch-macos.json. | Verified on this host; not clean-OS/editor/cross-OS validation |
 | Local distribution | Standalone binary, explicit refusal-to-overwrite install, repeatable archive metadata, transitive opam lock, temporary package/install tests. Extracted binary runs with opam absent from PATH and passes the full PTY smoke. | Implemented for local macOS arm64 |
 | Measured footprint | `scripts/measure.py`, fresh build directory and version-launch median; system-only dylib links inspected. No matched GUI measurement exists. | Local measurements only |
 | Step-by-step jj commits | `jj log`, local main bookmarks, format/build/tests before increments; no remote/push. | Followed |
@@ -50,10 +51,13 @@ accessible help/settings. The staged native-app implementation remains the guide
    not a model's tools, reasoning, credentials, billing, or provider behavior.
    Real gateway checks need user-selected configuration and explicit approval;
    no real key or model request is needed for normal tests.
-3. **Fresh-machine release validation.** The lock was generated and checked
-   against the existing switch; a completely new switch reconstruction, cross-OS
-   support, signing, and notarization are not verified. The local archive is not
-   represented as a public production release.
+3. **Fresh-machine release validation.** A new temporary opam root, compiler and
+   all 52 locked application packages were reconstructed and checked on this Mac.
+   Its application build, parallel unit tests, and full fresh-binary PTY smoke
+   passed with an explicit SDK/runtime configure workaround. The unmodified
+   bootstrap failed before application compilation. This does not validate a new
+   operating system, editor tools, cross-OS support, signing or notarization. The
+   local archive is not represented as a public production release.
 4. **Additional usability refinements.** Configurable panes, terminal-dependent
    emoji rendering and fully abstract controller view state remain
    candidates. They do not justify claiming current rendering or interaction
@@ -90,6 +94,17 @@ uv run --with pyte --with pillow python scripts/smoke-terminal.py \
   --preview /tmp/factory-tui-audit.png
 python3 scripts/smoke-package.py
 ```
+
+Opt-in compiler/dependency reconstruction (downloads, no model calls):
+
+```sh
+python3 scripts/smoke-fresh-switch.py --reconstruct --macos-compiler-workaround \
+  --report /tmp/factory-fresh-switch-new.json
+```
+
+The workaround is only for the documented macOS SDK/runtime mismatch. No project
+switch, personal shell/editor config, or install prefix changes. See distribution
+and testing docs for prerequisites and scope.
 
 Optional installed-agent loopback integration (dummy credentials only):
 

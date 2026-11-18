@@ -166,8 +166,11 @@ Acceptance does not merge, push, or delete a workspace.
    checks verify browsing menus starts no invocation.
    UI guidance and visual verification are in `docs/ui-parity.md`.
    Standalone install and repeatable local archive packaging include build metadata,
-   dependency lock, operational docs, and temporary-install checks. Signing,
-   notarization, and fresh-machine lock reconstruction are not verified. Local
+   dependency lock, operational docs, and temporary-install checks. Fresh temporary
+   opam-root/compiler reconstruction from the lock passed on this Mac with an
+   explicitly recorded compiler workaround; all locked packages and the fresh
+   binary's parallel/terminal tests were verified. Signing, notarization, clean-OS
+   validation, editor-tool reconstruction, and cross-OS support remain unverified. Local
    build/footprint measurements are in `docs/distribution.md`.
    Do not claim a GUI performance advantage without a comparable measurement.
 
@@ -310,3 +313,12 @@ and anchor lists still rebuild for a changed message list. Pure identity/lifecyc
 tests and the existing streaming/search/history PTY checks verify this optimization.
 No cache state is persisted. Native command fixtures now include failure case,
 iteration, and concurrent-worker context; deadlines and scheduling are unchanged.
+
+The opt-in `scripts/smoke-fresh-switch.py --reconstruct` installs the lock into a
+new temporary opam root and empty switch, compares exact package versions, builds
+in a separate Dune directory, and runs unit/terminal checks against that binary.
+The documented macOS compiler workaround is explicit, platform-scoped, and included
+in the report; it is not an OxCaml migration. The first unmodified bootstrap
+failed at caml_unix_pipe; the workaround reconstruction passed without changing
+locked versions or disabling the opam build sandbox. Evidence and limits are in
+`docs/verification/fresh-switch-macos.json` and `docs/distribution.md`.
